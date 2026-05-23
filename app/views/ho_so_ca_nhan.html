@@ -1,0 +1,163 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Hồ sơ cá nhân | MedPro{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="container" style="padding-top: 24px; padding-bottom: 40px;">
+        <div style="margin-bottom: 24px;">
+            <h1 class="page-title">Hồ sơ cá nhân</h1>
+            <p class="page-subtitle">Cập nhật thông tin cá nhân và sức khỏe của bạn</p>
+        </div>
+
+        {% if benh_nhan %}
+        <form method="POST" action="{{ url_for('benh_nhan.cap_nhat_ho_so') }}">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+            <div class="profile-grid">
+                <!-- Cột trái: Thông tin cá nhân -->
+                <div class="card">
+                    <h3 class="profile-section-title"><i class="fas fa-user" style="color:var(--primary);"></i> Thông tin cá nhân</h3>
+
+                    <div class="form-group">
+                        <label class="form-label" for="ma_benh_nhan">Mã bệnh nhân</label>
+                        <input type="text" id="ma_benh_nhan" class="form-control" value="{{ benh_nhan.ma_benh_nhan }}" disabled title="Mã bệnh nhân">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="ho_ten">Họ tên</label>
+                        <input type="text" id="ho_ten" name="ho_ten" class="form-control" value="{{ benh_nhan.ho_ten }}" required placeholder="Nhập họ tên">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email</label>
+                        <input type="email" id="email" name="email" class="form-control" value="{{ benh_nhan.email }}" placeholder="your@gmail.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="so_dien_thoai">Số điện thoại</label>
+                        <input type="text" id="so_dien_thoai" name="so_dien_thoai" class="form-control" value="{{ benh_nhan.so_dien_thoai or '' }}" placeholder="0123 456 789">
+                    </div>
+                    <div class="profile-row-2">
+                        <div class="form-group">
+                            <label class="form-label" for="ngay_sinh">Ngày sinh</label>
+                            <input type="date" id="ngay_sinh" name="ngay_sinh" class="form-control" value="{{ benh_nhan.ngay_sinh or '' }}" title="Ngày sinh">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="gioi_tinh">Giới tính</label>
+                            <select id="gioi_tinh" name="gioi_tinh" class="form-control" title="Giới tính">
+                                <option value="Nam" {{ 'selected' if benh_nhan.gioi_tinh == 'Nam' }}>Nam</option>
+                                <option value="Nữ" {{ 'selected' if benh_nhan.gioi_tinh == 'Nữ' }}>Nữ</option>
+                                <option value="Khác" {{ 'selected' if benh_nhan.gioi_tinh == 'Khác' }}>Khác</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="dia_chi">Địa chỉ</label>
+                        <input type="text" id="dia_chi" name="dia_chi" class="form-control" value="{{ benh_nhan.dia_chi or '' }}" placeholder="Nhập địa chỉ">
+                    </div>
+
+                    <h3 class="profile-section-title" style="margin-top:20px;"><i class="fas fa-shield-alt" style="color:var(--info);"></i> Bảo hiểm & Liên hệ</h3>
+                    <div class="form-group">
+                        <label class="form-label" for="bao_hiem_y_te">Số BHYT</label>
+                        <input type="text" id="bao_hiem_y_te" name="bao_hiem_y_te" class="form-control" value="{{ benh_nhan.bao_hiem_y_te or '' }}" placeholder="Nhập số bảo hiểm y tế">
+                    </div>
+                    <div class="profile-row-2">
+                        <div class="form-group">
+                            <label class="form-label" for="nguoi_lien_he">Người liên hệ khẩn cấp</label>
+                            <input type="text" id="nguoi_lien_he" name="nguoi_lien_he" class="form-control" value="{{ benh_nhan.nguoi_lien_he or '' }}" placeholder="Họ tên người thân">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="sdt_lien_he">SĐT liên hệ</label>
+                            <input type="text" id="sdt_lien_he" name="sdt_lien_he" class="form-control" value="{{ benh_nhan.sdt_lien_he or '' }}" placeholder="0123 456 789">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cột phải: Sức khỏe -->
+                <div class="card">
+                    <h3 class="profile-section-title"><i class="fas fa-heartbeat" style="color:var(--danger);"></i> Chỉ số sức khỏe</h3>
+
+                    <div class="profile-row-2">
+                        <div class="form-group">
+                            <label class="form-label" for="nhom_mau">Nhóm máu</label>
+                            <select id="nhom_mau" name="nhom_mau" class="form-control" title="Nhóm máu">
+                                <option value="">-- Chọn --</option>
+                                {% for nm in ['A+','A-','B+','B-','O+','O-','AB+','AB-'] %}
+                                <option value="{{ nm }}" {{ 'selected' if benh_nhan.nhom_mau == nm }}>{{ nm }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="huyet_ap">Huyết áp</label>
+                            <input type="text" id="huyet_ap" name="huyet_ap" class="form-control" value="{{ benh_nhan.huyet_ap or '' }}" placeholder="120/80">
+                        </div>
+                    </div>
+
+                    <div class="profile-row-3">
+                        <div class="form-group">
+                            <label class="form-label" for="chieu_cao">Chiều cao (cm)</label>
+                            <input type="number" id="chieu_cao" name="chieu_cao" class="form-control" value="{{ benh_nhan.chieu_cao or '' }}" step="0.1" placeholder="170">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="can_nang">Cân nặng (kg)</label>
+                            <input type="number" id="can_nang" name="can_nang" class="form-control" value="{{ benh_nhan.can_nang or '' }}" step="0.1" placeholder="65">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="nhip_tim">Nhịp tim (bpm)</label>
+                            <input type="number" id="nhip_tim" name="nhip_tim" class="form-control" value="{{ benh_nhan.nhip_tim or '' }}" placeholder="72">
+                        </div>
+                    </div>
+
+                    <h3 class="profile-section-title" style="margin-top:20px;"><i class="fas fa-notes-medical" style="color:var(--warning);"></i> Tiền sử bệnh</h3>
+                    <div class="form-group">
+                        <label class="form-label" for="tien_su_benh">Tiền sử bệnh</label>
+                        <textarea id="tien_su_benh" name="tien_su_benh" class="form-control" rows="3" placeholder="Các bệnh đã từng mắc, phẫu thuật...">{{ benh_nhan.tien_su_benh or '' }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="di_ung">Dị ứng</label>
+                        <textarea id="di_ung" name="di_ung" class="form-control" rows="2" placeholder="Thuốc, thức ăn, hóa chất...">{{ benh_nhan.di_ung or '' }}</textarea>
+                    </div>
+
+                    <div style="margin-top:24px;">
+                        <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-save"></i> Lưu thay đổi</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+        {% else %}
+        <div class="card" style="text-align:center;padding:60px;">
+            <div style="font-size:3rem;margin-bottom:12px;"><i class="fas fa-user-plus" style="color:var(--primary);"></i></div>
+            <h3 style="font-weight:700;">Chưa có hồ sơ bệnh nhân</h3>
+            <p style="color:var(--gray-500);margin-top:8px;">Vui lòng liên hệ admin hoặc đặt lịch khám để tạo hồ sơ.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    max-width: 900px;
+}
+.profile-section-title {
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+.profile-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.profile-row-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+}
+@media (max-width: 768px) {
+    .profile-grid,
+    .profile-row-2,
+    .profile-row-3 {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

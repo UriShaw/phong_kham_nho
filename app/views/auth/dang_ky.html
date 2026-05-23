@@ -1,0 +1,83 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Đăng ký - MedPro{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; background: linear-gradient(135deg, #f0fdf4, #ecfdf5, #f0f9ff);">
+    <div class="animate-fade-in-up" style="width: 100%; max-width: 480px;">
+        <!-- Logo -->
+        <div class="text-center mb-24">
+            <a href="{{ url_for('benh_nhan.trang_chu') }}" style="display: inline-flex; align-items: center; gap: 10px; font-size: 1.5rem; font-weight: 800; color: var(--primary-dark);">
+                <div style="width: 44px; height: 44px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: white;">
+                    <i class="fas fa-plus"></i>
+                </div>
+                Medpro
+            </a>
+        </div>
+
+        <!-- Form Card -->
+        <div class="glass-card" style="padding: 40px;">
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; text-align: center;">Đăng ký tài khoản</h2>
+            <p style="color: var(--gray-500); text-align: center; margin-bottom: 32px; font-size: 0.9rem;">Tạo tài khoản để đặt lịch khám</p>
+
+            <form method="POST" action="{{ url_for('auth.dang_ky') }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-user" style="margin-right: 6px; color: var(--gray-400);"></i>Họ và tên</label>
+                    <input type="text" name="ho_ten" class="form-control" placeholder="Nguyễn Văn A" required
+                           value="{{ request.form.get('ho_ten', '') }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-envelope" style="margin-right: 6px; color: var(--gray-400);"></i>Email</label>
+                    <input type="email" name="email" class="form-control" placeholder="example@email.com" required
+                           value="{{ request.form.get('email', '') }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-phone" style="margin-right: 6px; color: var(--gray-400);"></i>Số điện thoại</label>
+                    <input type="tel" name="so_dien_thoai" class="form-control" placeholder="0901234567" required
+                           value="{{ request.form.get('so_dien_thoai', '') }}">
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Ngày sinh</label>
+                        <input type="date" name="ngay_sinh" class="form-control" value="{{ request.form.get('ngay_sinh', '') }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Giới tính</label>
+                        <select name="gioi_tinh" class="form-control">
+                            <option value="Nam">Nam</option>
+                            <option value="Nữ">Nữ</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-lock" style="margin-right: 6px; color: var(--gray-400);"></i>Mật khẩu</label>
+                    <input type="password" name="mat_khau" class="form-control" placeholder="Tối thiểu 6 ký tự" required minlength="6">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-lock" style="margin-right: 6px; color: var(--gray-400);"></i>Xác nhận mật khẩu</label>
+                    <input type="password" name="xac_nhan_mat_khau" class="form-control" placeholder="Nhập lại mật khẩu" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin-top: 8px;">
+                    <i class="fas fa-user-plus"></i> Đăng ký
+                </button>
+            </form>
+
+            <div style="text-align: center; margin-top: 24px;">
+                <span style="color: var(--gray-500); font-size: 0.88rem;">Đã có tài khoản?</span>
+                <a href="{{ url_for('auth.dang_nhap') }}" style="font-weight: 600; margin-left: 4px;">Đăng nhập</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

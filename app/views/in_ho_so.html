@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>In Hồ sơ #{{ ho_so.id }} - MedPro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; color: #1e293b; line-height: 1.6; padding: 30px; max-width: 800px; margin: 0 auto; }
+        
+        .print-header { text-align: center; border-bottom: 3px solid #059669; padding-bottom: 20px; margin-bottom: 24px; }
+        .print-header h1 { font-size: 1.5rem; color: #059669; font-weight: 800; }
+        .print-header p { font-size: 0.85rem; color: #64748b; }
+        
+        .section { margin-bottom: 20px; }
+        .section-title { font-size: 1rem; font-weight: 700; color: #059669; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 12px; }
+        
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; font-size: 0.88rem; }
+        .info-grid .label { color: #64748b; font-weight: 600; }
+        .info-grid .value { font-weight: 500; }
+        
+        .diagnosis-box { background: #f0fdf4; border: 2px solid #059669; border-radius: 8px; padding: 16px; margin: 12px 0; }
+        .diagnosis-box .title { font-size: 0.78rem; color: #059669; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+        .diagnosis-box .content { font-size: 1.05rem; font-weight: 800; color: #0f172a; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        th, td { border: 1px solid #e2e8f0; padding: 8px 12px; text-align: left; font-size: 0.85rem; }
+        th { background: #f8fafc; font-weight: 700; color: #334155; }
+        
+        .vitals { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 12px 0; }
+        .vital-item { text-align: center; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; }
+        .vital-item .label { font-size: 0.72rem; color: #94a3b8; }
+        .vital-item .value { font-size: 1.1rem; font-weight: 800; }
+        
+        .footer { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .footer .col { text-align: center; }
+        .footer .title { font-weight: 700; font-size: 0.85rem; margin-bottom: 60px; }
+        .footer .name { font-weight: 700; }
+        
+        .print-actions { text-align: center; margin-bottom: 24px; }
+        .print-actions button { padding: 10px 24px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-family: inherit; margin: 0 4px; }
+        .btn-print { background: #059669; color: #fff; }
+        .btn-back { background: #f1f5f9; color: #475569; }
+        
+        @media print {
+            .print-actions { display: none; }
+            body { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-actions">
+        <button class="btn-print" onclick="window.print()">🖨️ In hồ sơ</button>
+        <button class="btn-back" onclick="window.close()">✕ Đóng</button>
+    </div>
+
+    <div class="print-header">
+        <h1>🏥 HỆ THỐNG MEDPRO</h1>
+        <p>Hồ sơ bệnh án điện tử</p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">I. Thông tin bệnh nhân</div>
+        <div class="info-grid">
+            <div><span class="label">Họ tên:</span> <span class="value">{{ ho_so.ten_benh_nhan }}</span></div>
+            <div><span class="label">Mã BN:</span> <span class="value">{{ ho_so.ma_benh_nhan }}</span></div>
+            <div><span class="label">Giới tính:</span> <span class="value">{{ ho_so.gioi_tinh or 'N/A' }}</span></div>
+            <div><span class="label">Ngày sinh:</span> <span class="value">{{ ho_so.ngay_sinh or 'N/A' }}</span></div>
+            <div><span class="label">Tuổi:</span> <span class="value">{{ ho_so.tuoi_bn or 'N/A' }}</span></div>
+            <div><span class="label">Nhóm máu:</span> <span class="value">{{ ho_so.nhom_mau or 'N/A' }}</span></div>
+            {% if ho_so.email_bn %}<div><span class="label">Email:</span> <span class="value">{{ ho_so.email_bn }}</span></div>{% endif %}
+            {% if ho_so.sdt_bn %}<div><span class="label">SĐT:</span> <span class="value">{{ ho_so.sdt_bn }}</span></div>{% endif %}
+        </div>
+        {% if ho_so.tien_su_benh %}
+        <div style="margin-top:8px;font-size:0.88rem;"><span class="label">Tiền sử bệnh:</span> {{ ho_so.tien_su_benh }}</div>
+        {% endif %}
+        {% if ho_so.di_ung %}
+        <div style="font-size:0.88rem;color:#dc2626;"><span class="label">⚠️ Dị ứng:</span> {{ ho_so.di_ung }}</div>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <div class="section-title">II. Thông tin khám bệnh</div>
+        <div class="info-grid">
+            <div><span class="label">Ngày khám:</span> <span class="value">{{ ho_so.ngay_kham.strftime('%d/%m/%Y') if ho_so.ngay_kham else '' }}</span></div>
+            <div><span class="label">Giờ khám:</span> <span class="value">{{ ho_so.gio_kham or '' }}</span></div>
+            <div><span class="label">Bác sĩ:</span> <span class="value">{{ ho_so.ten_hien_thi_bs }}</span></div>
+            <div><span class="label">Chuyên khoa:</span> <span class="value">{{ ho_so.ten_chuyen_khoa }}</span></div>
+            {% if ho_so.phong_kham %}<div><span class="label">Phòng khám:</span> <span class="value">{{ ho_so.phong_kham }}</span></div>{% endif %}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">III. Chỉ số sinh tồn</div>
+        <div class="vitals">
+            <div class="vital-item"><div class="label">Huyết áp</div><div class="value">{{ ho_so.huyet_ap or '--' }}</div></div>
+            <div class="vital-item"><div class="label">Nhịp tim</div><div class="value">{{ ho_so.nhip_tim or '--' }}</div></div>
+            <div class="vital-item"><div class="label">Cân nặng</div><div class="value">{{ ho_so.can_nang or '--' }}</div></div>
+            <div class="vital-item"><div class="label">Nhiệt độ</div><div class="value">{{ ho_so.nhiet_do or '--' }}</div></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">IV. Chẩn đoán</div>
+        {% if ho_so.ly_do %}<p style="font-size:0.88rem;margin-bottom:4px;"><strong>Lý do khám:</strong> {{ ho_so.ly_do }}</p>{% endif %}
+        {% if ho_so.trieu_chung %}<p style="font-size:0.88rem;margin-bottom:4px;"><strong>Triệu chứng:</strong> {{ ho_so.trieu_chung }}</p>{% endif %}
+        <div class="diagnosis-box">
+            <div class="title">Chẩn đoán</div>
+            <div class="content">{{ ho_so.chan_doan or 'Chưa ghi' }}</div>
+        </div>
+        {% if ho_so.ghi_chu_lam_sang %}
+        <p style="font-size:0.88rem;"><strong>Ghi chú lâm sàng:</strong><br>{{ ho_so.ghi_chu_lam_sang }}</p>
+        {% endif %}
+        {% if ho_so.hen_tai_kham %}
+        <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;margin-top:12px;font-size:0.88rem;">
+            <strong>📅 Hẹn tái khám:</strong> {{ ho_so.hen_tai_kham }}
+        </div>
+        {% endif %}
+    </div>
+
+    {% if don_thuoc and don_thuoc.chi_tiet %}
+    <div class="section">
+        <div class="section-title">V. Đơn thuốc</div>
+        <table>
+            <thead>
+                <tr><th>#</th><th>Tên thuốc</th><th>Hoạt chất</th><th>Liều dùng</th><th>SL</th><th>Đơn vị</th><th>Ghi chú</th></tr>
+            </thead>
+            <tbody>
+                {% for ct in don_thuoc.chi_tiet %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td style="font-weight:700;">{{ ct.ten_thuoc }}</td>
+                    <td>{{ ct.hoat_chat or '-' }}</td>
+                    <td>{{ ct.lieu_dung or '-' }}</td>
+                    <td>{{ ct.so_luong }}</td>
+                    <td>{{ ct.don_vi }}</td>
+                    <td>{{ ct.ghi_chu or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if don_thuoc.ghi_chu %}
+        <p style="margin-top:8px;font-size:0.85rem;color:#166534;">📝 {{ don_thuoc.ghi_chu }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        <div class="col">
+            <div class="title">Bệnh nhân</div>
+            <div class="name">{{ ho_so.ten_benh_nhan }}</div>
+        </div>
+        <div class="col">
+            <div class="title">Bác sĩ phụ trách</div>
+            <div class="name">{{ ho_so.ten_hien_thi_bs }}</div>
+        </div>
+    </div>
+</body>
+</html>

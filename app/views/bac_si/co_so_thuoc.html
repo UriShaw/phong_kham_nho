@@ -1,0 +1,111 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Cơ sở dữ liệu thuốc - MedPro{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon"><i class="fas fa-heartbeat"></i></div>
+            <div class="sidebar-brand-text"><h3>MedPro</h3><span>Bác sĩ</span></div>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="{{ url_for('bac_si.dashboard') }}"><i class="fas fa-th-large"></i> Tổng quan</a></li>
+            <li><a href="{{ url_for('bac_si.lich_kham') }}"><i class="fas fa-calendar-alt"></i> Lịch hẹn</a></li>
+            <li><a href="{{ url_for('bac_si.benh_nhan_cua_toi') }}"><i class="fas fa-users"></i> Bệnh nhân</a></li>
+            <li><a href="{{ url_for('bac_si.co_so_thuoc') }}" class="active"><i class="fas fa-pills"></i> Tra cứu thuốc</a></li>
+            <li><a href="{{ url_for('bac_si.thong_tin_ca_nhan') }}"><i class="fas fa-id-badge"></i> Thông tin</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.dang_xuat') }}"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div style="margin-bottom:24px;">
+            <h1 style="font-size:1.5rem;font-weight:800;"><i class="fas fa-pills" style="color:#8b5cf6;"></i> Cơ sở dữ liệu thuốc</h1>
+            <p style="color:var(--gray-400);font-size:0.82rem;">Tra cứu thuốc theo tên hoặc theo bệnh/chẩn đoán để hỗ trợ kê đơn</p>
+        </div>
+
+        <!-- Search Forms -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+            <div class="card" style="border:2px solid {{ '#059669' if not chan_doan else '#e2e8f0' }};">
+                <h3 style="font-weight:700;font-size:1rem;margin-bottom:12px;"><i class="fas fa-search" style="color:#059669;"></i> Tìm theo tên thuốc</h3>
+                <form method="GET" style="display:flex;gap:8px;">
+                    <input type="text" name="q" class="form-control" placeholder="Nhập tên thuốc, hoạt chất, nhóm thuốc..." value="{{ keyword }}" style="flex:1;">
+                    <button class="btn btn-primary btn-sm"><i class="fas fa-search"></i> Tìm</button>
+                </form>
+            </div>
+            <div class="card" style="border:2px solid {{ '#8b5cf6' if chan_doan else '#e2e8f0' }};">
+                <h3 style="font-weight:700;font-size:1rem;margin-bottom:12px;"><i class="fas fa-stethoscope" style="color:#8b5cf6;"></i> Tìm theo bệnh/chẩn đoán</h3>
+                <form method="GET" style="display:flex;gap:8px;">
+                    <input type="text" name="chan_doan" class="form-control" placeholder="Nhập tên bệnh, chẩn đoán..." value="{{ chan_doan }}" style="flex:1;">
+                    <button class="btn btn-sm" style="background:#8b5cf6;color:#fff;"><i class="fas fa-search"></i> Tìm</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Results -->
+        {% if thuoc_list %}
+        <div class="card" style="padding:0;overflow:hidden;">
+            <div style="padding:16px 20px;background:{{ '#ecfdf5' if mode != 'by_disease' else '#f5f3ff' }};border-bottom:1px solid #e2e8f0;">
+                <strong style="color:#0f172a;">{{ thuoc_list|length }} kết quả</strong>
+                {% if chan_doan %}<span style="color:#64748b;font-size:0.85rem;"> · Thuốc phù hợp với "{{ chan_doan }}"</span>{% endif %}
+                {% if keyword %}<span style="color:#64748b;font-size:0.85rem;"> · Tìm kiếm "{{ keyword }}"</span>{% endif %}
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:30px;">#</th>
+                            <th>Tên thuốc</th>
+                            <th>Hoạt chất</th>
+                            <th>Nhóm thuốc</th>
+                            <th>Hàm lượng</th>
+                            <th>Đơn vị</th>
+                            <th>Liều dùng mẫu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for thuoc in thuoc_list %}
+                        <tr class="animate-fade-in" style="animation-delay:{{ loop.index * 0.03 }}s;">
+                            <td style="color:var(--gray-400);font-weight:600;">{{ loop.index }}</td>
+                            <td>
+                                <div style="font-weight:700;color:#0f172a;">{{ thuoc.ten_thuoc }}</div>
+                            </td>
+                            <td style="color:#64748b;font-size:0.85rem;">{{ thuoc.hoat_chat or '-' }}</td>
+                            <td><span class="badge badge-info" style="font-size:0.72rem;">{{ thuoc.nhom_thuoc or '-' }}</span></td>
+                            <td style="font-size:0.85rem;">{{ thuoc.ham_luong or '-' }}</td>
+                            <td style="font-weight:600;">{{ thuoc.don_vi or '-' }}</td>
+                            <td style="font-size:0.82rem;color:#059669;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ thuoc.lieu_dung_mau or '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% elif keyword or chan_doan %}
+        <div class="card" style="padding:60px;text-align:center;">
+            <div style="font-size:3rem;margin-bottom:12px;">💊</div>
+            <h3 style="font-weight:600;color:var(--gray-500);">Không tìm thấy thuốc</h3>
+            <p style="font-size:0.85rem;color:var(--gray-400);">Thử thay đổi từ khóa tìm kiếm</p>
+        </div>
+        {% else %}
+        <div class="card" style="padding:60px;text-align:center;">
+            <div style="font-size:4rem;margin-bottom:16px;">🔍</div>
+            <h3 style="font-weight:700;color:#0f172a;">Tra cứu cơ sở dữ liệu thuốc</h3>
+            <p style="color:#64748b;margin-bottom:24px;">Nhập từ khóa để tìm thuốc theo tên hoặc theo bệnh/chẩn đoán</p>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:500px;margin:0 auto;">
+                <a href="?q=paracetamol" class="btn btn-sm btn-outline">Paracetamol</a>
+                <a href="?q=amoxicillin" class="btn btn-sm btn-outline">Amoxicillin</a>
+                <a href="?q=omeprazole" class="btn btn-sm btn-outline">Omeprazole</a>
+                <a href="?chan_doan=viêm họng" class="btn btn-sm" style="background:#f5f3ff;color:#8b5cf6;">Viêm họng</a>
+                <a href="?chan_doan=đau dạ dày" class="btn btn-sm" style="background:#f5f3ff;color:#8b5cf6;">Đau dạ dày</a>
+                <a href="?chan_doan=cao huyết áp" class="btn btn-sm" style="background:#f5f3ff;color:#8b5cf6;">Cao huyết áp</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Hồ sơ cá nhân - Bác sĩ{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon"><i class="fas fa-heartbeat"></i></div>
+            <div class="sidebar-brand-text"><h3>MedPro</h3><span>Bác sĩ</span></div>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="{{ url_for('bac_si.dashboard') }}"><i class="fas fa-th-large"></i> Tổng quan</a></li>
+            <li><a href="{{ url_for('bac_si.lich_kham') }}"><i class="fas fa-calendar-alt"></i> Lịch hẹn</a></li>
+            <li><a href="{{ url_for('ho_so.ho_so') }}"><i class="fas fa-file-medical"></i> Hồ sơ y tế</a></li>
+            <li><a href="{{ url_for('bac_si.thong_tin_ca_nhan') }}" class="active"><i class="fas fa-user-cog"></i> Thông tin cá nhân</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.dang_xuat') }}"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div style="margin-bottom: 24px;">
+            <h1 style="font-size: 1.5rem; font-weight: 800;">Hồ sơ cá nhân</h1>
+            <p style="color: var(--gray-400); font-size: 0.82rem;">Cập nhật thông tin của bạn</p>
+        </div>
+
+        <div class="card" style="max-width: 720px;">
+            <form method="POST" action="{{ url_for('bac_si.cap_nhat_ho_so') }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Họ tên</label>
+                        <input type="text" name="ho_ten" class="form-control" value="{{ bac_si.ho_ten }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" value="{{ bac_si.email }}" placeholder="your@gmail.com">
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="text" name="so_dien_thoai" class="form-control" value="{{ bac_si.so_dien_thoai or '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Học vị</label>
+                        <input type="text" name="hoc_vi" class="form-control" value="{{ bac_si.hoc_vi or '' }}" placeholder="PGS.TS.BS, ThS.BS, BS...">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Chuyên khoa</label>
+                    <select name="chuyen_khoa_id" class="form-control">
+                        {% for ck in chuyen_khoa_list %}
+                        <option value="{{ ck.id }}" {{ 'selected' if ck.id == bac_si.chuyen_khoa_id }}>{{ ck.ten_chuyen_khoa }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Bệnh viện / Phòng khám</label>
+                    <input type="text" name="benh_vien" class="form-control" value="{{ bac_si.benh_vien or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Địa chỉ phòng khám</label>
+                    <input type="text" name="dia_chi_phong_kham" class="form-control" value="{{ bac_si.dia_chi_phong_kham or '' }}">
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Kinh nghiệm (năm)</label>
+                        <input type="number" name="kinh_nghiem" class="form-control" value="{{ bac_si.kinh_nghiem or 0 }}" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Giá khám (VNĐ)</label>
+                        <input type="number" name="gia_kham" class="form-control" value="{{ bac_si.gia_kham|int if bac_si.gia_kham else 0 }}" min="0" step="10000">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mô tả bản thân</label>
+                    <textarea name="mo_ta" class="form-control" rows="4" placeholder="Giới thiệu ngắn về kinh nghiệm và chuyên môn...">{{ bac_si.mo_ta or '' }}</textarea>
+                </div>
+
+                <div style="display:flex;gap:12px;margin-top:20px;">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu thay đổi</button>
+                    <a href="{{ url_for('bac_si.dashboard') }}" class="btn" style="background:var(--gray-100);color:var(--gray-600);">Hủy</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

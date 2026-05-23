@@ -1,0 +1,131 @@
+{% extends 'layouts/base.html' %}
+{% block title %}AI chẩn đoán triệu chứng | MedPro{% endblock %}
+
+{% block content %}
+<section class="utility-shell">
+    <div class="container">
+        <div class="utility-hero-main" style="margin-bottom:20px;">
+            <div>
+                <div class="utility-kicker"><i class="fas fa-stethoscope"></i> Symptom AI</div>
+                <h1 class="utility-title">AI tra cứu bệnh theo triệu chứng</h1>
+                <p class="utility-subtitle">Mapping triệu chứng sang bệnh thường gặp, tính độ tin cậy và gợi ý bác sĩ chuyên khoa để tư vấn thêm.</p>
+            </div>
+        </div>
+
+        <div class="split-layout">
+            <div class="utility-panel">
+                <div class="utility-panel-title"><h2>Triệu chứng</h2><span class="badge badge-info">{{ symptoms|length }} mục</span></div>
+                <div class="form-group">
+                    <label class="form-label">Mô tả tự do</label>
+                    <textarea id="symptomText" class="form-control" rows="5" placeholder="Ví dụ: sốt, ho khan, đau họng, mệt mỏi..."></textarea>
+                </div>
+                <div class="symptom-grid">
+                    {% for symptom in symptoms %}
+                    <label class="symptom-chip">
+                        <input type="checkbox" value="{{ symptom.id }}">
+                        <span>{{ symptom.label }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                <button id="diagnoseBtn" class="btn btn-primary btn-lg btn-block" style="margin-top:16px;">
+                    <i class="fas fa-magnifying-glass-chart"></i> Phân tích
+                </button>
+            </div>
+
+            <div class="utility-panel">
+                <div class="utility-panel-title"><h2>Kết quả</h2><span id="riskBadge" class="badge badge-info">waiting</span></div>
+                <div id="diagnosisEmpty" class="result-band">
+                    <div class="stat-icon blue"><i class="fas fa-notes-medical"></i></div>
+                    <div>
+                        <div style="font-weight:800;color:#0f172a;">Chưa có phân tích</div>
+                        <div style="font-size:0.82rem;color:#64748b;">Kết quả sẽ hiển thị theo độ tin cậy.</div>
+                    </div>
+                </div>
+                <div id="detectedSymptoms" class="alert-list" style="margin-bottom:12px;"></div>
+                <div id="diagnosisResults" class="diagnosis-result"></div>
+                <div class="alert-row warning" style="margin-top:14px;">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    <span id="disclaimer">Kết quả chỉ hỗ trợ sàng lọc ban đầu, không thay thế chẩn đoán của bác sĩ.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="utility-panel" style="margin-top:20px;">
+            <div class="utility-panel-title"><h2>Lịch sử tra cứu</h2></div>
+            <div class="diagnosis-result">
+                {% for item in history %}
+                <div class="mini-item">
+                    <strong>{{ item.ngay_tao }} · {{ item.muc_nguy_co }}</strong>
+                    <span>{{ item.trieu_chung_text or 'Tra cứu triệu chứng' }}</span>
+                </div>
+                {% else %}
+                <div class="mini-item"><strong>Chưa có lịch sử</strong><span>Đăng nhập để hệ thống lưu lịch sử tra cứu.</span></div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('diagnoseBtn').addEventListener('click', runDiagnosis);
+
+async function runDiagnosis() {
+    const button = document.getElementById('diagnoseBtn');
+    const symptoms = Array.from(document.querySelectorAll('.symptom-chip input:checked')).map(input => input.value);
+    const payload = {
+        trieu_chung_text: document.getElementById('symptomText').value,
+        symptoms
+    };
+    button.disabled = true;
+    button.innerHTML = '<span class="spinner" style="width:16px;height:16px;"></span> Đang phân tích';
+    try {
+        const response = await fetch('/tien-ich/api/chan-doan', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const json = await response.json();
+        if (!json.success) {
+            showToast(json.message || 'Không phân tích được', 'error');
+            return;
+        }
+        renderDiagnosis(json.data);
+    } finally {
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-magnifying-glass-chart"></i> Phân tích';
+    }
+}
+
+function renderDiagnosis(data) {
+    document.getElementById('diagnosisEmpty').style.display = 'none';
+    document.getElementById('riskBadge').textContent = data.risk_level;
+    document.getElementById('disclaimer').textContent = data.disclaimer;
+    document.getElementById('detectedSymptoms').innerHTML = data.detected_symptoms.map(item => `
+        <div class="alert-row info"><i class="fas fa-check"></i><span>${item.label} · ${item.specialist_hint || 'Nội tổng quát'}</span></div>
+    `).join('');
+
+    if (!data.results.length) {
+        document.getElementById('diagnosisResults').innerHTML = `
+            <div class="mini-item"><strong>Chưa đủ dữ liệu</strong><span>${data.advice}</span></div>
+        `;
+        return;
+    }
+
+    document.getElementById('diagnosisResults').innerHTML = data.results.map(item => `
+        <div class="mini-item">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;">
+                <strong>${item.name}</strong>
+                <span class="badge badge-success">${item.confidence}%</span>
+            </div>
+            <div class="confidence-bar" style="margin:8px 0;"><span style="width:${item.confidence}%"></span></div>
+            <span>${item.description}</span>
+            <div style="margin-top:8px;color:#0f766e;font-weight:800;font-size:0.82rem;">Bác sĩ: ${item.specialist}</div>
+            <div style="margin-top:4px;color:#64748b;font-size:0.82rem;">${item.advice}</div>
+            ${item.red_flags.length ? `<div class="alert-row danger" style="margin-top:8px;"><i class="fas fa-triangle-exclamation"></i><span>Dấu hiệu nguy hiểm: ${item.red_flags.join(', ')}</span></div>` : ''}
+        </div>
+    `).join('');
+}
+</script>
+{% endblock %}

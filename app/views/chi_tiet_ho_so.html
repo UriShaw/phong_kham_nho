@@ -1,0 +1,283 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Chi tiết hồ sơ #{{ ho_so.id }} | MedPro{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top:16px;padding-bottom:40px;max-width:900px;">
+    <a href="{{ url_for('ho_so.ho_so') if not is_doctor else url_for('bac_si.benh_nhan_cua_toi') }}" class="btn btn-outline btn-sm" style="margin-bottom:20px;"><i class="fas fa-arrow-left"></i> Quay lại</a>
+
+    <!-- HEADER -->
+    <div class="card" style="margin-bottom:24px;border-left:4px solid #059669;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+                <h1 style="font-size:1.5rem;font-weight:900;margin-bottom:6px;">Hồ sơ bệnh án #{{ ho_so.id }}</h1>
+                <div style="color:#64748b;font-size:0.88rem;">
+                    <span><i class="fas fa-calendar"></i> {{ ho_so.ngay_kham.strftime('%d/%m/%Y') if ho_so.ngay_kham else ho_so.ngay_tao }}</span>
+                    <span style="margin-left:14px;"><i class="fas fa-clock"></i> {{ ho_so.gio_kham or '' }}</span>
+                    {% if ho_so.phong_kham %}<span style="margin-left:14px;"><i class="fas fa-door-open"></i> {{ ho_so.phong_kham }}</span>{% endif %}
+                </div>
+                {% if ho_so.ten_benh_nhan %}
+                <div style="margin-top:8px;font-size:0.88rem;color:#475569;">
+                    <strong>Bệnh nhân:</strong> {{ ho_so.ten_benh_nhan }} ({{ ho_so.ma_benh_nhan }}) · {{ ho_so.gioi_tinh or '' }} · {{ ho_so.tuoi_bn or '' }} tuổi
+                </div>
+                {% endif %}
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <a href="{{ url_for('ho_so.in_ho_so', ho_so_id=ho_so.id) }}" class="btn btn-sm btn-outline" target="_blank"><i class="fas fa-print"></i> In</a>
+                <span class="badge badge-success" style="font-size:0.85rem;">Hoàn thành</span>
+            </div>
+        </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+        <!-- Bác sĩ -->
+        <div class="card">
+            <h3 style="font-weight:700;margin-bottom:14px;font-size:1rem;"><i class="fas fa-user-doctor" style="color:#059669;"></i> Bác sĩ phụ trách</h3>
+            <div style="font-size:0.92rem;line-height:1.8;">
+                <div><strong>{{ ho_so.ten_hien_thi_bs }}</strong></div>
+                <div style="color:#64748b;">{{ ho_so.ten_chuyen_khoa }}</div>
+            </div>
+        </div>
+        <!-- Chỉ số -->
+        <div class="card">
+            <h3 style="font-weight:700;margin-bottom:14px;font-size:1rem;"><i class="fas fa-heartbeat" style="color:#ef4444;"></i> Chỉ số lúc khám</h3>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+                <div class="text-center"><div style="font-size:0.7rem;color:#94a3b8;">Huyết áp</div><div style="font-weight:800;">{{ ho_so.huyet_ap or '--' }}</div></div>
+                <div class="text-center"><div style="font-size:0.7rem;color:#94a3b8;">Nhịp tim</div><div style="font-weight:800;">{{ ho_so.nhip_tim or '--' }}</div></div>
+                <div class="text-center"><div style="font-size:0.7rem;color:#94a3b8;">Cân nặng</div><div style="font-weight:800;">{{ ho_so.can_nang or '--' }}</div></div>
+                <div class="text-center"><div style="font-size:0.7rem;color:#94a3b8;">Nhiệt độ</div><div style="font-weight:800;">{{ ho_so.nhiet_do or '--' }}</div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chẩn đoán -->
+    <div class="card" style="margin-bottom:20px;">
+        <h3 style="font-weight:700;margin-bottom:14px;font-size:1rem;"><i class="fas fa-stethoscope" style="color:#0ea5e9;"></i> Chẩn đoán & Ghi chú</h3>
+        <div style="background:linear-gradient(135deg,#ecfdf5,#f0fdfa);border-radius:12px;padding:16px;margin-bottom:14px;">
+            <div style="font-size:0.78rem;color:#059669;font-weight:700;margin-bottom:4px;">CHẨN ĐOÁN</div>
+            <div style="font-size:1.05rem;font-weight:800;color:#0f172a;">{{ ho_so.chan_doan or 'Chưa ghi' }}</div>
+        </div>
+        {% if ho_so.ly_do %}<div style="margin-bottom:10px;"><strong>Lý do khám:</strong> {{ ho_so.ly_do }}</div>{% endif %}
+        {% if ho_so.trieu_chung %}<div style="margin-bottom:10px;"><strong>Triệu chứng:</strong> {{ ho_so.trieu_chung }}</div>{% endif %}
+        {% if ho_so.ghi_chu_lam_sang %}<div style="margin-bottom:10px;"><strong>Ghi chú lâm sàng:</strong><br><span style="color:#475569;">{{ ho_so.ghi_chu_lam_sang }}</span></div>{% endif %}
+        {% if ho_so.hen_tai_kham %}
+        <div style="background:#fffbeb;border-radius:10px;padding:12px;margin-top:12px;border:1px solid #fde68a;">
+            <i class="fas fa-calendar-check" style="color:#d97706;"></i> <strong>Hẹn tái khám:</strong> {{ ho_so.hen_tai_kham }}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Đơn thuốc -->
+    <!-- Đơn thuốc -->
+    <div class="card" style="margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <h3 style="font-weight:700;font-size:1rem;margin:0;"><i class="fas fa-prescription" style="color:#8b5cf6;"></i> Đơn thuốc</h3>
+            {% if is_doctor %}
+            <div style="display:flex;gap:6px;">
+                {% if don_thuoc %}
+                <button class="btn btn-sm" style="background:#fef3c7;color:#d97706;" onclick="openSuaDon()"><i class="fas fa-edit"></i> Sửa đơn</button>
+                <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;" onclick="xoaDonThuoc()"><i class="fas fa-trash"></i> Xóa đơn</button>
+                {% else %}
+                <button class="btn btn-sm btn-primary" onclick="openTaoDon()"><i class="fas fa-plus"></i> Kê đơn thuốc</button>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        {% if don_thuoc and don_thuoc.chi_tiet %}
+        <div class="table-responsive">
+            <table class="smart-table" style="margin:0;">
+                <thead><tr><th>Thuốc</th><th>Hoạt chất</th><th>Liều dùng</th><th>SL</th><th>Đơn vị</th><th>Ghi chú</th></tr></thead>
+                <tbody>
+                {% for ct in don_thuoc.chi_tiet %}
+                <tr>
+                    <td style="font-weight:700;">{{ ct.ten_thuoc }}</td>
+                    <td style="color:#64748b;">{{ ct.hoat_chat or '-' }}</td>
+                    <td>{{ ct.lieu_dung or '-' }}</td>
+                    <td>{{ ct.so_luong }}</td>
+                    <td>{{ ct.don_vi }}</td>
+                    <td>{{ ct.ghi_chu or '-' }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if don_thuoc.ghi_chu %}
+        <div style="margin-top:12px;padding:10px 14px;background:#f0fdf4;border-radius:8px;font-size:0.85rem;color:#166534;"><i class="fas fa-info-circle"></i> {{ don_thuoc.ghi_chu }}</div>
+        {% endif %}
+        {% else %}
+        <div style="padding:30px;text-align:center;color:#94a3b8;">
+            <div style="font-size:2rem;margin-bottom:8px;">💊</div>
+            <p>Chưa có đơn thuốc</p>
+            {% if is_doctor %}
+            <button class="btn btn-sm btn-primary" onclick="openTaoDon()"><i class="fas fa-plus"></i> Kê đơn ngay</button>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    {% if ho_so.tien_su_benh or ho_so.di_ung or ho_so.nhom_mau %}
+    <div class="card" style="margin-bottom:20px;">
+        <h3 style="font-weight:700;margin-bottom:14px;font-size:1rem;"><i class="fas fa-notes-medical" style="color:#f59e0b;"></i> Thông tin bệnh nhân</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:0.88rem;">
+            <div><strong>Nhóm máu:</strong><br>{{ ho_so.nhom_mau or 'N/A' }}</div>
+            <div><strong>Tiền sử bệnh:</strong><br>{{ ho_so.tien_su_benh or 'Không có' }}</div>
+            <div><strong style="color:#ef4444;">Dị ứng:</strong><br>{{ ho_so.di_ung or 'Không có' }}</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- SỬA HỒ SƠ (chỉ bác sĩ mới thấy) -->
+    {% if is_doctor %}
+    <div class="card" style="margin-bottom:20px;border:2px solid #f59e0b;">
+        <h3 style="font-weight:700;margin-bottom:14px;font-size:1rem;"><i class="fas fa-edit" style="color:#f59e0b;"></i> Chỉnh sửa hồ sơ</h3>
+        <form method="POST" action="{{ url_for('ho_so.sua_ho_so', ho_so_id=ho_so.id) }}">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label class="form-label" for="edit_chan_doan">Chẩn đoán</label>
+                <input type="text" id="edit_chan_doan" name="chan_doan" class="form-control" value="{{ ho_so.chan_doan or '' }}" placeholder="Nhập chẩn đoán">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="edit_ghi_chu">Ghi chú lâm sàng</label>
+                <textarea id="edit_ghi_chu" name="ghi_chu_lam_sang" class="form-control" rows="3" placeholder="Nhập ghi chú lâm sàng">{{ ho_so.ghi_chu_lam_sang or '' }}</textarea>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;">
+                <div class="form-group"><label class="form-label" for="edit_huyet_ap">Huyết áp</label><input id="edit_huyet_ap" name="huyet_ap" class="form-control" value="{{ ho_so.huyet_ap or '' }}" placeholder="120/80"></div>
+                <div class="form-group"><label class="form-label" for="edit_nhip_tim">Nhịp tim</label><input id="edit_nhip_tim" name="nhip_tim" type="number" class="form-control" value="{{ ho_so.nhip_tim or '' }}" placeholder="72"></div>
+                <div class="form-group"><label class="form-label" for="edit_can_nang">Cân nặng</label><input id="edit_can_nang" name="can_nang" type="number" step="0.1" class="form-control" value="{{ ho_so.can_nang or '' }}" placeholder="65"></div>
+                <div class="form-group"><label class="form-label" for="edit_nhiet_do">Nhiệt độ</label><input id="edit_nhiet_do" name="nhiet_do" type="number" step="0.1" class="form-control" value="{{ ho_so.nhiet_do or '' }}" placeholder="36.5"></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="edit_tai_kham">Hẹn tái khám</label>
+                <input type="date" id="edit_tai_kham" name="hen_tai_kham" class="form-control" value="{{ ho_so.hen_tai_kham or '' }}" title="Ngày tái khám">
+            </div>
+            <div style="display:flex;gap:12px;">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu thay đổi</button>
+            </div>
+        </form>
+        <form method="POST" action="{{ url_for('ho_so.xoa_ho_so', ho_so_id=ho_so.id) }}" onsubmit="return confirm('⚠️ Xóa hồ sơ này? Không thể hoàn tác!')" style="margin-top:12px;">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn" style="background:#fee2e2;color:#dc2626;"><i class="fas fa-trash"></i> Xóa hồ sơ</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <div style="text-align:center;margin-top:20px;">
+        <a href="{{ url_for('ho_so.ho_so') if not is_doctor else url_for('bac_si.benh_nhan_cua_toi') }}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Quay lại</a>
+    </div>
+</div>
+
+<!-- MODAL KÊ / SỬA ĐƠN THUỐC -->
+{% if is_doctor %}
+<div id="donThuocModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+<div style="background:#fff;border-radius:20px;padding:28px;max-width:750px;width:95%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+<div style="display:flex;justify-content:space-between;margin-bottom:20px;"><h2 style="margin:0;font-weight:900;" id="donModalTitle">💊 Kê đơn thuốc</h2><button onclick="document.getElementById('donThuocModal').style.display='none'" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">&times;</button></div>
+
+<div class="form-group"><label class="form-label">🩺 Gợi ý thuốc theo bệnh</label>
+<div style="display:flex;gap:8px;"><input type="text" id="goiYBenh2" class="form-control" placeholder="Nhập tên bệnh..." value="{{ ho_so.chan_doan or '' }}"><button class="btn btn-sm" style="background:#ede9fe;color:#7c3aed;white-space:nowrap;" onclick="goiYThuoc()"><i class="fas fa-magic"></i> Gợi ý</button></div>
+<div id="goiYBox" style="max-height:200px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;display:none;margin-top:4px;"></div></div>
+
+<div class="form-group"><label class="form-label">🔍 Tìm thuốc thủ công</label>
+<input type="text" id="timThuoc2" class="form-control" placeholder="Nhập tên thuốc..." oninput="timThuocDebounce(this.value)">
+<div id="timBox" style="max-height:200px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;display:none;margin-top:4px;"></div></div>
+
+<div id="dsThuocBox" style="margin-bottom:16px;"></div>
+<div class="form-group"><label class="form-label">Ghi chú đơn</label><textarea id="donGhiChu2" class="form-control" rows="2">{{ don_thuoc.ghi_chu or '' if don_thuoc else '' }}</textarea></div>
+<button class="btn btn-primary btn-block" onclick="luuDon()" id="btnLuuDon"><i class="fas fa-save"></i> Lưu đơn thuốc</button>
+</div></div>
+
+<div id="jinja-data" hidden
+    data-ho-so-id="{{ ho_so.id }}"
+    data-bn-id="{{ ho_so.benh_nhan_id }}"
+    data-don-id="{{ don_thuoc.id if don_thuoc else '' }}"
+    data-don-ghi-chu="{{ don_thuoc.ghi_chu|default('',true)|e if don_thuoc else '' }}"
+    data-don-chi-tiet='{% if don_thuoc and don_thuoc.chi_tiet %}[{% for ct in don_thuoc.chi_tiet %}{"ten_thuoc":"{{ ct.ten_thuoc|e }}","hoat_chat":"{{ ct.hoat_chat|default('',true)|e }}","lieu_dung":"{{ ct.lieu_dung|default('',true)|e }}","so_luong":{{ ct.so_luong|default(1,true) }},"don_vi":"{{ ct.don_vi|default('viên',true) }}","ghi_chu":"{{ ct.ghi_chu|default('',true)|e }}"}{{ "," if not loop.last }}{% endfor %}]{% else %}[]{% endif %}'
+></div>
+
+<script>
+const _jd = document.getElementById('jinja-data').dataset;
+const HO_SO_ID = parseInt(_jd.hoSoId);
+const BN_ID = parseInt(_jd.bnId);
+const DON_ID = _jd.donId ? parseInt(_jd.donId) : null;
+let dsThuoc = [];
+let _timer = null;
+let isEdit = false;
+
+function openTaoDon(){
+  isEdit=false;
+  document.getElementById('donModalTitle').textContent='💊 Kê đơn thuốc';
+  document.getElementById('btnLuuDon').innerHTML='<i class="fas fa-save"></i> Lưu đơn thuốc';
+  dsThuoc=[];
+  document.getElementById('donGhiChu2').value='';
+  renderDs();
+  document.getElementById('donThuocModal').style.display='flex';
+}
+function openSuaDon(){
+  isEdit=true;
+  document.getElementById('donModalTitle').textContent='✏️ Sửa đơn thuốc #'+DON_ID;
+  document.getElementById('btnLuuDon').innerHTML='<i class="fas fa-save"></i> Cập nhật đơn';
+  try { dsThuoc = JSON.parse(_jd.donChiTiet); } catch(e) { dsThuoc = []; }
+  document.getElementById('donGhiChu2').value = _jd.donGhiChu;
+  renderDs();
+  document.getElementById('donThuocModal').style.display='flex';
+}
+
+async function goiYThuoc(){
+  const q=document.getElementById('goiYBenh2').value.trim();
+  const box=document.getElementById('goiYBox');
+  if(q.length<2){box.style.display='none';return;}
+  box.innerHTML='<div style="padding:10px;color:#7c3aed;"><i class="fas fa-spinner fa-spin"></i> Đang tìm...</div>';
+  box.style.display='block';
+  const r=await fetch('/bac-si/api/thuoc-theo-benh?chan_doan='+encodeURIComponent(q));
+  const j=await r.json();
+  if(!j.success||!j.data.items.length){box.innerHTML='<div style="padding:10px;color:#94a3b8;">Không tìm thấy thuốc phù hợp</div>';return;}
+  box.innerHTML='<div style="padding:6px 12px;background:#ede9fe;color:#7c3aed;font-size:0.8rem;font-weight:600;">'+j.data.items.length+' thuốc gợi ý — click để thêm</div>'+j.data.items.map(t=>`<div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid #f1f5f9;font-size:0.85rem;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background=''" onclick="addThuoc(${JSON.stringify(t).replace(/"/g,'&quot;')})"><strong>${t.ten_thuoc}</strong> <small style="color:#64748b;">${t.ham_luong||''} · ${t.nhom_thuoc||''}</small></div>`).join('');
+}
+
+function timThuocDebounce(q){clearTimeout(_timer);_timer=setTimeout(()=>timThuocFn(q),300);}
+async function timThuocFn(q){
+  const box=document.getElementById('timBox');
+  if(q.length<2){box.style.display='none';return;}
+  const r=await fetch('/bac-si/api/search-thuoc?q='+encodeURIComponent(q));
+  const j=await r.json();
+  if(!j.success||!j.data.items.length){box.innerHTML='<div style="padding:10px;color:#94a3b8;">Không tìm thấy</div>';box.style.display='block';return;}
+  box.innerHTML=j.data.items.map(t=>`<div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid #f1f5f9;font-size:0.85rem;" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background=''" onclick="addThuoc(${JSON.stringify(t).replace(/"/g,'&quot;')})"><strong>${t.ten_thuoc}</strong> <small style="color:#64748b;">${t.ham_luong||''}</small></div>`).join('');
+  box.style.display='block';
+}
+function addThuoc(t){
+  dsThuoc.push({ten_thuoc:t.ten_thuoc,hoat_chat:t.hoat_chat||'',lieu_dung:t.lieu_dung_mau||t.lieu_dung||'',so_luong:10,don_vi:t.don_vi||'viên',ghi_chu:''});
+  renderDs();
+  document.getElementById('timThuoc2').value='';
+  document.getElementById('timBox').style.display='none';
+}
+function delThuoc(i){dsThuoc.splice(i,1);renderDs();}
+function renderDs(){
+  const box=document.getElementById('dsThuocBox');
+  if(!dsThuoc.length){box.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:0.85rem;background:#f8fafc;border-radius:12px;">Nhập tên bệnh để gợi ý hoặc tìm thuốc thủ công</div>';return;}
+  box.innerHTML='<div style="font-size:0.8rem;color:#059669;font-weight:600;margin-bottom:6px;">📋 '+dsThuoc.length+' loại thuốc</div><table class="smart-table" style="margin:0;"><thead><tr><th>Thuốc</th><th>Liều dùng</th><th>SL</th><th>ĐV</th><th>Ghi chú</th><th></th></tr></thead><tbody>'+dsThuoc.map((t,i)=>`<tr><td><strong>${t.ten_thuoc}</strong></td><td><input type="text" value="${t.lieu_dung}" onchange="dsThuoc[${i}].lieu_dung=this.value" style="width:130px;padding:4px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.8rem;"></td><td><input type="number" value="${t.so_luong}" min="1" onchange="dsThuoc[${i}].so_luong=+this.value" style="width:55px;padding:4px;border:1px solid #e2e8f0;border-radius:4px;text-align:center;"></td><td>${t.don_vi}</td><td><input type="text" value="${t.ghi_chu||''}" onchange="dsThuoc[${i}].ghi_chu=this.value" style="width:90px;padding:4px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.8rem;"></td><td><button onclick="delThuoc(${i})" style="background:#fee2e2;color:#dc2626;border:none;border-radius:4px;padding:4px 8px;cursor:pointer;"><i class="fas fa-times"></i></button></td></tr>`).join('')+'</tbody></table>';
+}
+
+async function luuDon(){
+  if(!dsThuoc.length){alert('Chưa chọn thuốc nào!');return;}
+  const gc=document.getElementById('donGhiChu2').value;
+  if(isEdit && DON_ID){
+    const r=await fetch('/bac-si/api/don-thuoc/sua/'+DON_ID,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ghi_chu:gc,chi_tiet:dsThuoc})});
+    const j=await r.json();
+    if(j.success){alert('Đã cập nhật! ✅');location.reload();}else{alert(j.message||'Lỗi');}
+  } else {
+    const r=await fetch('/bac-si/api/don-thuoc/tao',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ho_so_id:HO_SO_ID,benh_nhan_id:BN_ID,ghi_chu:gc,chi_tiet:dsThuoc})});
+    const j=await r.json();
+    if(j.success){alert('Đã tạo đơn thuốc! ✅');location.reload();}else{alert(j.message||'Lỗi');}
+  }
+}
+
+async function xoaDonThuoc(){
+  if(!DON_ID||!confirm('Xóa đơn thuốc này?')) return;
+  const r=await fetch('/bac-si/api/don-thuoc/xoa/'+DON_ID,{method:'POST',headers:{'Content-Type':'application/json'}});
+  const j=await r.json();
+  if(j.success){alert('Đã xóa! ✅');location.reload();}else{alert(j.message||'Lỗi');}
+}
+
+document.getElementById('donThuocModal').addEventListener('click',function(e){if(e.target===this)this.style.display='none';});
+</script>
+{% endif %}
+{% endblock %}
+

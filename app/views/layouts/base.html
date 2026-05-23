@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="MedPro - Hệ thống đặt lịch khám bệnh trực tuyến hàng đầu Việt Nam">
+    <title>{% block title %}MedPro - Đặt Lịch Khám Bệnh{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    {% block navbar %}
+    {% include 'layouts/navbar.html' %}
+    {% endblock %}
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="toast-container" id="toast-container">
+        {% for category, message in messages %}
+        <div class="toast {{ category }}" onclick="this.remove()">
+            {% if category == 'success' %}
+            <i class="fas fa-check-circle" style="color: var(--primary); font-size: 1.2rem;"></i>
+            {% elif category == 'danger' %}
+            <i class="fas fa-exclamation-circle" style="color: var(--danger); font-size: 1.2rem;"></i>
+            {% elif category == 'warning' %}
+            <i class="fas fa-exclamation-triangle" style="color: var(--warning); font-size: 1.2rem;"></i>
+            {% else %}
+            <i class="fas fa-info-circle" style="color: var(--info); font-size: 1.2rem;"></i>
+            {% endif %}
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    {% block footer %}
+    {% include 'layouts/footer.html' %}
+    {% endblock %}
+
+    <!-- Chatbot Widget -->
+    {% if current_user %}
+    {% include 'layouts/chatbot_widget.html' %}
+    {% endif %}
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+
+    <!-- Auto-hide toasts -->
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('.toast').forEach((t, i) => {
+                setTimeout(() => {
+                    t.style.animation = 'slideInRight 0.3s ease-out reverse forwards';
+                    setTimeout(() => t.remove(), 300);
+                }, i * 200);
+            });
+        }, 4000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+{% extends 'admin/layout.html' %}
+{% block title %}Quản lý Bác sĩ - Admin{% endblock %}
+{% set active_page = 'bac_si' %}
+
+{% block admin_content %}
+<div class="adm-page-header anim-up">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div>
+            <h1><i class="fas fa-user-md" style="color:#059669;margin-right:8px;"></i>Quản lý Bác sĩ</h1>
+            <p>Tổng: {{ result.total }} bác sĩ</p>
+        </div>
+        <form method="GET" class="adm-toolbar" style="margin:0;">
+            <input type="text" name="q" class="adm-search" placeholder="Tìm kiếm..." value="{{ search }}">
+            <button type="submit" class="adm-btn primary"><i class="fas fa-search"></i></button>
+        </form>
+    </div>
+</div>
+
+<div class="adm-panel anim-up" style="--delay:.1s;padding:0;overflow:hidden;">
+    <div style="overflow-x:auto;">
+        <table class="adm-table">
+            <thead>
+                        <tr>
+                            <th>Mã BS</th><th>Họ tên</th><th>Chuyên khoa</th><th>Bệnh viện</th>
+                            <th>K.nghiệm</th><th>Giá khám</th><th>Đánh giá</th><th>Trạng thái</th>
+                            <th style="text-align:center;">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bs in result.danh_sach %}
+                        <tr>
+                            <td><span class="adm-badge blue">{{ bs.ma_bac_si }}</span></td>
+                            <td style="font-weight:600;">{{ bs.ten_hien_thi }}</td>
+                            <td>{{ bs.ten_chuyen_khoa }}</td>
+                            <td style="font-size:0.82rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ bs.benh_vien }}</td>
+                            <td>{{ bs.kinh_nghiem }} năm</td>
+                            <td style="font-weight:600;color:var(--primary);">{{ '{:,.0f}'.format(bs.gia_kham) }}đ</td>
+                            <td><i class="fas fa-star" style="color:#F59E0B;"></i> {{ bs.danh_gia }}</td>
+                            <td>
+                                {% if bs.trang_thai_duyet == 'da_duyet' %}<span class="adm-badge green">Đã duyệt</span>
+                                {% elif bs.trang_thai_duyet == 'cho_duyet' %}<span class="adm-badge yellow">Chờ duyệt</span>
+                                {% else %}<span class="adm-badge red">Từ chối</span>{% endif %}
+                            </td>
+                            <td style="text-align:center;">
+                                <div style="display:flex;gap:4px;justify-content:center;">
+                                    {% if bs.trang_thai_duyet == 'cho_duyet' %}
+                                    <form method="POST" action="{{ url_for('admin.duyet_bac_si', bac_si_id=bs.id, trang_thai='da_duyet') }}">
+                                        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm" style="background:var(--primary-100);color:var(--primary);padding:4px 10px;" title="Duyệt"><i class="fas fa-check"></i></button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('admin.duyet_bac_si', bac_si_id=bs.id, trang_thai='tu_choi') }}">
+                                        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm" style="background:#FEE2E2;color:var(--danger);padding:4px 10px;" title="Từ chối"><i class="fas fa-times"></i></button>
+                                    </form>
+                                    {% endif %}
+                                    <button type="button" class="btn btn-sm btn-detail-bs"
+                                        style="background:var(--gray-100);color:var(--gray-600);padding:4px 10px;"
+                                        title="Xem chi tiết"
+                                        data-ma="{{ bs.ma_bac_si }}"
+                                        data-ho_ten="{{ bs.ho_ten }}"
+                                        data-email="{{ bs.email or '' }}"
+                                        data-chuyen_khoa="{{ bs.ten_chuyen_khoa }}"
+                                        data-benh_vien="{{ bs.benh_vien or '' }}"
+                                        data-kinh_nghiem="{{ bs.kinh_nghiem }}"
+                                        data-gia_kham="{{ bs.gia_kham }}"
+                                        data-danh_gia="{{ bs.danh_gia }}"
+                                        data-so_danh_gia="{{ bs.so_danh_gia }}"><i class="fas fa-eye"></i></button>
+                                    <button type="button" class="btn btn-sm btn-edit-bs"
+                                        style="background:#DBEAFE;color:#2563EB;padding:4px 10px;"
+                                        title="Sửa thông tin"
+                                        data-id="{{ bs.id }}"
+                                        data-ho_ten="{{ bs.ho_ten }}"
+                                        data-benh_vien="{{ bs.benh_vien or '' }}"
+                                        data-kinh_nghiem="{{ bs.kinh_nghiem }}"
+                                        data-gia_kham="{{ bs.gia_kham }}"
+                                        data-chuyen_khoa_id="{{ bs.chuyen_khoa_id }}"><i class="fas fa-edit"></i></button>
+                                    <form method="POST" action="{{ url_for('admin.xoa_bac_si', bac_si_id=bs.id) }}" onsubmit="return confirm('Xóa bác sĩ này? Hành động không thể hoàn tác!')">
+                                        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm" style="background:#FEE2E2;color:var(--danger);padding:4px 10px;" title="Xóa"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="9" style="text-align:center;padding:32px;color:var(--gray-400);">Không có bác sĩ nào.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if result.total_pages > 1 %}
+            <div style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #e2e8f0;flex-wrap:wrap;gap:12px;">
+                <div style="font-size:0.82rem;color:#64748b;">
+                    Hiển thị <strong style="color:#0f172a;">{{ ((result.page - 1) * 20) + 1 }}-{{ [result.page * 20, result.total]|min }}</strong> / <strong style="color:#0f172a;">{{ result.total }}</strong> bác sĩ
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;">
+                    {% if result.page > 1 %}
+                    <a href="?page=1&q={{ search }}" style="padding:6px 10px;border-radius:8px;background:#f1f5f9;color:#475569;font-size:0.82rem;font-weight:600;text-decoration:none;transition:all 0.2s;" title="Trang đầu"><i class="fas fa-angles-left"></i></a>
+                    <a href="?page={{ result.page - 1 }}&q={{ search }}" style="padding:6px 12px;border-radius:8px;background:#f1f5f9;color:#475569;font-size:0.82rem;font-weight:600;text-decoration:none;transition:all 0.2s;"><i class="fas fa-chevron-left"></i> Trước</a>
+                    {% endif %}
+
+                    {% set start_p = [1, result.page - 2]|max %}
+                    {% set end_p = [result.total_pages, result.page + 2]|min %}
+                    {% if start_p > 1 %}
+                    <span style="padding:6px 8px;color:#94a3b8;font-size:0.82rem;">...</span>
+                    {% endif %}
+                    {% for p in range(start_p, end_p + 1) %}
+                    <a href="?page={{ p }}&q={{ search }}" style="padding:6px 12px;border-radius:8px;font-size:0.82rem;font-weight:700;text-decoration:none;transition:all 0.2s;min-width:36px;text-align:center;
+                        {% if p == result.page %}background:#059669;color:#fff;box-shadow:0 2px 8px rgba(5,150,105,0.3);
+                        {% else %}background:#f1f5f9;color:#475569;{% endif %}">{{ p }}</a>
+                    {% endfor %}
+                    {% if end_p < result.total_pages %}
+                    <span style="padding:6px 8px;color:#94a3b8;font-size:0.82rem;">...</span>
+                    {% endif %}
+
+                    {% if result.page < result.total_pages %}
+                    <a href="?page={{ result.page + 1 }}&q={{ search }}" style="padding:6px 12px;border-radius:8px;background:#f1f5f9;color:#475569;font-size:0.82rem;font-weight:600;text-decoration:none;transition:all 0.2s;">Sau <i class="fas fa-chevron-right"></i></a>
+                    <a href="?page={{ result.total_pages }}&q={{ search }}" style="padding:6px 10px;border-radius:8px;background:#f1f5f9;color:#475569;font-size:0.82rem;font-weight:600;text-decoration:none;transition:all 0.2s;" title="Trang cuối"><i class="fas fa-angles-right"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+    </div>
+</div>
+
+<!-- Modal Chi tiết -->
+<div id="modalDetailBS" class="adm-modal-bg">
+    <div class="adm-modal">
+        <button class="adm-modal-close" id="closeDetailBS">&times;</button>
+        <h2><i class="fas fa-user-md" style="color:#059669;"></i> Chi tiết Bác sĩ</h2>
+        <div id="detailBSContent"></div>
+    </div>
+</div>
+
+<!-- Modal Sửa -->
+<div id="modalEditBS" class="adm-modal-bg">
+    <div class="adm-modal">
+        <button class="adm-modal-close" id="closeEditBS">&times;</button>
+        <h2><i class="fas fa-edit" style="color:#0ea5e9;"></i> Sửa thông tin Bác sĩ</h2>
+        <form id="formEditBS" method="POST">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <div class="adm-form-group"><label>Họ tên</label><input type="text" name="ho_ten" id="editBS_ho_ten" required></div>
+            <div class="adm-form-group"><label>Bệnh viện</label><input type="text" name="benh_vien" id="editBS_benh_vien"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="adm-form-group"><label>Kinh nghiệm (năm)</label><input type="number" name="kinh_nghiem" id="editBS_kinh_nghiem" min="0"></div>
+                <div class="adm-form-group"><label>Giá khám (VNĐ)</label><input type="number" name="gia_kham" id="editBS_gia_kham" min="0" step="10000"></div>
+            </div>
+            <div class="adm-form-group"><label>Chuyên khoa</label>
+                <select name="chuyen_khoa_id" id="editBS_chuyen_khoa_id">{% for ck in chuyen_khoa_list %}<option value="{{ ck.id }}">{{ ck.ten_chuyen_khoa }}</option>{% endfor %}</select>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+                <button type="button" class="adm-btn gray" id="cancelEditBS">Hủy</button>
+                <button type="submit" class="adm-btn primary"><i class="fas fa-save"></i> Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block admin_css %}<style>.adm-btn.gray{background:#f1f5f9;color:#475569;}.adm-btn.gray:hover{background:#e2e8f0;}</style>{% endblock %}
+
+{% block admin_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var detailModal = document.getElementById('modalDetailBS');
+    var editModal = document.getElementById('modalEditBS');
+    function show(m){m.style.display='flex';} function hide(m){m.style.display='none';}
+    document.getElementById('closeDetailBS').onclick=()=>hide(detailModal);
+    document.getElementById('closeEditBS').onclick=()=>hide(editModal);
+    document.getElementById('cancelEditBS').onclick=()=>hide(editModal);
+    detailModal.onclick=e=>{if(e.target===detailModal)hide(detailModal);};
+    editModal.onclick=e=>{if(e.target===editModal)hide(editModal);};
+    document.querySelectorAll('.btn-detail-bs').forEach(btn=>{
+        btn.onclick=function(){
+            var d=this.dataset;
+            var html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;">';
+            [['Mã BS',d.ma],['Họ tên',d.ho_ten],['Email',d.email||'—'],['Chuyên khoa',d.chuyen_khoa],['Bệnh viện',d.benh_vien||'—'],['Kinh nghiệm',d.kinh_nghiem+' năm'],['Giá khám',Number(d.gia_kham).toLocaleString()+'đ'],['Đánh giá','⭐ '+d.danh_gia+' ('+d.so_danh_gia+' lượt)']].forEach(f=>{html+='<div><strong style="color:#94a3b8;font-size:.78rem;">'+f[0]+'</strong><br>'+f[1]+'</div>';});
+            html+='</div>'; document.getElementById('detailBSContent').innerHTML=html; show(detailModal);
+        };
+    });
+    document.querySelectorAll('.btn-edit-bs').forEach(btn=>{
+        btn.onclick=function(){
+            var d=this.dataset;
+            document.getElementById('formEditBS').action='/admin/bac-si/sua/'+d.id;
+            document.getElementById('editBS_ho_ten').value=d.ho_ten||'';
+            document.getElementById('editBS_benh_vien').value=d.benh_vien||'';
+            document.getElementById('editBS_kinh_nghiem').value=d.kinh_nghiem||0;
+            document.getElementById('editBS_gia_kham').value=d.gia_kham||0;
+            document.getElementById('editBS_chuyen_khoa_id').value=d.chuyen_khoa_id||'';
+            show(editModal);
+        };
+    });
+});
+</script>
+{% endblock %}

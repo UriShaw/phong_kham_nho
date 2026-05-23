@@ -1,0 +1,38 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Thông báo - MedPro{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1 class="page-title">Thông báo</h1>
+    </div>
+
+    {% if thong_bao_list %}
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+        {% for tb in thong_bao_list %}
+        <div class="card notification-card {{ 'notification-read' if tb.da_doc }}" data-type="{{ tb.loai }}">
+            <div style="display: flex; gap: 12px; align-items: start;">
+                <div class="notification-icon" data-type="{{ tb.loai }}">
+                    <i class="fas {{ 'fa-calendar' if tb.loai == 'lich_kham' else 'fa-credit-card' if tb.loai == 'thanh_toan' else 'fa-bell' if tb.loai == 'nhac_nho' else 'fa-info-circle' }}"></i>
+                </div>
+                <div style="flex: 1;">
+                    <h4 style="font-size: 0.9rem; font-weight: 600;">{{ tb.tieu_de }}</h4>
+                    <p style="font-size: 0.85rem; color: var(--gray-600); margin-top: 4px;">{{ tb.noi_dung }}</p>
+                    <span style="font-size: 0.72rem; color: var(--gray-400);">{{ tb.ngay_tao }}</span>
+                </div>
+                {% if not tb.da_doc %}
+                <span class="notification-dot"></span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center" style="padding: 80px;">
+        <div style="font-size: 3rem; margin-bottom: 16px;">🔔</div>
+        <h3>Không có thông báo</h3>
+        <p style="color: var(--gray-500);">Bạn sẽ nhận thông báo khi có cập nhật mới</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

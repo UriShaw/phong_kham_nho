@@ -1,0 +1,86 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Bệnh nhân của tôi - MedPro{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon"><i class="fas fa-heartbeat"></i></div>
+            <div class="sidebar-brand-text"><h3>MedPro</h3><span>Bác sĩ</span></div>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="{{ url_for('bac_si.dashboard') }}"><i class="fas fa-th-large"></i> Tổng quan</a></li>
+            <li><a href="{{ url_for('bac_si.lich_kham') }}"><i class="fas fa-calendar-alt"></i> Lịch hẹn</a></li>
+            <li><a href="{{ url_for('bac_si.benh_nhan_cua_toi') }}" class="active"><i class="fas fa-users"></i> Bệnh nhân</a></li>
+            <li><a href="{{ url_for('bac_si.co_so_thuoc') }}"><i class="fas fa-pills"></i> Tra cứu thuốc</a></li>
+            <li><a href="{{ url_for('bac_si.thong_tin_ca_nhan') }}"><i class="fas fa-id-badge"></i> Thông tin</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.dang_xuat') }}"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+            <div>
+                <h1 style="font-size:1.5rem;font-weight:800;"><i class="fas fa-users" style="color:#059669;"></i> Bệnh nhân của tôi</h1>
+                <p style="color:var(--gray-400);font-size:0.82rem;">Danh sách bệnh nhân đã/đang khám · {{ benh_nhan_list|length }} bệnh nhân</p>
+            </div>
+            <form method="GET" style="display:flex;gap:8px;">
+                <input type="text" name="q" class="form-control" placeholder="Tìm tên, mã BN..." value="{{ search }}" style="width:260px;">
+                <button class="btn btn-primary btn-sm"><i class="fas fa-search"></i></button>
+            </form>
+        </div>
+
+        {% if benh_nhan_list %}
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;">
+            {% for bn in benh_nhan_list %}
+            <div class="card animate-fade-in-up" style="animation-delay:{{ loop.index * 0.05 }}s;cursor:pointer;transition:all 0.2s;border:1px solid transparent;"
+                 onclick="window.location.href='{{ url_for('bac_si.chi_tiet_benh_nhan', benh_nhan_id=bn.id) }}'"
+                 onmouseover="this.style.borderColor='#059669';this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 30px rgba(5,150,105,0.12)'"
+                 onmouseout="this.style.borderColor='transparent';this.style.transform='none';this.style.boxShadow=''">
+                <div style="display:flex;gap:14px;align-items:center;">
+                    <div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#059669,#0891b2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <span style="font-size:1.3rem;color:#fff;font-weight:900;">{{ bn.ho_ten[0] }}</span>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:800;font-size:1rem;color:#0f172a;">{{ bn.ho_ten }}</div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+                            <span class="badge badge-info" style="font-size:0.72rem;">{{ bn.ma_benh_nhan }}</span>
+                            {% if bn.gioi_tinh %}<span style="font-size:0.78rem;color:#64748b;">{{ bn.gioi_tinh }}</span>{% endif %}
+                            {% if bn.tuoi %}<span style="font-size:0.78rem;color:#64748b;">{{ bn.tuoi }} tuổi</span>{% endif %}
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="background:#ecfdf5;border-radius:8px;padding:4px 10px;font-size:0.75rem;color:#059669;font-weight:700;">{{ bn.so_lan_kham }} lần khám</div>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid #f1f5f9;">
+                    <div style="text-align:center;">
+                        <div style="font-size:0.68rem;color:#94a3b8;">Nhóm máu</div>
+                        <div style="font-weight:800;font-size:0.92rem;color:#ef4444;">{{ bn.nhom_mau or '--' }}</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:0.68rem;color:#94a3b8;">SĐT</div>
+                        <div style="font-weight:600;font-size:0.82rem;">{{ bn.so_dien_thoai or '--' }}</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:0.68rem;color:#94a3b8;">Email</div>
+                        <div style="font-weight:600;font-size:0.72rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ bn.email or '--' }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card" style="padding:60px;text-align:center;">
+            <div style="font-size:3rem;margin-bottom:12px;">👨‍⚕️</div>
+            <h3 style="font-weight:600;color:var(--gray-500);">{% if search %}Không tìm thấy bệnh nhân "{{ search }}"{% else %}Chưa có bệnh nhân nào{% endif %}</h3>
+            <p style="font-size:0.85rem;color:var(--gray-400);">Bệnh nhân sẽ xuất hiện sau khi bạn nhận lịch khám.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Chi tiết lịch khám - MedPro{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1 class="page-title">Chi tiết lịch khám</h1>
+    </div>
+
+    <div class="grid-2" style="gap: 24px;">
+        <div class="card">
+            <h3 style="font-weight: 700; margin-bottom: 20px;"><i class="fas fa-calendar-check" style="color: var(--primary);"></i> Thông tin lịch khám</h3>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--gray-100);">
+                    <span style="color: var(--gray-500);">Mã lịch</span>
+                    <code style="background: var(--gray-100); padding: 2px 8px; border-radius: 4px;">{{ lich.ma_lich }}</code>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--gray-100);">
+                    <span style="color: var(--gray-500);">Bác sĩ</span>
+                    <strong>{{ lich.ten_hien_thi_bs }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--gray-100);">
+                    <span style="color: var(--gray-500);">Chuyên khoa</span>
+                    <span>{{ lich.ten_chuyen_khoa }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--gray-100);">
+                    <span style="color: var(--gray-500);">Ngày khám</span>
+                    <strong>{{ lich.ngay_kham }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--gray-100);">
+                    <span style="color: var(--gray-500);">Giờ khám</span>
+                    <strong>{{ lich.gio_kham }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--gray-100);">
+                    <span style="color: var(--gray-500);">Phòng</span>
+                    <span>{{ lich.phong_kham }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                    <span style="color: var(--gray-500);">Trạng thái</span>
+                    {% if lich.trang_thai == 'cho_xac_nhan' %}<span class="badge badge-warning">Chờ xác nhận</span>
+                    {% elif lich.trang_thai == 'da_xac_nhan' %}<span class="badge badge-info">Đã xác nhận</span>
+                    {% elif lich.trang_thai == 'dang_kham' %}<span class="badge badge-success">Đang khám</span>
+                    {% elif lich.trang_thai == 'hoan_thanh' %}<span class="badge badge-success">Hoàn thành</span>
+                    {% elif lich.trang_thai == 'da_huy' %}<span class="badge badge-danger">Đã hủy</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if lich.ly_do %}
+            <div style="margin-top: 20px; padding: 16px; background: var(--gray-50); border-radius: var(--radius-md);">
+                <strong>Lý do khám:</strong>
+                <p style="color: var(--gray-600); margin-top: 4px;">{{ lich.ly_do }}</p>
+            </div>
+            {% endif %}
+
+            <div style="display: flex; gap: 12px; margin-top: 24px;">
+                <a href="{{ url_for('lich_kham.danh_sach') }}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Quay lại</a>
+                {% if lich.trang_thai in ('cho_xac_nhan', 'da_xac_nhan') %}
+                <a href="{{ url_for('thanh_toan.thanh_toan', lich_id=lich.id) }}" class="btn btn-primary"><i class="fas fa-qrcode"></i> Thanh toán</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="font-weight: 700; margin-bottom: 20px;"><i class="fas fa-user-md" style="color: var(--primary);"></i> Bác sĩ khám</h3>
+            <div style="display: flex; gap: 16px; align-items: center;">
+                <div style="width: 70px; height: 70px; border-radius: 50%; background: var(--primary-100); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-user-md" style="font-size: 2rem; color: var(--primary);"></i>
+                </div>
+                <div>
+                    <h4 style="font-weight: 700;">{{ lich.ten_hien_thi_bs }}</h4>
+                    <div style="color: var(--primary); font-size: 0.88rem;">{{ lich.ten_chuyen_khoa }}</div>
+                    <div style="font-size: 0.82rem; color: var(--gray-500);">{{ lich.benh_vien }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

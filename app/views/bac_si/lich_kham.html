@@ -1,0 +1,203 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Lịch khám - MedPro{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<style>
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:24px;}
+.cal-header{padding:10px 4px;text-align:center;font-weight:700;font-size:0.78rem;color:#64748b;background:#f8fafc;border-radius:8px;}
+.cal-day{min-height:80px;padding:6px 8px;border-radius:10px;background:#fff;border:2px solid transparent;cursor:pointer;transition:all 0.2s;position:relative;}
+.cal-day:hover{border-color:#059669;box-shadow:0 2px 12px rgba(5,150,105,0.1);}
+.cal-day.empty{background:transparent;cursor:default;min-height:auto;}
+.cal-day.empty:hover{border-color:transparent;box-shadow:none;}
+.cal-day.today{background:#ecfdf5;border-color:#059669;}
+.cal-day.selected{background:#059669;border-color:#059669;color:#fff;}
+.cal-day.selected .day-num{color:#fff!important;}
+.cal-day.selected .cal-dot{background:#fff!important;color:#059669!important;}
+.cal-day.selected .cal-badge{background:rgba(255,255,255,0.25)!important;color:#fff!important;}
+.day-num{font-weight:800;font-size:0.88rem;color:#0f172a;margin-bottom:4px;}
+.cal-dot{display:inline-block;width:20px;height:20px;border-radius:50%;background:#059669;color:#fff;font-size:0.65rem;font-weight:800;line-height:20px;text-align:center;}
+.cal-badges{display:flex;gap:2px;flex-wrap:wrap;margin-top:4px;}
+.cal-badge{font-size:0.6rem;padding:1px 5px;border-radius:4px;font-weight:600;}
+.cal-badge.wait{background:#fef3c7;color:#d97706;}
+.cal-badge.confirmed{background:#dbeafe;color:#2563eb;}
+.cal-badge.done{background:#dcfce7;color:#16a34a;}
+.month-nav{display:flex;align-items:center;gap:16px;margin-bottom:16px;}
+.month-nav h2{margin:0;font-weight:900;font-size:1.3rem;min-width:200px;text-align:center;}
+.month-nav button{width:36px;height:36px;border-radius:50%;border:2px solid #e2e8f0;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all 0.2s;}
+.month-nav button:hover{border-color:#059669;color:#059669;}
+</style>
+
+<div class="dashboard-layout">
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon"><i class="fas fa-heartbeat"></i></div>
+            <div class="sidebar-brand-text"><h3>MedPro</h3><span>Bác sĩ</span></div>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="{{ url_for('bac_si.dashboard') }}"><i class="fas fa-th-large"></i> Tổng quan</a></li>
+            <li><a href="{{ url_for('bac_si.lich_kham') }}" class="active"><i class="fas fa-calendar-alt"></i> Lịch hẹn</a></li>
+            <li><a href="{{ url_for('bac_si.benh_nhan_cua_toi') }}"><i class="fas fa-users"></i> Bệnh nhân</a></li>
+            <li><a href="{{ url_for('bac_si.co_so_thuoc') }}"><i class="fas fa-pills"></i> Tra cứu thuốc</a></li>
+            <li><a href="{{ url_for('bac_si.thong_tin_ca_nhan') }}"><i class="fas fa-id-badge"></i> Thông tin</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.dang_xuat') }}"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div style="margin-bottom:24px;">
+            <h1 style="font-size:1.5rem;font-weight:800;"><i class="fas fa-calendar-alt" style="color:#059669;"></i> Lịch hẹn khám</h1>
+            <p style="color:var(--gray-400);font-size:0.82rem;">Lịch khám bệnh theo tháng — click vào ngày để xem chi tiết</p>
+        </div>
+
+        <!-- CALENDAR MONTH NAVIGATION -->
+        <div class="card animate-fade-in" style="margin-bottom:24px;">
+            <div class="month-nav" style="justify-content:center;">
+                <button onclick="changeMonth(-1)" title="Tháng trước"><i class="fas fa-chevron-left"></i></button>
+                <h2>
+                    {% set ten_thang = ['','Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'] %}
+                    📅 {{ ten_thang[thang] }}, {{ nam }}
+                </h2>
+                <button onclick="changeMonth(1)" title="Tháng sau"><i class="fas fa-chevron-right"></i></button>
+                <button onclick="goToday()" style="border-radius:8px;width:auto;padding:0 12px;font-size:0.78rem;font-weight:600;" title="Hôm nay"><i class="fas fa-crosshairs"></i> Hôm nay</button>
+            </div>
+
+            <!-- CALENDAR GRID -->
+            <div class="cal-grid">
+                <div class="cal-header">T2</div>
+                <div class="cal-header">T3</div>
+                <div class="cal-header">T4</div>
+                <div class="cal-header">T5</div>
+                <div class="cal-header">T6</div>
+                <div class="cal-header" style="color:#ef4444;">T7</div>
+                <div class="cal-header" style="color:#ef4444;">CN</div>
+
+                {% for week in month_days %}
+                {% for day in week %}
+                {% if day == 0 %}
+                <div class="cal-day empty"></div>
+                {% else %}
+                {% set day_str = '%04d-%02d-%02d'|format(nam, thang, day) %}
+                {% set info = lich_dict.get(day_str) %}
+                <div class="cal-day {{ 'today' if day_str == today else '' }} {{ 'selected' if day_str == ngay else '' }}"
+                     onclick="selectDay('{{ day_str }}')">
+                    <div class="day-num">{{ day }}</div>
+                    {% if info %}
+                    <div><span class="cal-dot">{{ info.so_lich }}</span></div>
+                    <div class="cal-badges">
+                        {% if info.cho_xn %}<span class="cal-badge wait">{{ info.cho_xn }} chờ</span>{% endif %}
+                        {% if info.da_xn %}<span class="cal-badge confirmed">{{ info.da_xn }} XN</span>{% endif %}
+                        {% if info.hoan_thanh %}<span class="cal-badge done">{{ info.hoan_thanh }} ✓</span>{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- DANH SÁCH LỊCH NGÀY ĐƯỢC CHỌN -->
+        <div class="card animate-fade-in">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 style="font-weight:800;font-size:1.1rem;margin:0;">
+                    📋 Lịch khám ngày
+                    <span style="color:#059669;">
+                        {{ ngay[8:10] }}/{{ ngay[5:7] }}/{{ ngay[0:4] }}
+                    </span>
+                    {% if lich_list %}
+                    <span class="badge badge-success" style="font-size:0.75rem;vertical-align:middle;">{{ lich_list|length }} lịch</span>
+                    {% endif %}
+                </h3>
+            </div>
+
+            {% if lich_list %}
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Giờ</th>
+                            <th>Bệnh nhân</th>
+                            <th>Mã BN</th>
+                            <th>Lý do</th>
+                            <th>Trạng thái</th>
+                            <th style="text-align:center;">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lich in lich_list %}
+                        <tr style="{{ 'background: var(--primary-50);' if lich.trang_thai == 'dang_kham' else '' }}">
+                            <td style="font-weight:600; color: var(--gray-400);">{{ loop.index }}</td>
+                            <td style="font-weight: 700; color: var(--primary);">{{ lich.gio_kham }}</td>
+                            <td style="font-weight: 600;">{{ lich.ten_benh_nhan }}</td>
+                            <td><span class="badge badge-info">{{ lich.ma_benh_nhan }}</span></td>
+                            <td style="font-size: 0.82rem; color: var(--gray-500); max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ lich.ly_do or '—' }}</td>
+                            <td>
+                                {% if lich.trang_thai == 'cho_xac_nhan' %}<span class="badge badge-warning">Chờ</span>
+                                {% elif lich.trang_thai == 'da_xac_nhan' %}<span class="badge badge-info">Đã XN</span>
+                                {% elif lich.trang_thai == 'dang_kham' %}<span class="badge badge-success">Đang khám</span>
+                                {% elif lich.trang_thai == 'hoan_thanh' %}<span class="badge badge-success">✓ Xong</span>
+                                {% elif lich.trang_thai == 'da_huy' %}<span class="badge badge-danger">Hủy</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align:center;">
+                                {% if lich.trang_thai == 'cho_xac_nhan' %}
+                                <form method="POST" action="{{ url_for('bac_si.xac_nhan_lich', lich_id=lich.id) }}" style="display:inline;">
+                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                    <button class="btn btn-sm" style="background:var(--primary-100);color:var(--primary);padding:4px 10px;font-size:0.75rem;">Xác nhận</button>
+                                </form>
+                                {% elif lich.trang_thai == 'da_xac_nhan' %}
+                                <form method="POST" action="{{ url_for('bac_si.bat_dau_kham', lich_id=lich.id) }}" style="display:inline;">
+                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                    <button class="btn btn-primary btn-sm" style="padding:4px 10px;font-size:0.75rem;">🩺 Khám</button>
+                                </form>
+                                {% elif lich.trang_thai == 'hoan_thanh' %}
+                                <span style="color:var(--gray-300);">—</span>
+                                {% endif %}
+                                {% if lich.trang_thai in ('cho_xac_nhan', 'da_xac_nhan') %}
+                                <form method="POST" action="{{ url_for('bac_si.huy_lich', lich_id=lich.id) }}" style="display:inline;" onsubmit="return confirm('Hủy lịch khám này?')">
+                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm" style="background:#FEE2E2;color:var(--danger);padding:4px 10px;font-size:0.75rem;" title="Hủy"><i class="fas fa-ban"></i></button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="padding:40px;text-align:center;">
+                <div style="font-size:3rem;margin-bottom:12px;">📅</div>
+                <h3 style="font-weight:600;color:var(--gray-500);">Không có lịch khám ngày này</h3>
+                <p style="font-size:0.85rem;color:var(--gray-400);">Click vào ngày khác trên lịch để xem</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+const THANG = {{ thang }};
+const NAM = {{ nam }};
+
+function selectDay(ngay){
+    window.location.href = '/bac-si/lich-kham?ngay='+ngay+'&thang='+THANG+'&nam='+NAM;
+}
+function changeMonth(delta){
+    let t = THANG + delta;
+    let n = NAM;
+    if(t > 12){t=1;n++;}
+    if(t < 1){t=12;n--;}
+    const firstDay = n+'-'+String(t).padStart(2,'0')+'-01';
+    window.location.href = '/bac-si/lich-kham?ngay='+firstDay+'&thang='+t+'&nam='+n;
+}
+function goToday(){
+    window.location.href = '/bac-si/lich-kham';
+}
+</script>
+{% endblock %}

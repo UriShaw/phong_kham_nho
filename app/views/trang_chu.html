@@ -1,0 +1,274 @@
+{% extends 'layouts/base.html' %}
+{% block title %}MedPro - Đặt Lịch Khám Bệnh Trực Tuyến{% endblock %}
+{% block content %}
+
+<!-- HERO -->
+<section class="mh-hero">
+  <div class="mh-hero-bg"></div>
+  <div class="mh-particles" id="particles"></div>
+  <div class="container mh-hero-body">
+    <div class="mh-hero-left">
+      <p class="mh-kicker"><span class="mh-kicker-dot"></span> Nền tảng y tế trực tuyến #1</p>
+      <h1>Sức khỏe của bạn,<br><em>ưu tiên của chúng tôi</em></h1>
+      <p class="mh-desc">Đặt lịch khám {{ thong_ke.so_chuyen_khoa }} chuyên khoa, {{ thong_ke.so_bac_si }}+ bác sĩ hàng đầu — thanh toán QR, hồ sơ số, AI hỗ trợ 24/7.</p>
+      <form action="{{ url_for('benh_nhan.tim_bac_si') }}" method="GET" class="mh-search">
+        <i class="fas fa-search"></i>
+        <input type="text" name="q" placeholder="Tìm bác sĩ, chuyên khoa, triệu chứng..." class="form-control" title="Tìm kiếm" aria-label="Tìm kiếm">
+        <button type="submit" class="btn btn-primary" title="Tìm" aria-label="Tìm">Tìm kiếm</button>
+      </form>
+      <div class="mh-ctas">
+        <a href="{{ url_for('benh_nhan.tim_bac_si') }}" class="btn btn-primary btn-lg mh-btn-glow"><i class="fas fa-calendar-check"></i> Đặt lịch ngay</a>
+        <a href="#ai-tools" class="btn btn-outline btn-lg"><i class="fas fa-robot"></i> Khám AI</a>
+      </div>
+      <div class="mh-trust">
+        <div><strong data-count="{{ thong_ke.so_bac_si }}">0</strong><span>Bác sĩ</span></div>
+        <div><strong data-count="{{ thong_ke.so_chuyen_khoa }}">0</strong><span>Chuyên khoa</span></div>
+        <div><strong data-count="{{ thong_ke.so_lich_kham }}">0</strong><span>Lượt khám</span></div>
+      </div>
+    </div>
+    <div class="mh-hero-right">
+      <div class="mh-card-stack" id="cardStack">
+        <div class="mh-fcard mh-fcard-1"><i class="fas fa-user-md"></i><div><strong>BS. Nguyễn Văn A</strong><small>Tim mạch · 15 năm</small></div></div>
+        <div class="mh-fcard mh-fcard-2"><i class="fas fa-heartbeat"></i><div><strong>Kết quả AI</strong><small>Sức khỏe tốt ✓</small></div></div>
+        <div class="mh-fcard mh-fcard-3"><i class="fas fa-calendar-check"></i><div><strong>Lịch hẹn</strong><small>Hôm nay, 14:00</small></div></div>
+        <div class="mh-blob mh-blob-1"></div>
+        <div class="mh-blob mh-blob-2"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHUYÊN KHOA -->
+<section class="mh-section" id="chuyen-khoa">
+  <div class="container">
+    <h2 class="mh-sec-title">Chuyên khoa</h2>
+    <p class="mh-sec-sub">Chọn lĩnh vực bạn cần khám</p>
+    <div class="mh-ck-wrap">
+      {% for ck in chuyen_khoa_list %}
+      <a href="{{ url_for('benh_nhan.tim_bac_si', chuyen_khoa=ck.id) }}" class="mh-ck reveal-item">
+        <div class="mh-ck-icon"><i class="fas {{ ck.icon }}"></i></div>
+        <span>{{ ck.ten_chuyen_khoa }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- BÁC SĨ -->
+<section class="mh-section mh-bg-white">
+  <div class="container">
+    <div class="mh-sec-head"><div><h2 class="mh-sec-title">Bác sĩ nổi bật</h2><p class="mh-sec-sub">Tận tâm, giàu kinh nghiệm</p></div>
+    <a href="{{ url_for('benh_nhan.tim_bac_si') }}" class="btn btn-outline btn-sm">Tất cả <i class="fas fa-arrow-right"></i></a></div>
+    <div class="mh-doc-row">
+      {% for bs in bac_si_list %}
+      <div class="mh-doc reveal-item">
+        {% if bs.avatar %}
+        <img src="{{ url_for('static', filename='uploads/avatars/' + bs.avatar) }}" alt="{{ bs.ten_hien_thi }}" class="mh-doc-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="mh-doc-ph" style="display:none"><span>{{ bs.ho_ten[0] }}</span></div>
+        {% else %}
+        <div class="mh-doc-ph"><span>{{ bs.ho_ten[0] if bs.ho_ten else 'B' }}</span></div>
+        {% endif %}
+        <h4>{{ bs.ten_hien_thi }}</h4>
+        <p class="mh-doc-ck">{{ bs.ten_chuyen_khoa }}</p>
+        <div class="mh-doc-meta"><i class="fas fa-star"></i> {{ bs.danh_gia }} · {{ bs.kinh_nghiem }} năm</div>
+        <a href="{{ url_for('lich_kham.dat_lich', bac_si_id=bs.id) }}" class="btn btn-primary btn-sm btn-block">Đặt lịch</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- QUY TRÌNH -->
+<section class="mh-section">
+  <div class="container">
+    <h2 class="mh-sec-title text-center">3 bước đặt lịch</h2>
+    <p class="mh-sec-sub text-center">Nhanh — Đơn giản — An toàn</p>
+    <div class="mh-steps">
+      <div class="mh-st reveal-item"><div class="mh-st-n">1</div><h3>Chọn bác sĩ</h3><p>Tìm theo chuyên khoa hoặc tên</p></div>
+      <div class="mh-st-line"></div>
+      <div class="mh-st reveal-item"><div class="mh-st-n">2</div><h3>Chọn giờ</h3><p>Lịch trống, chọn giờ phù hợp</p></div>
+      <div class="mh-st-line"></div>
+      <div class="mh-st reveal-item"><div class="mh-st-n">3</div><h3>Thanh toán</h3><p>QR MB Bank, xác nhận ngay</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- AI TOOLS -->
+<section class="mh-section mh-bg-white" id="ai-tools">
+  <div class="container">
+    <h2 class="mh-sec-title text-center">Công cụ AI miễn phí</h2>
+    <p class="mh-sec-sub text-center">Chăm sóc sức khỏe thông minh mỗi ngày</p>
+    <div class="mh-ai-grid">
+      <a href="{{ url_for('tien_ich.bmi_calculator') }}" class="mh-ai reveal-item">
+        <div class="mh-ai-icon mh-ai-g1"><i class="fas fa-weight"></i></div>
+        <h3>BMI 3D</h3><p>Calo, thực đơn, bài tập cá nhân hóa</p>
+      </a>
+      <a href="{{ url_for('tien_ich.chan_doan') }}" class="mh-ai reveal-item">
+        <div class="mh-ai-icon mh-ai-g2"><i class="fas fa-stethoscope"></i></div>
+        <h3>AI Triệu Chứng</h3><p>Tra bệnh, gợi ý chuyên khoa phù hợp</p>
+      </a>
+      {% if current_user %}
+      <a href="{{ url_for('tien_ich.nhat_ky_tam_trang') }}" class="mh-ai reveal-item">
+        <div class="mh-ai-icon mh-ai-g3"><i class="fas fa-brain"></i></div>
+        <h3>Nhật Ký Tâm Trạng</h3><p>AI phân tích cảm xúc, gợi ý wellness</p>
+      </a>
+      <a href="{{ url_for('tien_ich.suc_khoe_hang_ngay') }}" class="mh-ai reveal-item">
+        <div class="mh-ai-icon mh-ai-g4"><i class="fas fa-chart-line"></i></div>
+        <h3>Theo Dõi Sức Khỏe</h3><p>Giấc ngủ, nước, tâm trạng hàng ngày</p>
+      </a>
+      {% else %}
+      <a href="{{ url_for('auth.dang_ky') }}" class="mh-ai reveal-item">
+        <div class="mh-ai-icon mh-ai-g3"><i class="fas fa-brain"></i></div>
+        <h3>Nhật Ký Tâm Trạng</h3><p>Đăng ký để AI phân tích cảm xúc</p>
+      </a>
+      <a href="{{ url_for('auth.dang_ky') }}" class="mh-ai reveal-item">
+        <div class="mh-ai-icon mh-ai-g4"><i class="fas fa-chart-line"></i></div>
+        <h3>Theo Dõi Sức Khỏe</h3><p>Đăng ký theo dõi sức khỏe hàng ngày</p>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<style>
+/* HERO */
+.mh-hero{position:relative;overflow:hidden;padding:80px 0 60px;background:linear-gradient(165deg,#f0fdf4 0%,#ecfdf5 30%,#f0f9ff 70%,#f8fafc 100%);}
+.mh-hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 20%,rgba(5,150,105,.08),transparent 60%),radial-gradient(ellipse at 20% 80%,rgba(14,165,233,.06),transparent 50%);pointer-events:none;}
+.mh-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.mh-particle{position:absolute;border-radius:50%;opacity:.4;animation:mhFloat linear infinite;}
+@keyframes mhFloat{0%{transform:translateY(100vh) scale(0)}50%{opacity:.6}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+.mh-hero-body{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;position:relative;z-index:1;}
+.mh-kicker{font-size:.88rem;font-weight:700;color:#059669;margin-bottom:14px;display:flex;align-items:center;gap:8px;animation:mhUp .7s both;}
+.mh-kicker-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block;animation:mhPulse 2s ease-in-out infinite;}
+@keyframes mhPulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.4)}50%{box-shadow:0 0 0 8px rgba(34,197,94,0)}}
+.mh-hero-left h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:900;line-height:1.15;color:#0f172a;margin-bottom:16px;animation:mhUp .7s .1s both;}
+.mh-hero-left h1 em{font-style:normal;background:linear-gradient(135deg,#059669,#0ea5e9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.mh-desc{font-size:1rem;color:#64748b;line-height:1.7;margin-bottom:24px;max-width:480px;animation:mhUp .7s .2s both;}
+.mh-search{display:flex;align-items:center;gap:8px;background:#fff;border:2px solid #e2e8f0;border-radius:60px;padding:5px 5px 5px 20px;margin-bottom:18px;transition:all .3s;animation:mhUp .7s .3s both;box-shadow:0 4px 16px rgba(0,0,0,.04);}
+.mh-search:focus-within{border-color:#059669;box-shadow:0 4px 20px rgba(5,150,105,.1);}
+.mh-search>i{color:#94a3b8;flex-shrink:0;}
+.mh-search .form-control{border:0;background:0;box-shadow:none;padding:10px 6px;flex:1;}
+.mh-search .btn{border-radius:50px;padding:10px 22px;flex-shrink:0;}
+.mh-ctas{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px;animation:mhUp .7s .4s both;}
+.mh-btn-glow{box-shadow:0 4px 20px rgba(5,150,105,.25);transition:all .3s;}
+.mh-btn-glow:hover{box-shadow:0 6px 28px rgba(5,150,105,.35);transform:translateY(-2px);}
+.mh-trust{display:flex;gap:28px;animation:mhUp .7s .5s both;}
+.mh-trust div{text-align:center;}
+.mh-trust strong{display:block;font-size:1.5rem;font-weight:900;background:linear-gradient(135deg,#059669,#0ea5e9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.mh-trust span{font-size:.72rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+
+/* RIGHT - FLOATING CARDS */
+.mh-hero-right{position:relative;display:flex;align-items:center;justify-content:center;min-height:380px;}
+.mh-card-stack{position:relative;width:100%;max-width:380px;height:360px;transition:transform .15s ease-out;}
+.mh-fcard{position:absolute;display:flex;align-items:center;gap:14px;padding:16px 22px;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.06);border:1px solid rgba(255,255,255,.6);transition:transform .4s,box-shadow .4s;}
+.mh-fcard:hover{transform:translateY(-6px) scale(1.03)!important;box-shadow:0 16px 40px rgba(0,0,0,.1);}
+.mh-fcard i{font-size:1.2rem;color:#fff;flex-shrink:0;width:42px;height:42px;background:linear-gradient(135deg,#059669,#34d399);border-radius:12px;display:flex;align-items:center;justify-content:center;}
+.mh-fcard-2 i{background:linear-gradient(135deg,#0ea5e9,#38bdf8);}
+.mh-fcard-3 i{background:linear-gradient(135deg,#8b5cf6,#a78bfa);}
+.mh-fcard strong{display:block;font-size:.9rem;color:#0f172a;}
+.mh-fcard small{color:#94a3b8;font-size:.76rem;}
+.mh-fcard-1{top:10px;right:10px;animation:mhDrift1 6s ease-in-out infinite,mhUp .7s .3s both;}
+.mh-fcard-2{top:130px;left:0;animation:mhDrift2 7s ease-in-out infinite,mhUp .7s .45s both;}
+.mh-fcard-3{bottom:30px;right:30px;animation:mhDrift3 8s ease-in-out infinite,mhUp .7s .6s both;}
+.mh-blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.3;pointer-events:none;}
+.mh-blob-1{width:200px;height:200px;background:#34d399;top:20%;left:20%;animation:mhBlobA 10s ease-in-out infinite;}
+.mh-blob-2{width:160px;height:160px;background:#0ea5e9;bottom:10%;right:10%;animation:mhBlobB 12s ease-in-out infinite;}
+
+/* SECTIONS */
+.mh-section{padding:64px 0;}
+.mh-bg-white{background:#fff;}
+.mh-sec-title{font-size:1.65rem;font-weight:900;color:#0f172a;margin-bottom:6px;letter-spacing:-.3px;}
+.mh-sec-sub{color:#94a3b8;font-size:.92rem;margin-bottom:28px;}
+.mh-sec-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+.mh-sec-head .mh-sec-sub{margin-bottom:0;}
+
+/* CHUYÊN KHOA */
+.mh-ck-wrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;}
+.mh-ck{display:flex;flex-direction:column;align-items:center;padding:20px 10px;background:#fff;border:1.5px solid #f1f5f9;border-radius:14px;text-decoration:none;color:#334155;transition:all .35s;font-size:.84rem;font-weight:600;}
+.mh-ck:hover{transform:translateY(-5px);box-shadow:0 10px 28px rgba(5,150,105,.1);border-color:#a7f3d0;}
+.mh-ck-icon{width:44px;height:44px;border-radius:12px;background:#ecfdf5;display:flex;align-items:center;justify-content:center;margin-bottom:8px;font-size:1.2rem;color:#059669;transition:all .35s;}
+.mh-ck:hover .mh-ck-icon{background:#059669;color:#fff;transform:scale(1.1);}
+
+/* BÁC SĨ */
+.mh-doc-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;}
+.mh-doc{background:#fff;border:1.5px solid #f1f5f9;border-radius:16px;padding:24px;text-align:center;transition:all .35s;}
+.mh-doc:hover{transform:translateY(-6px);box-shadow:0 12px 36px rgba(0,0,0,.07);border-color:#d1fae5;}
+.mh-doc-img{width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid #d1fae5;margin:0 auto 12px;display:block;}
+.mh-doc-ph{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#ecfdf5,#d1fae5);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;}
+.mh-doc-ph span{font-size:1.6rem;font-weight:800;color:#059669;}
+.mh-doc h4{font-weight:700;font-size:.95rem;margin-bottom:3px;color:#0f172a;}
+.mh-doc-ck{color:#059669;font-size:.82rem;font-weight:500;margin-bottom:6px;}
+.mh-doc-meta{font-size:.82rem;color:#f59e0b;margin-bottom:14px;}
+
+/* STEPS */
+.mh-steps{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;}
+.mh-st{flex:1;min-width:200px;max-width:280px;text-align:center;padding:32px 18px;background:#fff;border:1.5px solid #f1f5f9;border-radius:18px;transition:all .35s;}
+.mh-st:hover{transform:translateY(-6px);box-shadow:0 12px 36px rgba(5,150,105,.08);border-color:#d1fae5;}
+.mh-st-n{width:48px;height:48px;background:linear-gradient(135deg,#059669,#10b981);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;color:#fff;font-size:1.2rem;font-weight:800;box-shadow:0 4px 12px rgba(5,150,105,.2);}
+.mh-st h3{font-size:.95rem;font-weight:700;margin-bottom:5px;color:#0f172a;}
+.mh-st p{color:#94a3b8;font-size:.84rem;}
+.mh-st-line{width:40px;height:2px;background:#d1fae5;border-radius:2px;}
+
+/* AI TOOLS */
+.mh-ai-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.mh-ai{padding:28px 22px;background:#f8fafc;border:1.5px solid #f1f5f9;border-radius:18px;text-decoration:none;color:inherit;transition:all .4s;text-align:center;}
+.mh-ai:hover{transform:translateY(-8px) scale(1.02);box-shadow:0 16px 40px rgba(5,150,105,.1);border-color:#d1fae5;background:#fff;}
+.mh-ai-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.4rem;color:#fff;transition:transform .4s;}
+.mh-ai:hover .mh-ai-icon{transform:scale(1.15) rotate(-5deg);}
+.mh-ai-g1{background:linear-gradient(135deg,#059669,#34d399);}
+.mh-ai-g2{background:linear-gradient(135deg,#0891b2,#22d3ee);}
+.mh-ai-g3{background:linear-gradient(135deg,#d946ef,#f0abfc);}
+.mh-ai-g4{background:linear-gradient(135deg,#f59e0b,#fbbf24);}
+.mh-ai h3{font-size:1rem;font-weight:700;margin-bottom:5px;color:#0f172a;}
+.mh-ai p{color:#94a3b8;font-size:.84rem;}
+
+/* ANIMATIONS */
+@keyframes mhUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+@keyframes mhDrift1{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-12px) rotate(1deg)}}
+@keyframes mhDrift2{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-10px) rotate(-1.5deg)}}
+@keyframes mhDrift3{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+@keyframes mhBlobA{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-20px) scale(1.15)}}
+@keyframes mhBlobB{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-20px,15px) scale(1.1)}}
+
+/* SCROLL REVEAL */
+.reveal-item{opacity:0;transform:translateY(24px);transition:opacity .55s,transform .55s cubic-bezier(.4,0,.2,1);}
+.reveal-item.visible{opacity:1;transform:translateY(0);}
+
+@media(max-width:768px){
+  .mh-hero-body{grid-template-columns:1fr;text-align:center;}
+  .mh-hero-right{min-height:260px;}
+  .mh-ctas,.mh-trust{justify-content:center;}
+  .mh-kicker{justify-content:center;}
+  .mh-desc{margin-left:auto;margin-right:auto;}
+  .mh-steps{flex-direction:column;}.mh-st-line{width:2px;height:24px;}
+  .mh-sec-head{flex-direction:column;text-align:center;}
+  .mh-ai-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+
+<script>
+// Scroll reveal
+(function(){
+  var io=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}});},{threshold:.12});
+  document.querySelectorAll('.reveal-item').forEach(function(el,i){el.style.transitionDelay=(i%6)*.07+'s';io.observe(el);});
+
+  // Parallax hero cards
+  var hero=document.querySelector('.mh-card-stack');
+  if(hero){document.querySelector('.mh-hero').addEventListener('mousemove',function(e){
+    var r=this.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+    hero.style.transform='perspective(800px) rotateY('+x*6+'deg) rotateX('+-y*4+'deg)';
+  });
+  document.querySelector('.mh-hero').addEventListener('mouseleave',function(){hero.style.transform='';});}
+
+  // Count up animation
+  document.querySelectorAll('[data-count]').forEach(function(el){
+    var t=parseInt(el.dataset.count)||0,c=0,s=Math.max(1,Math.ceil(t/35));
+    var timer=setInterval(function(){c+=s;if(c>=t){c=t;clearInterval(timer);}el.textContent=c+'+';},30);
+  });
+
+  // Floating particles
+  var pc=document.getElementById('particles');
+  if(pc){for(var i=0;i<12;i++){var p=document.createElement('div');p.className='mh-particle';var sz=Math.random()*6+3;p.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+Math.random()*100+'%;background:'+(Math.random()>.5?'#34d399':'#0ea5e9')+';animation-duration:'+(Math.random()*8+6)+'s;animation-delay:'+(Math.random()*5)+'s;';pc.appendChild(p);}}
+})();
+</script>
+{% endblock %}

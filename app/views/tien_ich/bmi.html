@@ -1,0 +1,399 @@
+{% extends 'layouts/base.html' %}
+{% block title %}BMI 3D | MedPro{% endblock %}
+
+{% block content %}
+<section class="bmi-shell">
+    <div class="container">
+        <div class="bmi-hero animate-up">
+            <span class="bmi-kicker"><i class="fas fa-weight-scale"></i> Body Analysis</span>
+            <h1 class="bmi-title">Phân tích BMI nâng cao</h1>
+            <p class="bmi-sub">Nhập thông tin cơ thể để xem mô hình 3D và nhận tư vấn dinh dưỡng, bài tập cá nhân hóa.</p>
+        </div>
+
+        <div class="bmi-grid animate-up" style="animation-delay:.12s">
+            <!-- LEFT: INPUT FORM -->
+            <div class="bmi-card">
+                <div class="bmi-card-head"><h2><i class="fas fa-user-gear" style="color:#0ea5e9;"></i> Thông tin cơ thể</h2></div>
+                <div class="bmi-form">
+                    <div class="bmi-field">
+                        <label>Giới tính</label>
+                        <div class="bmi-gender" id="genderControl">
+                            <button type="button" class="active" data-value="Nam"><i class="fas fa-mars"></i> Nam</button>
+                            <button type="button" data-value="Nữ"><i class="fas fa-venus"></i> Nữ</button>
+                        </div>
+                    </div>
+                    <div class="bmi-row">
+                        <div class="bmi-field">
+                            <label>Tuổi</label>
+                            <input type="number" id="tuoi" class="bmi-input" value="25" min="1" max="120">
+                        </div>
+                        <div class="bmi-field">
+                            <label>Chiều cao (cm)</label>
+                            <input type="number" id="chieu_cao" class="bmi-input" value="170" min="50" max="250" step="0.1">
+                        </div>
+                    </div>
+                    <div class="bmi-field">
+                        <label>Cân nặng (kg)</label>
+                        <input type="number" id="can_nang" class="bmi-input" value="65" min="10" max="300" step="0.1">
+                        <input type="range" id="weightRange" min="30" max="160" value="65" class="bmi-slider">
+                    </div>
+                    <button class="bmi-btn" id="btnTinhBMI"><i class="fas fa-calculator"></i> Tính BMI</button>
+                </div>
+            </div>
+
+            <!-- RIGHT: 3D MODEL + RESULT -->
+            <div class="bmi-card bmi-card-dark">
+                <div class="bmi-stage" id="bmiCanvas"></div>
+                <div id="bmiEmpty" class="bmi-waiting">
+                    <i class="fas fa-person-rays"></i>
+                    <span>Nhấn <strong>"Tính BMI"</strong> để xem kết quả</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULT SECTION (hidden until calculated) -->
+        <div id="bmiResult" class="bmi-result-section" style="display:none;">
+            <!-- SCORE HERO -->
+            <div class="bmi-score-hero animate-up">
+                <div class="bmi-score-ring">
+                    <svg viewBox="0 0 140 140" id="bmiRingSvg">
+                        <circle cx="70" cy="70" r="60" fill="none" stroke="#1e293b" stroke-width="8"/>
+                        <circle cx="70" cy="70" r="60" fill="none" id="bmiRingCircle" stroke="#34d399" stroke-width="8" stroke-linecap="round" stroke-dasharray="0 377" transform="rotate(-90 70 70)"/>
+                    </svg>
+                    <div class="bmi-score-num" id="bmiValue">--</div>
+                </div>
+                <div class="bmi-score-info">
+                    <div class="bmi-score-label" id="bmiLabel"></div>
+                    <div class="bmi-score-advice" id="bmiAdvice"></div>
+                </div>
+            </div>
+
+            <!-- METRICS -->
+            <div class="bmi-metrics animate-up" style="animation-delay:.1s">
+                <div class="bmi-metric">
+                    <div class="bmi-metric-icon" style="background:linear-gradient(135deg,#059669,#34d399);"><i class="fas fa-bullseye"></i></div>
+                    <div class="bmi-metric-val" id="idealWeight">--</div>
+                    <div class="bmi-metric-lbl">Cân nặng lý tưởng</div>
+                </div>
+                <div class="bmi-metric">
+                    <div class="bmi-metric-icon" style="background:linear-gradient(135deg,#f59e0b,#fbbf24);"><i class="fas fa-fire"></i></div>
+                    <div class="bmi-metric-val" id="calorieTarget">--</div>
+                    <div class="bmi-metric-lbl">Calo / ngày</div>
+                </div>
+                <div class="bmi-metric">
+                    <div class="bmi-metric-icon" style="background:linear-gradient(135deg,#ef4444,#f87171);"><i class="fas fa-drumstick-bite"></i></div>
+                    <div class="bmi-metric-val" id="proteinTarget">--</div>
+                    <div class="bmi-metric-lbl">Protein / ngày</div>
+                </div>
+                <div class="bmi-metric">
+                    <div class="bmi-metric-icon" style="background:linear-gradient(135deg,#0ea5e9,#38bdf8);"><i class="fas fa-glass-water"></i></div>
+                    <div class="bmi-metric-val" id="waterTarget">--</div>
+                    <div class="bmi-metric-lbl">Nước / ngày</div>
+                </div>
+            </div>
+
+            <!-- FOOD & EXERCISE -->
+            <div class="bmi-rec-grid animate-up" style="animation-delay:.2s">
+                <div class="bmi-rec-card">
+                    <div class="bmi-rec-head"><i class="fas fa-utensils" style="color:#059669;"></i> <span id="goalLabel">Gợi ý dinh dưỡng</span></div>
+                    <div id="foodList" class="bmi-rec-list"></div>
+                </div>
+                <div class="bmi-rec-card">
+                    <div class="bmi-rec-head"><i class="fas fa-dumbbell" style="color:#8b5cf6;"></i> Bài tập phù hợp</div>
+                    <div id="exerciseList" class="bmi-rec-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.bmi-shell{padding:30px 0 60px;}
+.animate-up{opacity:0;animation:bmiUp .6s ease-out forwards;}
+@keyframes bmiUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+/* Hero */
+.bmi-hero{text-align:center;margin-bottom:28px;}
+.bmi-kicker{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:99px;background:linear-gradient(135deg,#ecfdf5,#f0fdf4);color:#059669;font-weight:800;font-size:.76rem;margin-bottom:10px;}
+.bmi-title{font-size:2rem;font-weight:900;color:#0f172a;margin-bottom:6px;}
+.bmi-sub{color:#64748b;font-size:.92rem;max-width:520px;margin:0 auto;}
+
+/* Grid */
+.bmi-grid{display:grid;grid-template-columns:380px 1fr;gap:22px;}
+@media(max-width:900px){.bmi-grid{grid-template-columns:1fr;}}
+
+/* Card */
+.bmi-card{background:#fff;border-radius:20px;padding:24px;box-shadow:0 2px 20px rgba(0,0,0,.04);border:1px solid #f1f5f9;}
+.bmi-card-head{margin-bottom:18px;}
+.bmi-card-head h2{font-size:.95rem;font-weight:800;display:flex;align-items:center;gap:8px;margin:0;color:#0f172a;}
+
+/* Dark 3D card */
+.bmi-card-dark{background:linear-gradient(145deg,#0f172a,#1e293b);border:1px solid #334155;position:relative;min-height:400px;display:flex;flex-direction:column;}
+.bmi-stage{flex:1;border-radius:16px;overflow:hidden;min-height:360px;}
+.bmi-waiting{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:10px 20px;border-radius:12px;background:rgba(255,255,255,.06);backdrop-filter:blur(10px);color:#94a3b8;font-size:.82rem;border:1px solid rgba(255,255,255,.06);}
+.bmi-waiting i{font-size:1.2rem;color:#0ea5e9;}
+
+/* Form */
+.bmi-form{display:flex;flex-direction:column;gap:14px;}
+.bmi-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.bmi-field label{display:block;font-size:.78rem;font-weight:700;color:#475569;margin-bottom:4px;}
+.bmi-input{width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:.9rem;background:#f8fafc;transition:all .2s;box-sizing:border-box;}
+.bmi-input:focus{outline:none;border-color:#0ea5e9;box-shadow:0 0 0 3px rgba(14,165,233,.1);background:#fff;}
+.bmi-slider{width:100%;margin-top:6px;accent-color:#059669;height:6px;}
+.bmi-gender{display:flex;gap:6px;}
+.bmi-gender button{flex:1;padding:10px;border:2px solid #e2e8f0;border-radius:12px;background:#f8fafc;cursor:pointer;font-weight:700;font-size:.82rem;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .25s;color:#475569;}
+.bmi-gender button:hover{border-color:#a7f3d0;}
+.bmi-gender button.active{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border-color:#059669;color:#059669;box-shadow:0 0 0 3px rgba(5,150,105,.12);}
+.bmi-btn{width:100%;padding:13px;border:none;border-radius:14px;background:linear-gradient(135deg,#059669,#10b981);color:#fff;font-weight:800;font-size:.95rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;}
+.bmi-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(5,150,105,.35);}
+.bmi-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+
+/* ═══ RESULT SECTION ═══ */
+.bmi-result-section{margin-top:24px;}
+
+/* Score hero */
+.bmi-score-hero{display:flex;align-items:center;gap:28px;background:linear-gradient(145deg,#0f172a,#1e293b);border-radius:20px;padding:30px 36px;color:#fff;flex-wrap:wrap;}
+.bmi-score-ring{position:relative;width:130px;height:130px;flex-shrink:0;}
+.bmi-score-ring svg{width:100%;height:100%;}
+.bmi-score-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2.4rem;font-weight:900;color:#34d399;}
+.bmi-score-info{flex:1;min-width:200px;}
+.bmi-score-label{font-size:1.4rem;font-weight:900;margin-bottom:6px;color:#f1f5f9;}
+.bmi-score-advice{font-size:.88rem;color:#94a3b8;line-height:1.6;}
+
+/* Metrics */
+.bmi-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px;}
+@media(max-width:700px){.bmi-metrics{grid-template-columns:repeat(2,1fr);}}
+.bmi-metric{background:#fff;border-radius:16px;padding:18px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.04);border:1px solid #f1f5f9;transition:transform .2s;}
+.bmi-metric:hover{transform:translateY(-3px);}
+.bmi-metric-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.95rem;margin:0 auto 10px;}
+.bmi-metric-val{font-size:1.3rem;font-weight:900;color:#0f172a;}
+.bmi-metric-lbl{font-size:.72rem;font-weight:600;color:#64748b;margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
+
+/* Recommendations */
+.bmi-rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px;}
+@media(max-width:700px){.bmi-rec-grid{grid-template-columns:1fr;}}
+.bmi-rec-card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.04);border:1px solid #f1f5f9;}
+.bmi-rec-head{font-size:.9rem;font-weight:800;color:#0f172a;display:flex;align-items:center;gap:8px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #f1f5f9;}
+.bmi-rec-list{display:flex;flex-direction:column;gap:8px;}
+.bmi-rec-item{display:flex;gap:10px;padding:10px 12px;border-radius:10px;background:#f8fafc;border:1px solid #f1f5f9;transition:all .2s;}
+.bmi-rec-item:hover{background:#ecfdf5;border-color:#a7f3d0;}
+.bmi-rec-item-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.bmi-rec-item-info{flex:1;min-width:0;}
+.bmi-rec-item-name{font-weight:700;font-size:.82rem;color:#0f172a;}
+.bmi-rec-item-detail{font-size:.72rem;color:#64748b;margin-top:1px;}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+let selectedGender = 'Nam';
+let scene, camera, renderer, bodyGroup;
+
+document.querySelectorAll('#genderControl button').forEach(b => {
+    b.addEventListener('click', () => {
+        selectedGender = b.dataset.value;
+        document.querySelectorAll('#genderControl button').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+    });
+});
+document.getElementById('weightRange').addEventListener('input', e => { document.getElementById('can_nang').value = e.target.value; });
+document.getElementById('can_nang').addEventListener('input', e => { document.getElementById('weightRange').value = e.target.value || 65; });
+document.getElementById('btnTinhBMI').addEventListener('click', tinhBMI);
+
+function initScene() {
+    const host = document.getElementById('bmiCanvas');
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0f172a);
+
+    camera = new THREE.PerspectiveCamera(40, host.clientWidth / host.clientHeight, 0.1, 100);
+    camera.position.set(0, 1.0, 8);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(host.clientWidth, host.clientHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    host.appendChild(renderer.domElement);
+
+    // Lighting - studio setup
+    const ambient = new THREE.AmbientLight(0x334155, 0.6);
+    scene.add(ambient);
+    const key = new THREE.DirectionalLight(0xf1f5f9, 2.5);
+    key.position.set(5, 8, 6);
+    key.castShadow = true;
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0x38bdf8, 0.8);
+    fill.position.set(-4, 3, 4);
+    scene.add(fill);
+    const rim = new THREE.DirectionalLight(0x34d399, 1.0);
+    rim.position.set(0, 2, -6);
+    scene.add(rim);
+
+    bodyGroup = new THREE.Group();
+    scene.add(bodyGroup);
+
+    const mat = new THREE.MeshPhysicalMaterial({color:0x34d399, roughness:0.28, metalness:0.1, clearcoat:0.4, clearcoatRoughness:0.2});
+    const skinMat = new THREE.MeshPhysicalMaterial({color:0x2dd4bf, roughness:0.35, metalness:0.05, clearcoat:0.3});
+
+    // Head
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.46, 48, 36), mat);
+    head.position.set(0, 2.15, 0); head.castShadow = true;
+    bodyGroup.add(head);
+
+    // Neck
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 0.25, 32), skinMat);
+    neck.position.set(0, 1.76, 0);
+    bodyGroup.add(neck);
+
+    // Torso - smoother with capsule-like shape
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.65, 1.45, 48), mat);
+    torso.position.set(0, 0.9, 0); torso.castShadow = true;
+    bodyGroup.add(torso);
+
+    // Waist
+    const waist = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.48, 0.4, 32), mat);
+    waist.position.set(0, 0.08, 0);
+    bodyGroup.add(waist);
+
+    // Arms
+    const makeArm = (x, rot) => {
+        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 1.2, 24), skinMat);
+        arm.position.set(x, 0.9, 0); arm.rotation.z = rot; arm.castShadow = true;
+        bodyGroup.add(arm);
+        // Hand sphere
+        const hand = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 16), skinMat);
+        hand.position.set(x > 0 ? x+0.45 : x-0.45, 0.3, 0);
+        bodyGroup.add(hand);
+        return arm;
+    };
+    const leftArm = makeArm(-0.82, -0.25);
+    const rightArm = makeArm(0.82, 0.25);
+
+    // Legs
+    const makeLeg = (x) => {
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.2, 1.6, 24), skinMat);
+        leg.position.set(x, -0.95, 0); leg.castShadow = true;
+        bodyGroup.add(leg);
+        // Foot
+        const foot = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 8), skinMat);
+        foot.position.set(x, -1.8, 0.06); foot.scale.set(1, 0.5, 1.5);
+        bodyGroup.add(foot);
+        return leg;
+    };
+    const leftLeg = makeLeg(-0.26);
+    const rightLeg = makeLeg(0.26);
+
+    // Floor - reflective disc
+    const floorGeo = new THREE.CircleGeometry(2.2, 64);
+    const floorMat = new THREE.MeshPhysicalMaterial({color:0x1e293b, roughness:0.3, metalness:0.5, clearcoat:1.0});
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI/2; floor.position.y = -2.05; floor.receiveShadow = true;
+    scene.add(floor);
+
+    // Glow ring on floor
+    const ringGeo = new THREE.RingGeometry(1.8, 2.0, 64);
+    const ringMat = new THREE.MeshBasicMaterial({color:0x34d399, transparent:true, opacity:0.15, side:THREE.DoubleSide});
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI/2; ring.position.y = -2.04;
+    scene.add(ring);
+
+    bodyGroup._parts = {head, torso, waist, leftArm, rightArm, leftLeg, rightLeg};
+
+    window.addEventListener('resize', () => {
+        if(!renderer || !host.clientWidth) return;
+        camera.aspect = host.clientWidth / host.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(host.clientWidth, host.clientHeight);
+    });
+
+    (function animate(){
+        requestAnimationFrame(animate);
+        const t = Date.now() * 0.0005;
+        bodyGroup.rotation.y = Math.sin(t) * 0.35;
+        bodyGroup.position.y = Math.sin(t * 2) * 0.03;
+        renderer.render(scene, camera);
+    })();
+}
+
+function updateBody(model) {
+    if (!model || !bodyGroup || !bodyGroup._parts) return;
+    const c = new THREE.Color(model.color || '#34d399');
+    bodyGroup.children.forEach(m => { if(m.material && m !== bodyGroup.children[bodyGroup.children.length-1]) m.material.color = c; });
+    const p = bodyGroup._parts;
+    if(p.torso) p.torso.scale.set(model.shoulder_scale||1, 1, model.torso_scale||1);
+    if(p.waist) p.waist.scale.set(model.waist_scale||1, 1, model.waist_scale||1);
+}
+
+async function tinhBMI() {
+    const btn = document.getElementById('btnTinhBMI');
+    btn.disabled = true; btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;"></span> Đang tính...';
+    try {
+        const res = await fetch('/tien-ich/api/bmi', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({
+                chieu_cao: parseFloat(document.getElementById('chieu_cao').value),
+                can_nang: parseFloat(document.getElementById('can_nang').value),
+                tuoi: parseInt(document.getElementById('tuoi').value || '25', 10),
+                gioi_tinh: selectedGender
+            })
+        });
+        const json = await res.json();
+        if(!json.success){ showToast(json.message||'Lỗi','error'); return; }
+        renderResult(json.data);
+    } catch(e) { showToast('Không kết nối được API','error'); }
+    finally { btn.disabled=false; btn.innerHTML='<i class="fas fa-calculator"></i> Tính BMI'; }
+}
+
+function renderResult(d) {
+    document.getElementById('bmiEmpty').style.display = 'none';
+    const sec = document.getElementById('bmiResult');
+    sec.style.display = 'block';
+    sec.scrollIntoView({behavior:'smooth', block:'start'});
+
+    // Score ring
+    const bmi = parseFloat(d.bmi);
+    const pct = Math.min(bmi / 40, 1);
+    document.getElementById('bmiRingCircle').setAttribute('stroke-dasharray', (pct * 377).toFixed(0) + ' 377');
+    document.getElementById('bmiRingCircle').setAttribute('stroke', d.mau || '#34d399');
+    document.getElementById('bmiValue').textContent = d.bmi;
+    document.getElementById('bmiValue').style.color = d.mau || '#34d399';
+
+    document.getElementById('bmiLabel').textContent = d.phan_loai + ' · ' + d.goal_label;
+    document.getElementById('bmiAdvice').textContent = d.loi_khuyen;
+    document.getElementById('idealWeight').textContent = d.cn_ly_tuong + ' kg';
+    document.getElementById('calorieTarget').textContent = Number(d.calo_ngay).toLocaleString('vi-VN');
+    document.getElementById('proteinTarget').textContent = d.macro.protein_g + ' g';
+    document.getElementById('waterTarget').textContent = (d.nuoc_can / 1000).toFixed(1) + ' L';
+    document.getElementById('goalLabel').textContent = d.weekly_plan?.title || 'Gợi ý dinh dưỡng';
+
+    const foodIcons = {'Protein':'🥩','Rau':'🥬','Trái cây':'🍎','Tinh bột':'🍚','Chất béo':'🥑','Sữa':'🥛'};
+    document.getElementById('foodList').innerHTML = d.foods.slice(0,6).map(f => `
+        <div class="bmi-rec-item">
+            <div class="bmi-rec-item-icon" style="background:#ecfdf5;color:#059669;">${foodIcons[f.group]||'🍽️'}</div>
+            <div class="bmi-rec-item-info">
+                <div class="bmi-rec-item-name">${f.name}</div>
+                <div class="bmi-rec-item-detail">${f.group} · ${f.calories} kcal · ${f.notes}</div>
+            </div>
+        </div>`).join('');
+
+    const exIcons = {'Cardio':'🏃','Strength':'💪','Flexibility':'🧘','HIIT':'⚡','Balance':'🤸'};
+    document.getElementById('exerciseList').innerHTML = d.exercises.slice(0,6).map(e => `
+        <div class="bmi-rec-item">
+            <div class="bmi-rec-item-icon" style="background:#ede9fe;color:#8b5cf6;">${exIcons[e.type]||'🏋️'}</div>
+            <div class="bmi-rec-item-info">
+                <div class="bmi-rec-item-name">${e.name}</div>
+                <div class="bmi-rec-item-detail">${e.type} · ${e.minutes} phút · ${e.notes}</div>
+            </div>
+        </div>`).join('');
+
+    updateBody(d.body_model);
+}
+
+document.addEventListener('DOMContentLoaded', initScene);
+</script>
+{% endblock %}

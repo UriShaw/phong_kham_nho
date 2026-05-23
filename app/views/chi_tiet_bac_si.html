@@ -1,0 +1,291 @@
+{% extends 'layouts/base.html' %}
+{% block title %}{{ bac_si.ten_hien_thi }} - MedPro{% endblock %}
+
+{% block content %}
+<section class="dtbs-shell">
+    <!-- HERO BANNER -->
+    <div class="dtbs-hero">
+        <div class="dtbs-hero-bg"></div>
+        <div class="container">
+            <div class="dtbs-hero-inner">
+                <!-- Back button -->
+                <a href="{{ url_for('benh_nhan.tim_bac_si') }}" class="dtbs-back anim-pop"><i class="fas fa-arrow-left"></i> Quay lại</a>
+
+                <div class="dtbs-profile anim-up">
+                    <div class="dtbs-avatar-wrap">
+                        {% if bac_si.avatar %}
+                        <img src="{{ url_for('static', filename='uploads/avatars/' + bac_si.avatar) }}" class="dtbs-avatar" alt="{{ bac_si.ten_hien_thi }}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                        <div class="dtbs-avatar-fb" style="display:none;">{{ bac_si.ho_ten[0] if bac_si.ho_ten else 'B' }}</div>
+                        {% else %}
+                        <div class="dtbs-avatar-fb">{{ bac_si.ho_ten[0] if bac_si.ho_ten else 'B' }}</div>
+                        {% endif %}
+                        <div class="dtbs-online"></div>
+                    </div>
+                    <div class="dtbs-profile-info">
+                        <h1 class="dtbs-name">{{ bac_si.ten_hien_thi }}</h1>
+                        <div class="dtbs-spec"><i class="fas fa-stethoscope"></i> {{ bac_si.ten_chuyen_khoa }}</div>
+                        <div class="dtbs-location"><i class="fas fa-hospital"></i> {{ bac_si.benh_vien }}</div>
+                        {% if bac_si.dia_chi_phong_kham %}
+                        <div class="dtbs-location"><i class="fas fa-map-marker-alt"></i> {{ bac_si.dia_chi_phong_kham }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="dtbs-layout">
+            <!-- LEFT COLUMN -->
+            <div class="dtbs-main">
+                <!-- STAT CARDS -->
+                <div class="dtbs-stats anim-up d2">
+                    <div class="dtbs-stat-card">
+                        <div class="dtbs-stat-ring" style="--ring-color:#f59e0b;--ring-pct:{{ (bac_si.danh_gia|float / 5 * 100)|int }}%">
+                            <svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="none" stroke="#1e293b" stroke-width="5"/><circle cx="40" cy="40" r="34" fill="none" stroke="#f59e0b" stroke-width="5" stroke-linecap="round" stroke-dasharray="{{ (bac_si.danh_gia|float / 5 * 213.6)|int }} 214" transform="rotate(-90 40 40)"/></svg>
+                            <span><i class="fas fa-star" style="color:#f59e0b;"></i></span>
+                        </div>
+                        <div class="dtbs-stat-val">{{ bac_si.danh_gia }}</div>
+                        <div class="dtbs-stat-lbl">{{ bac_si.so_danh_gia }} đánh giá</div>
+                    </div>
+                    <div class="dtbs-stat-card">
+                        <div class="dtbs-stat-ring" style="--ring-color:#8b5cf6;--ring-pct:{{ [bac_si.kinh_nghiem|float / 30 * 100, 100]|min|int }}%">
+                            <svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="none" stroke="#1e293b" stroke-width="5"/><circle cx="40" cy="40" r="34" fill="none" stroke="#8b5cf6" stroke-width="5" stroke-linecap="round" stroke-dasharray="{{ [bac_si.kinh_nghiem|float / 30 * 213.6, 213.6]|min|int }} 214" transform="rotate(-90 40 40)"/></svg>
+                            <span><i class="fas fa-award" style="color:#8b5cf6;"></i></span>
+                        </div>
+                        <div class="dtbs-stat-val">{{ bac_si.kinh_nghiem }} năm</div>
+                        <div class="dtbs-stat-lbl">Kinh nghiệm</div>
+                    </div>
+                    <div class="dtbs-stat-card">
+                        <div class="dtbs-stat-ring" style="--ring-color:#0ea5e9;">
+                            <svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="none" stroke="#1e293b" stroke-width="5"/><circle cx="40" cy="40" r="34" fill="none" stroke="#0ea5e9" stroke-width="5" stroke-linecap="round" stroke-dasharray="214 214" transform="rotate(-90 40 40)"/></svg>
+                            <span><i class="fas fa-coins" style="color:#0ea5e9;"></i></span>
+                        </div>
+                        <div class="dtbs-stat-val">{{ '{:,.0f}'.format(bac_si.gia_kham) }}đ</div>
+                        <div class="dtbs-stat-lbl">Giá khám</div>
+                    </div>
+                </div>
+
+                <!-- ABOUT -->
+                {% if bac_si.mo_ta %}
+                <div class="dtbs-section anim-up d3">
+                    <div class="dtbs-section-head"><i class="fas fa-user-doctor" style="color:#059669;"></i> Giới thiệu</div>
+                    <p class="dtbs-desc">{{ bac_si.mo_ta }}</p>
+                </div>
+                {% endif %}
+
+                <!-- EXPERTISE -->
+                <div class="dtbs-section anim-up d4">
+                    <div class="dtbs-section-head"><i class="fas fa-medal" style="color:#8b5cf6;"></i> Chuyên môn</div>
+                    <div class="dtbs-tags">
+                        <span class="dtbs-tag">{{ bac_si.ten_chuyen_khoa }}</span>
+                        <span class="dtbs-tag">Khám tổng quát</span>
+                        <span class="dtbs-tag">Tư vấn chuyên sâu</span>
+                        <span class="dtbs-tag">{{ bac_si.kinh_nghiem }}+ năm kinh nghiệm</span>
+                    </div>
+                </div>
+
+                <!-- REVIEWS SECTION (read-only, đánh giá qua lịch sử khám) -->
+                <div class="dtbs-section anim-up d5">
+                    <div class="dtbs-section-head"><i class="fas fa-comments" style="color:#f59e0b;"></i> Đánh giá từ bệnh nhân ({{ reviews|length }})</div>
+
+                    <div class="dtbs-review-notice"><i class="fas fa-info-circle" style="color:#0ea5e9;"></i> Bạn có thể đánh giá bác sĩ sau khi hoàn thành khám tại <a href="/lich-kham" style="color:#0ea5e9;font-weight:700;">Lịch khám của tôi</a>.</div>
+
+                    <div class="dtbs-reviews">
+                        {% if reviews %}
+                        {% for rv in reviews %}
+                        <div class="dtbs-review">
+                            <div class="dtbs-review-top">
+                                <div class="dtbs-review-user">
+                                    <div class="dtbs-review-avatar">{{ rv.ten_benh_nhan[0] if rv.ten_benh_nhan else 'B' }}</div>
+                                    <div>
+                                        <div class="dtbs-review-name">{{ rv.ten_benh_nhan or 'Ẩn danh' }}</div>
+                                        <div class="dtbs-review-date">{{ rv.ngay_tao.strftime('%d/%m/%Y') if rv.ngay_tao else '' }}</div>
+                                    </div>
+                                </div>
+                                <div class="dtbs-review-stars">
+                                    {% for s in range(1, 6) %}
+                                    <i class="fas fa-star" style="color:{{ '#f59e0b' if s <= rv.diem else '#e2e8f0' }};font-size:.72rem;"></i>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <p class="dtbs-review-text">{{ rv.noi_dung or '(Không có nhận xét)' }}</p>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="dtbs-review-empty"><i class="fas fa-comment-slash"></i> Chưa có đánh giá nào.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDEBAR -->
+            <div class="dtbs-sidebar">
+                <!-- BOOKING CARD -->
+                <div class="dtbs-book-card anim-up d3">
+                    <div class="dtbs-book-head">
+                        <i class="fas fa-calendar-check"></i> Đặt lịch khám
+                    </div>
+                    <div class="dtbs-book-price">
+                        <span class="dtbs-price-val">{{ '{:,.0f}'.format(bac_si.gia_kham) }}đ</span>
+                        <span class="dtbs-price-lbl">/ lần khám</span>
+                    </div>
+                    <a href="{{ url_for('lich_kham.dat_lich', bac_si_id=bac_si.id) }}" class="dtbs-book-btn">
+                        <i class="fas fa-calendar-plus"></i> Đặt lịch ngay
+                    </a>
+                    <div class="dtbs-book-note"><i class="fas fa-shield-heart"></i> Thanh toán an toàn qua QR Code</div>
+                </div>
+
+                <!-- SCHEDULE CARD -->
+                <div class="dtbs-schedule-card anim-up d4">
+                    <div class="dtbs-schedule-head"><i class="fas fa-clock"></i> Lịch làm việc</div>
+                    <div class="dtbs-schedule-list">
+                        <div class="dtbs-schedule-row">
+                            <span class="dtbs-day">Thứ 2 - Thứ 6</span>
+                            <span class="dtbs-time open">8:00 - 17:00</span>
+                        </div>
+                        <div class="dtbs-schedule-row">
+                            <span class="dtbs-day">Thứ 7</span>
+                            <span class="dtbs-time open">8:00 - 12:00</span>
+                        </div>
+                        <div class="dtbs-schedule-row">
+                            <span class="dtbs-day">Chủ nhật</span>
+                            <span class="dtbs-time closed">Nghỉ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTACT CARD -->
+                <div class="dtbs-contact-card anim-up d5">
+                    <div class="dtbs-contact-item"><i class="fas fa-phone" style="color:#059669;"></i> Hotline: <strong>1900 1234</strong></div>
+                    <div class="dtbs-contact-item"><i class="fas fa-envelope" style="color:#0ea5e9;"></i> support@medpro.vn</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.dtbs-shell{padding-bottom:60px;background:#f8fafc;}
+.anim-pop{opacity:0;animation:dtPop .5s cubic-bezier(.34,1.56,.64,1) forwards;}
+.anim-up{opacity:0;animation:dtUp .6s ease-out forwards;}
+.d2{animation-delay:.1s}.d3{animation-delay:.18s}.d4{animation-delay:.26s}.d5{animation-delay:.34s}
+@keyframes dtPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@keyframes dtUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse-online{0%{box-shadow:0 0 0 0 rgba(34,197,94,.4)}70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
+
+/* ═══ HERO ═══ */
+.dtbs-hero{position:relative;padding:36px 0 80px;overflow:hidden;}
+.dtbs-hero-bg{position:absolute;inset:0;background:linear-gradient(145deg,#0f172a,#1e293b 60%,#0f172a);z-index:0;}
+.dtbs-hero-bg::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 40%,rgba(52,211,153,.08) 0%,transparent 50%),radial-gradient(circle at 70% 60%,rgba(14,165,233,.06) 0%,transparent 50%);}
+.dtbs-hero-inner{position:relative;z-index:1;}
+.dtbs-back{display:inline-flex;align-items:center;gap:6px;color:#94a3b8;font-size:.8rem;font-weight:600;text-decoration:none;margin-bottom:20px;padding:6px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.08);transition:all .25s;}
+.dtbs-back:hover{color:#fff;border-color:rgba(52,211,153,.3);background:rgba(52,211,153,.06);}
+
+/* Profile */
+.dtbs-profile{display:flex;gap:22px;align-items:center;flex-wrap:wrap;}
+.dtbs-avatar-wrap{position:relative;flex-shrink:0;}
+.dtbs-avatar{width:110px;height:110px;border-radius:22px;object-fit:cover;border:3px solid rgba(52,211,153,.3);box-shadow:0 8px 32px rgba(0,0,0,.3);}
+.dtbs-avatar-fb{width:110px;height:110px;border-radius:22px;background:linear-gradient(135deg,#059669,#34d399);display:flex;align-items:center;justify-content:center;font-size:2.8rem;font-weight:900;color:#fff;box-shadow:0 8px 32px rgba(0,0,0,.3);}
+.dtbs-online{position:absolute;bottom:4px;right:4px;width:18px;height:18px;border-radius:50%;background:#22c55e;border:3px solid #0f172a;animation:pulse-online 2s infinite;}
+.dtbs-profile-info{flex:1;min-width:200px;}
+.dtbs-name{font-size:1.7rem;font-weight:900;color:#f1f5f9;margin:0 0 6px;line-height:1.2;}
+.dtbs-spec{color:#34d399;font-weight:700;font-size:.88rem;margin-bottom:4px;display:flex;align-items:center;gap:6px;}
+.dtbs-location{color:#94a3b8;font-size:.8rem;display:flex;align-items:center;gap:6px;margin-top:2px;}
+
+/* ═══ LAYOUT ═══ */
+.dtbs-layout{display:grid;grid-template-columns:1fr 340px;gap:24px;margin-top:-46px;position:relative;z-index:2;}
+@media(max-width:900px){.dtbs-layout{grid-template-columns:1fr;}.dtbs-sidebar{order:-1;}}
+
+/* ═══ STATS ═══ */
+.dtbs-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.dtbs-stat-card{background:#fff;border-radius:18px;padding:20px;text-align:center;border:1px solid #f1f5f9;box-shadow:0 2px 12px rgba(0,0,0,.03);transition:all .3s;}
+.dtbs-stat-card:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(0,0,0,.07);}
+.dtbs-stat-ring{width:60px;height:60px;margin:0 auto 10px;position:relative;}
+.dtbs-stat-ring svg{width:100%;height:100%;}
+.dtbs-stat-ring span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1rem;}
+.dtbs-stat-val{font-size:1.15rem;font-weight:900;color:#0f172a;}
+.dtbs-stat-lbl{font-size:.7rem;color:#94a3b8;margin-top:1px;text-transform:uppercase;letter-spacing:.5px;}
+
+/* ═══ SECTIONS ═══ */
+.dtbs-section{background:#fff;border-radius:18px;padding:22px;border:1px solid #f1f5f9;box-shadow:0 2px 12px rgba(0,0,0,.03);margin-bottom:16px;}
+.dtbs-section-head{font-size:.92rem;font-weight:800;color:#0f172a;display:flex;align-items:center;gap:8px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #f1f5f9;}
+.dtbs-desc{color:#475569;font-size:.88rem;line-height:1.8;margin:0;}
+
+/* Tags */
+.dtbs-tags{display:flex;flex-wrap:wrap;gap:8px;}
+.dtbs-tag{padding:6px 14px;border-radius:99px;font-size:.76rem;font-weight:600;background:#f0fdf4;color:#059669;border:1px solid #d1fae5;transition:all .2s;}
+.dtbs-tag:hover{background:#d1fae5;transform:translateY(-1px);}
+
+/* Reviews */
+.dtbs-reviews{display:flex;flex-direction:column;gap:12px;}
+.dtbs-review{padding:14px;border-radius:12px;background:#f8fafc;border:1px solid #f1f5f9;transition:all .2s;}
+.dtbs-review:hover{background:#ecfdf5;border-color:#a7f3d0;}
+.dtbs-review-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.dtbs-review-user{display:flex;align-items:center;gap:10px;}
+.dtbs-review-avatar{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#059669,#34d399);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;flex-shrink:0;}
+.dtbs-review-name{font-size:.8rem;font-weight:700;color:#0f172a;}
+.dtbs-review-date{font-size:.66rem;color:#94a3b8;}
+.dtbs-review-text{font-size:.84rem;color:#475569;line-height:1.6;margin:0;font-style:italic;}
+.dtbs-review-actions{display:flex;gap:6px;margin-top:8px;}
+.dtbs-rv-btn{padding:4px 10px;border-radius:6px;border:1px solid #e2e8f0;background:#fff;font-size:.7rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .2s;}
+.dtbs-rv-btn.edit{color:#0ea5e9;}.dtbs-rv-btn.edit:hover{background:#f0f9ff;border-color:#bae6fd;}
+.dtbs-rv-btn.delete{color:#ef4444;}.dtbs-rv-btn.delete:hover{background:#fef2f2;border-color:#fecaca;}
+
+/* Review form */
+.dtbs-review-form{margin-bottom:16px;padding:16px;border-radius:12px;background:#f0fdf4;border:1px solid #d1fae5;}
+.dtbs-star-picker{display:flex;align-items:center;gap:6px;margin-bottom:10px;}
+.dtbs-star-picker span{font-size:.78rem;font-weight:600;color:#475569;margin-right:4px;}
+.dtbs-star-btn{background:none;border:none;cursor:pointer;font-size:1.1rem;color:#e2e8f0;transition:all .15s;padding:2px;}
+.dtbs-star-btn.active{color:#f59e0b;}
+.dtbs-star-btn:hover{transform:scale(1.2);}
+.dtbs-review-input{width:100%;padding:10px 12px;border:1.5px solid #d1fae5;border-radius:10px;font-size:.84rem;resize:vertical;min-height:60px;background:#fff;box-sizing:border-box;transition:border .2s;}
+.dtbs-review-input:focus{outline:none;border-color:#059669;}
+.dtbs-review-submit{margin-top:8px;padding:10px 20px;border:none;border-radius:10px;background:linear-gradient(135deg,#059669,#10b981);color:#fff;font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .25s;}
+.dtbs-review-submit:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(5,150,105,.3);}
+.dtbs-review-notice{padding:12px 16px;border-radius:10px;background:#f0fdf4;border:1px solid #d1fae5;font-size:.82rem;color:#475569;display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.dtbs-review-empty{text-align:center;padding:30px;color:#94a3b8;font-size:.85rem;}
+.dtbs-review-empty i{margin-right:6px;}
+
+/* ═══ SIDEBAR ═══ */
+.dtbs-sidebar{display:flex;flex-direction:column;gap:16px;}
+
+/* Booking card */
+.dtbs-book-card{background:linear-gradient(145deg,#0f172a,#1e293b);border-radius:18px;padding:24px;color:#fff;border:1px solid #334155;}
+.dtbs-book-head{font-size:.88rem;font-weight:800;display:flex;align-items:center;gap:8px;margin-bottom:16px;color:#94a3b8;}
+.dtbs-book-head i{color:#34d399;}
+.dtbs-book-price{text-align:center;margin-bottom:18px;padding:16px;border-radius:12px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.1);}
+.dtbs-price-val{font-size:2rem;font-weight:900;background:linear-gradient(135deg,#34d399,#0ea5e9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.dtbs-price-lbl{font-size:.78rem;color:#64748b;margin-left:4px;}
+.dtbs-book-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#059669,#10b981);color:#fff;font-weight:800;font-size:.92rem;text-decoration:none;transition:all .25s;cursor:pointer;}
+.dtbs-book-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(5,150,105,.4);}
+.dtbs-book-note{text-align:center;margin-top:12px;font-size:.72rem;color:#64748b;display:flex;align-items:center;justify-content:center;gap:5px;}
+.dtbs-book-note i{color:#34d399;}
+
+/* Schedule */
+.dtbs-schedule-card{background:#fff;border-radius:18px;padding:20px;border:1px solid #f1f5f9;box-shadow:0 2px 12px rgba(0,0,0,.03);}
+.dtbs-schedule-head{font-size:.88rem;font-weight:800;color:#0f172a;display:flex;align-items:center;gap:8px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #f1f5f9;}
+.dtbs-schedule-head i{color:#0ea5e9;}
+.dtbs-schedule-list{display:flex;flex-direction:column;gap:6px;}
+.dtbs-schedule-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:10px;background:#f8fafc;transition:all .2s;}
+.dtbs-schedule-row:hover{background:#ecfdf5;}
+.dtbs-day{font-size:.82rem;font-weight:600;color:#475569;}
+.dtbs-time{font-size:.82rem;font-weight:700;padding:3px 10px;border-radius:6px;}
+.dtbs-time.open{background:#d1fae5;color:#059669;}
+.dtbs-time.closed{background:#fee2e2;color:#dc2626;}
+
+/* Contact */
+.dtbs-contact-card{background:#fff;border-radius:18px;padding:18px;border:1px solid #f1f5f9;box-shadow:0 2px 12px rgba(0,0,0,.03);display:flex;flex-direction:column;gap:10px;}
+.dtbs-contact-item{font-size:.82rem;color:#475569;display:flex;align-items:center;gap:8px;}
+
+@media(max-width:600px){
+    .dtbs-name{font-size:1.3rem;}
+    .dtbs-stats{grid-template-columns:1fr;}
+    .dtbs-profile{flex-direction:column;text-align:center;}
+    .dtbs-profile-info{text-align:center;}
+    .dtbs-spec,.dtbs-location{justify-content:center;}
+}
+</style>
+{% endblock %}

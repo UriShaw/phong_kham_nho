@@ -1,0 +1,1646 @@
+{% extends 'admin/layout.html' %}
+{% block title %}Quản lý Lịch khám - Admin{% endblock %}
+{% set active_page = 'lich_hen' %}
+
+{% block admin_css %}
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   BIẾN MÀU & DESIGN TOKENS
+   ============================================================ */
+:root {
+  --med-primary:    #0EA5E9;
+  --med-primary-dk: #0284C7;
+  --med-primary-lt: #E0F2FE;
+  --med-primary-xs: #F0F9FF;
+  --med-success:    #10B981;
+  --med-success-lt: #D1FAE5;
+  --med-warning:    #F59E0B;
+  --med-warning-lt: #FEF3C7;
+  --med-danger:     #EF4444;
+  --med-danger-lt:  #FEE2E2;
+  --med-info:       #6366F1;
+  --med-info-lt:    #EEF2FF;
+  --med-purple:     #8B5CF6;
+  --med-purple-lt:  #F5F3FF;
+
+  --surface:        #F0F6FB;
+  --surface-card:   #FFFFFF;
+  --border:         #E2E8F0;
+  --border-light:   #F1F5F9;
+  --text-primary:   #0F172A;
+  --text-secondary: #475569;
+  --text-muted:     #94A3B8;
+
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius-sm: 6px; --radius-md: 10px;
+  --radius-lg: 14px; --radius-xl: 20px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+  --shadow-lg: 0 20px 40px rgba(0,0,0,.12),0 8px 16px rgba(0,0,0,.06);
+  --shadow-xl: 0 32px 64px rgba(0,0,0,.16), 0 12px 24px rgba(0,0,0,.08);
+  --transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ============================================================
+   PAGE HEADER
+   ============================================================ */
+.page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; flex-wrap: wrap; gap: 14px;
+}
+.page-header-left h1 {
+  font-size: 1.5rem; font-weight: 800; color: var(--text-primary);
+  letter-spacing: -0.5px; line-height: 1.2;
+}
+.page-header-left p { font-size: 0.8rem; color: var(--text-muted); margin-top: 3px; }
+.page-header-right { display: flex; gap: 8px; }
+
+/* ============================================================
+   STATS STRIP
+   ============================================================ */
+.stats-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.stat-card {
+  background: var(--surface-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 13px 15px;
+  display: flex; align-items: center; gap: 11px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer; transition: var(--transition);
+  position: relative; overflow: hidden;
+}
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--accent-color, transparent); transition: var(--transition);
+}
+.stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.stat-card.active-filter {
+  border-color: var(--accent-color, var(--med-primary));
+  background: var(--accent-bg, var(--med-primary-lt));
+  box-shadow: 0 4px 16px rgba(14,165,233,.15);
+}
+.stat-card.active-filter::before { background: var(--accent-color, var(--med-primary)); }
+.stat-icon {
+  width: 40px; height: 40px; border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0; transition: var(--transition);
+}
+.stat-card:hover .stat-icon { transform: scale(1.08); }
+.stat-info .val { font-size: 1.3rem; font-weight: 800; line-height: 1; color: var(--text-primary); }
+.stat-info .lbl { font-size: 0.7rem; color: var(--text-muted); margin-top: 3px; font-weight: 500; }
+
+/* ============================================================
+   TOOLBAR
+   ============================================================ */
+.toolbar {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 14px; flex-wrap: wrap;
+}
+.search-wrap { position: relative; flex: 1; min-width: 260px; }
+.search-wrap .icon {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); font-size: 0.85rem; pointer-events: none;
+  transition: var(--transition);
+}
+.search-input {
+  width: 100%; padding: 9px 36px 9px 38px;
+  border: 1.5px solid var(--border); border-radius: var(--radius-md);
+  font-family: var(--font-body); font-size: 0.875rem; color: var(--text-primary);
+  background: var(--surface-card); outline: none;
+  transition: var(--transition); box-shadow: var(--shadow-sm);
+}
+.search-input::placeholder { color: var(--text-muted); }
+.search-input:focus { border-color: var(--med-primary); box-shadow: 0 0 0 3px rgba(14,165,233,.12); }
+.search-input:focus + .icon { color: var(--med-primary); }
+.search-clear {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; color: var(--text-muted);
+  font-size: 0.8rem; display: none; padding: 4px;
+  border-radius: 50%; transition: var(--transition);
+}
+.search-clear:hover { color: var(--med-danger); background: var(--med-danger-lt); }
+.per-page-select {
+  padding: 9px 10px; border: 1.5px solid var(--border); border-radius: var(--radius-md);
+  font-family: var(--font-body); font-size: 0.875rem; background: var(--surface-card);
+  color: var(--text-primary); cursor: pointer; outline: none; box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+.per-page-select:focus { border-color: var(--med-primary); }
+.toolbar-divider { width: 1px; height: 32px; background: var(--border); flex-shrink: 0; }
+
+/* ============================================================
+   TABLE CARD
+   ============================================================ */
+.table-card {
+  background: var(--surface-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.table-responsive { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 900px; }
+
+/* Sticky header */
+thead {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--surface-card);
+}
+thead tr { background: linear-gradient(180deg,#F8FBFF 0%,#F1F5F9 100%); border-bottom: 2px solid var(--border); }
+th {
+  padding: 11px 14px;
+  font-size: 0.7rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.9px;
+  color: var(--text-muted); white-space: nowrap;
+  cursor: pointer; user-select: none; transition: var(--transition);
+}
+th:hover { color: var(--med-primary); background: var(--med-primary-xs); }
+th .th-inner { display: flex; align-items: center; gap: 5px; }
+th .sort-icon {
+  display: inline-flex; flex-direction: column; gap: 1px;
+  vertical-align: middle; opacity: 0.3;
+  transition: var(--transition);
+}
+th.sort-asc .sort-icon, th.sort-desc .sort-icon { opacity: 1; color: var(--med-primary); }
+th .sort-arrow { font-size: 0.55rem; line-height: 1; }
+th.sort-asc .arrow-down, th.sort-desc .arrow-up { opacity: 0.2; }
+
+tbody tr { border-bottom: 1px solid var(--border-light); transition: background 0.12s ease; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--med-primary-xs); }
+tbody tr.row-dang-kham { background: #F0FDF9; }
+tbody tr.row-dang-kham:hover { background: #DCFCE7; }
+td { padding: 12px 14px; font-size: 0.85rem; color: var(--text-primary); vertical-align: middle; }
+
+/* Patient cell */
+.patient-cell .name { font-weight: 700; font-size: 0.875rem; line-height: 1.3; }
+.patient-cell .code { font-size: 0.7rem; color: var(--text-muted); margin-top: 1px; }
+.patient-cell .phone { font-size: 0.7rem; color: var(--text-secondary); margin-top: 1px; }
+
+/* Doctor cell */
+.doctor-cell .name { font-size: 0.85rem; font-weight: 600; }
+.doctor-cell .dept { font-size: 0.7rem; color: var(--text-muted); }
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px; border-radius: 20px;
+  font-size: 0.7rem; font-weight: 600; white-space: nowrap;
+  letter-spacing: 0.2px;
+}
+.badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.badge-pending   { background: var(--med-warning-lt); color: #92400E; }
+.badge-confirmed { background: var(--med-success-lt); color: #065F46; }
+.badge-ongoing   { background: #DBEAFE; color: #1E40AF; }
+.badge-done      { background: #F3F4F6; color: #374151; }
+.badge-cancelled { background: var(--med-danger-lt); color: #991B1B; }
+.badge-specialty {
+  background: var(--med-info-lt); color: var(--med-info);
+  padding: 3px 9px; font-size: 0.68rem; border-radius: 20px;
+}
+.badge-specialty::before { display: none; }
+.badge-id {
+  font-family: var(--font-mono); background: var(--border-light); color: var(--text-secondary);
+  padding: 3px 8px; font-size: 0.7rem; border-radius: 5px; letter-spacing: 0.5px;
+}
+.badge-id::before { display: none; }
+
+/* ============================================================
+   ACTION BUTTONS
+   ============================================================ */
+.action-group { display: flex; gap: 4px; justify-content: center; }
+.btn-action {
+  width: 30px; height: 30px; border-radius: var(--radius-sm);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.78rem; transition: var(--transition);
+}
+.btn-action:hover { transform: translateY(-1px); }
+.btn-confirm { background: var(--med-primary-lt); color: var(--med-primary); }
+.btn-confirm:hover { background: var(--med-primary); color: #fff; box-shadow: 0 2px 8px rgba(14,165,233,.4); }
+.btn-cancel { background: var(--med-danger-lt); color: var(--med-danger); }
+.btn-cancel:hover { background: var(--med-danger); color: #fff; box-shadow: 0 2px 8px rgba(239,68,68,.3); }
+.btn-view { background: #F1F5F9; color: var(--text-secondary); }
+.btn-view:hover { background: var(--text-primary); color: #fff; box-shadow: 0 2px 8px rgba(15,23,42,.2); }
+
+/* ============================================================
+   PAGINATION
+   ============================================================ */
+.pagination-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 18px; border-top: 1px solid var(--border);
+  flex-wrap: wrap; gap: 10px; background: #FAFBFC;
+}
+.pagination-info { font-size: 0.8rem; color: var(--text-muted); }
+.pagination-info strong { color: var(--text-primary); }
+.pagination-controls { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
+.pg-btn {
+  min-width: 32px; height: 32px; padding: 0 8px;
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface-card); color: var(--text-secondary);
+  font-size: 0.82rem; font-family: var(--font-body); font-weight: 500;
+  cursor: pointer; transition: var(--transition);
+  display: flex; align-items: center; justify-content: center;
+}
+.pg-btn:hover:not(:disabled) { background: var(--med-primary-lt); color: var(--med-primary); border-color: var(--med-primary); }
+.pg-btn.active { background: var(--med-primary); color: #fff; border-color: var(--med-primary); font-weight: 700; box-shadow: 0 2px 6px rgba(14,165,233,.3); }
+.pg-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.pg-ellipsis { padding: 0 5px; color: var(--text-muted); font-size: 0.85rem; align-self: center; }
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 60px 20px; gap: 12px;
+}
+.empty-icon {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--med-primary-lt), #E0F2FE);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.2rem; color: var(--med-primary);
+}
+.empty-state h3 { font-weight: 700; color: var(--text-secondary); margin: 0; }
+.empty-state p { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
+
+/* ============================================================
+   SKELETON LOADING
+   ============================================================ */
+@keyframes shimmer {
+  0%   { background-position: -800px 0; }
+  100% { background-position: 800px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg,#f0f4f8 25%,#e8eef4 50%,#f0f4f8 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite;
+  border-radius: 4px; display: inline-block;
+}
+.skeleton-row td { padding: 16px 14px; }
+
+/* ============================================================
+   MODAL — UPGRADED with TABS
+   ============================================================ */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(10,20,40,0.6); backdrop-filter: blur(6px);
+  z-index: 999; align-items: center; justify-content: center;
+  padding: 16px;
+  animation: overlayIn 0.2s ease both;
+}
+@keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--surface-card);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  width: 100%; max-width: 720px;
+  max-height: 92vh; overflow: hidden;
+  display: flex; flex-direction: column;
+  animation: modalIn 0.28s cubic-bezier(0.34,1.48,0.64,1) both;
+  border: 1px solid rgba(255,255,255,0.6);
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.9) translateY(16px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Modal header with gradient accent */
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 22px 0; 
+  border-bottom: 0;
+  background: linear-gradient(135deg, var(--med-primary-xs) 0%, #fff 100%);
+  position: relative;
+}
+.modal-header::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+  height: 1px; background: var(--border);
+}
+.modal-header-info { display: flex; align-items: center; gap: 10px; padding-bottom: 16px; }
+.modal-header-icon {
+  width: 44px; height: 44px; border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--med-primary), var(--med-primary-dk));
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(14,165,233,.35);
+  flex-shrink: 0;
+}
+.modal-header h3 { font-size: 1rem; font-weight: 800; color: var(--text-primary); margin: 0; }
+.modal-header-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+.modal-close {
+  width: 32px; height: 32px; border: none; border-radius: var(--radius-sm);
+  background: var(--border-light); cursor: pointer; color: var(--text-muted);
+  font-size: 1rem; display: flex; align-items: center; justify-content: center;
+  transition: var(--transition); align-self: flex-start; margin-bottom: 16px; flex-shrink: 0;
+}
+.modal-close:hover { background: var(--med-danger-lt); color: var(--med-danger); transform: rotate(90deg); }
+
+/* Tab navigation inside modal */
+.modal-tabs {
+  display: flex; border-bottom: 1px solid var(--border);
+  background: #FAFBFC; padding: 0 22px; gap: 0;
+}
+.modal-tab {
+  padding: 11px 16px; font-size: 0.82rem; font-weight: 600;
+  color: var(--text-muted); cursor: pointer; border-bottom: 2.5px solid transparent;
+  transition: var(--transition); display: flex; align-items: center; gap: 6px;
+  white-space: nowrap;
+}
+.modal-tab:hover { color: var(--med-primary); }
+.modal-tab.active { color: var(--med-primary); border-bottom-color: var(--med-primary); background: transparent; }
+.modal-tab i { font-size: 0.78rem; }
+
+/* Tab panels */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.modal-body { padding: 20px 22px; overflow-y: auto; flex: 1; }
+
+/* Detail info grid */
+.detail-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; margin-bottom: 16px;
+}
+.detail-group {
+  padding: 12px 16px; border-bottom: 1px solid var(--border-light);
+  border-right: 1px solid var(--border-light);
+}
+.detail-group:nth-child(2n) { border-right: none; }
+.detail-group:nth-last-child(-n+2) { border-bottom: none; }
+.detail-group.full { grid-column: 1 / -1; border-right: none; }
+.detail-group label {
+  font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--text-muted); display: block; margin-bottom: 5px;
+}
+.detail-group .val { font-size: 0.875rem; font-weight: 500; color: var(--text-primary); word-break: break-word; }
+
+/* Section titles */
+.section-title {
+  font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--text-muted); margin-bottom: 8px; margin-top: 16px;
+  display: flex; align-items: center; gap: 6px;
+}
+.section-title::before {
+  content: ''; width: 3px; height: 12px; background: var(--med-primary);
+  border-radius: 2px; display: inline-block;
+}
+.section-title:first-child { margin-top: 0; }
+
+.modal-note {
+  padding: 12px 14px; margin-top: 4px;
+  background: var(--med-primary-xs); border-radius: var(--radius-md);
+  border-left: 3px solid var(--med-primary);
+}
+.modal-note label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--med-primary); margin-bottom: 4px; display: block; }
+.modal-note p { font-size: 0.85rem; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* ============================================================
+   FORM CHI TIẾT LỊCH HẸN (Tab 2)
+   ============================================================ */
+.form-section-header {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.75rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--text-secondary);
+  margin-bottom: 12px; margin-top: 20px; padding-bottom: 8px;
+  border-bottom: 1px dashed var(--border);
+}
+.form-section-header:first-child { margin-top: 0; }
+.form-section-header i { color: var(--med-primary); }
+
+.form-row {
+  display: grid; gap: 12px; margin-bottom: 12px;
+}
+.form-row.col-2 { grid-template-columns: 1fr 1fr; }
+.form-row.col-3 { grid-template-columns: 1fr 1fr 1fr; }
+.form-row.col-1 { grid-template-columns: 1fr; }
+
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group label {
+  font-size: 0.72rem; font-weight: 700; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.form-group label .required { color: var(--med-danger); margin-left: 2px; }
+
+.form-input, .form-select, .form-textarea {
+  padding: 8px 12px; border: 1.5px solid var(--border);
+  border-radius: var(--radius-md); font-family: var(--font-body);
+  font-size: 0.875rem; color: var(--text-primary);
+  background: var(--surface-card); outline: none;
+  transition: var(--transition); width: 100%;
+  box-sizing: border-box;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--med-primary);
+  box-shadow: 0 0 0 3px rgba(14,165,233,.10);
+}
+.form-input::placeholder, .form-textarea::placeholder { color: var(--text-muted); }
+.form-input:read-only { background: var(--border-light); color: var(--text-secondary); cursor: default; }
+.form-textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+.form-select { cursor: pointer; }
+
+/* Status select colors */
+.form-select.status-cho_xac_nhan { color: #92400E; }
+.form-select.status-da_xac_nhan  { color: #065F46; }
+.form-select.status-dang_kham    { color: #1E40AF; }
+.form-select.status-hoan_thanh   { color: #374151; }
+.form-select.status-da_huy       { color: #991B1B; }
+
+/* Info hint */
+.form-hint { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+
+/* Avatar + patient info header */
+.patient-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px; background: var(--surface);
+  border-radius: var(--radius-lg); margin-bottom: 16px;
+  border: 1px solid var(--border);
+}
+.patient-avatar {
+  width: 50px; height: 50px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--med-primary), #38BDF8);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 1.3rem; font-weight: 800;
+  flex-shrink: 0;
+}
+.patient-header-info .name { font-size: 1rem; font-weight: 800; color: var(--text-primary); }
+.patient-header-info .meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+.patient-header-status { margin-left: auto; }
+
+/* Doctor info card */
+.doctor-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; background: var(--med-primary-xs);
+  border-radius: var(--radius-lg); border: 1px solid rgba(14,165,233,.2);
+  margin-bottom: 16px;
+}
+.doctor-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, #0EA5E9, #6366F1);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 1.1rem; font-weight: 700; flex-shrink: 0;
+}
+.doctor-card-info .name { font-size: 0.9rem; font-weight: 700; }
+.doctor-card-info .dept { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+
+/* ============================================================
+   MODAL FOOTER BUTTONS
+   ============================================================ */
+.modal-footer {
+  display: flex; gap: 8px; justify-content: flex-end;
+  padding: 14px 22px; border-top: 1px solid var(--border);
+  background: #FAFBFC; flex-wrap: wrap;
+}
+.btn-lich {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: var(--radius-md);
+  font-family: var(--font-body); font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; border: none; transition: var(--transition); white-space: nowrap;
+}
+.btn-lich.primary { background: var(--med-primary); color: #fff; }
+.btn-lich.primary:hover { background: var(--med-primary-dk); box-shadow: 0 4px 12px rgba(14,165,233,.35); }
+.btn-lich.success { background: var(--med-success); color: #fff; }
+.btn-lich.success:hover { background: #059669; box-shadow: 0 4px 12px rgba(16,185,129,.3); }
+.btn-lich.danger  { background: var(--med-danger); color: #fff; }
+.btn-lich.danger:hover  { background: #DC2626; box-shadow: 0 4px 12px rgba(239,68,68,.3); }
+.btn-lich.ghost   { background: #F1F5F9; color: var(--text-secondary); }
+.btn-lich.ghost:hover   { background: #E2E8F0; }
+.btn-lich.outline { background: transparent; color: var(--med-primary); border: 1.5px solid var(--med-primary); }
+.btn-lich.outline:hover { background: var(--med-primary-lt); }
+
+/* ============================================================
+   TIMELINE (tab lịch sử)
+   ============================================================ */
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.timeline-item {
+  display: flex; gap: 14px; position: relative;
+  padding-bottom: 20px;
+}
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-item:not(:last-child)::before {
+  content: ''; position: absolute; left: 15px; top: 32px; bottom: 0;
+  width: 1.5px; background: var(--border);
+}
+.timeline-dot {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; color: white; z-index: 1;
+}
+.timeline-dot.pending  { background: var(--med-warning); }
+.timeline-dot.confirm  { background: var(--med-success); }
+.timeline-dot.cancel   { background: var(--med-danger); }
+.timeline-dot.created  { background: var(--med-info); }
+.timeline-dot.ongoing  { background: #3B82F6; }
+.timeline-content .time { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 3px; }
+.timeline-content .action { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
+.timeline-content .detail { font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px; }
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+.lich-toast-container {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+}
+.lich-toast {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; border-radius: var(--radius-md);
+  background: var(--text-primary); color: #fff;
+  box-shadow: var(--shadow-lg); font-size: 0.85rem; font-weight: 500;
+  pointer-events: all; min-width: 250px; max-width: 380px;
+  animation: toastIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.lich-toast.toast-success { background: linear-gradient(135deg,#064E3B,#065F46); border-left: 3px solid var(--med-success); }
+.lich-toast.toast-error   { background: linear-gradient(135deg,#7F1D1D,#991B1B); border-left: 3px solid var(--med-danger); }
+.lich-toast.toast-info    { background: linear-gradient(135deg,#1E3A5F,#1E40AF); border-left: 3px solid var(--med-primary); }
+.lich-toast.hiding { animation: toastOut 0.3s ease both; }
+@keyframes toastIn  { from { opacity: 0; transform: translateX(20px) scale(0.95); } to { opacity:1; transform: translateX(0) scale(1); } }
+@keyframes toastOut { to   { opacity: 0; transform: translateX(20px) scale(0.9); } }
+.toast-icon { font-size: 1rem; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1100px) { .stats-strip { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px) {
+  .stats-strip { grid-template-columns: repeat(2, 1fr); }
+  .detail-grid { grid-template-columns: 1fr; }
+  .detail-group:nth-child(2n) { border-right: none; border-right: 0; }
+  .detail-group { border-right: none; }
+  .detail-group:nth-last-child(-n+2) { border-bottom: 1px solid var(--border-light); }
+  .detail-group:last-child { border-bottom: none; }
+  .modal-footer { justify-content: stretch; }
+  .modal-footer .btn-lich { flex: 1; justify-content: center; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .search-wrap { min-width: unset; }
+  .form-row.col-2, .form-row.col-3 { grid-template-columns: 1fr; }
+  .modal-tabs { overflow-x: auto; }
+  .modal-tab { padding: 10px 12px; font-size: 0.78rem; }
+}
+@media (max-width: 480px) {
+  .stats-strip { grid-template-columns: 1fr 1fr; }
+  .pagination-bar { flex-direction: column; align-items: flex-start; }
+  .modal-box { max-height: 98vh; border-radius: var(--radius-lg); }
+}
+@media print {
+  .toolbar,.stats-strip,.pagination-bar,.action-group,.modal-overlay { display: none !important; }
+  .table-card { box-shadow: none; border: 1px solid #ccc; }
+}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+    <!-- Toast container -->
+    <div class="lich-toast-container" id="toastContainer"></div>
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1><i class="fas fa-calendar-alt" style="color:var(--med-primary);margin-right:8px;font-size:1.2rem;"></i>Quản lý Lịch khám</h1>
+        <p id="totalLabel">Tổng: {{ total }} lịch khám</p>
+      </div>
+    </div>
+
+    <!-- Stats strip (clickable filters) -->
+    <div class="stats-strip" id="statsStrip">
+      <div class="stat-card active-filter" data-filter=""
+           style="--accent-color:#3B82F6;--accent-bg:#EFF6FF;"
+           onclick="filterByStatus('')">
+        <div class="stat-icon" style="background:#EFF6FF;color:#3B82F6;"><i class="fas fa-calendar-alt"></i></div>
+        <div class="stat-info">
+          <div class="val" id="cnt-all">—</div>
+          <div class="lbl">Tất cả lịch</div>
+        </div>
+      </div>
+      <div class="stat-card" data-filter="cho_xac_nhan"
+           style="--accent-color:#F59E0B;--accent-bg:#FEF3C7;"
+           onclick="filterByStatus('cho_xac_nhan')">
+        <div class="stat-icon" style="background:var(--med-warning-lt);color:#92400E;"><i class="fas fa-hourglass-half"></i></div>
+        <div class="stat-info">
+          <div class="val" id="cnt-cho_xac_nhan">—</div>
+          <div class="lbl">Chờ xác nhận</div>
+        </div>
+      </div>
+      <div class="stat-card" data-filter="da_xac_nhan"
+           style="--accent-color:#10B981;--accent-bg:#D1FAE5;"
+           onclick="filterByStatus('da_xac_nhan')">
+        <div class="stat-icon" style="background:var(--med-success-lt);color:#065F46;"><i class="fas fa-check-circle"></i></div>
+        <div class="stat-info">
+          <div class="val" id="cnt-da_xac_nhan">—</div>
+          <div class="lbl">Đã xác nhận</div>
+        </div>
+      </div>
+      <div class="stat-card" data-filter="dang_kham"
+           style="--accent-color:#3B82F6;--accent-bg:#DBEAFE;"
+           onclick="filterByStatus('dang_kham')">
+        <div class="stat-icon" style="background:#DBEAFE;color:#1E40AF;"><i class="fas fa-stethoscope"></i></div>
+        <div class="stat-info">
+          <div class="val" id="cnt-dang_kham">—</div>
+          <div class="lbl">Đang khám</div>
+        </div>
+      </div>
+      <div class="stat-card" data-filter="hoan_thanh"
+           style="--accent-color:#6B7280;--accent-bg:#F3F4F6;"
+           onclick="filterByStatus('hoan_thanh')">
+        <div class="stat-icon" style="background:#F3F4F6;color:#374151;"><i class="fas fa-flag-checkered"></i></div>
+        <div class="stat-info">
+          <div class="val" id="cnt-hoan_thanh">—</div>
+          <div class="lbl">Hoàn thành</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="icon"><i class="fas fa-search"></i></span>
+        <input type="text" class="search-input" id="searchInput"
+          placeholder="Tìm kiếm lịch khám, bác sĩ, bệnh nhân..." autocomplete="off">
+        <button class="search-clear" id="searchClear" onclick="clearSearch()" title="Xóa">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="toolbar-divider"></div>
+      <select class="per-page-select" id="perPageSelect" onchange="changePerPage(this.value)">
+        <option value="10">10 dòng</option>
+        <option value="20" selected>20 dòng</option>
+        <option value="50">50 dòng</option>
+        <option value="100">100 dòng</option>
+      </select>
+    </div>
+
+    <!-- Table card -->
+    <div class="table-card">
+      <div class="table-responsive">
+        <table id="mainTable">
+          <thead>
+            <tr>
+              <th onclick="sortTable('ma_lich')" data-col="ma_lich">
+                <div class="th-inner">Mã lịch <span class="sort-icon"><span class="sort-arrow arrow-up">▲</span><span class="sort-arrow arrow-down">▼</span></span></div>
+              </th>
+              <th onclick="sortTable('ten_benh_nhan')" data-col="ten_benh_nhan">
+                <div class="th-inner">Bệnh nhân <span class="sort-icon"><span class="sort-arrow arrow-up">▲</span><span class="sort-arrow arrow-down">▼</span></span></div>
+              </th>
+              <th onclick="sortTable('ten_bac_si')" data-col="ten_bac_si">
+                <div class="th-inner">Bác sĩ <span class="sort-icon"><span class="sort-arrow arrow-up">▲</span><span class="sort-arrow arrow-down">▼</span></span></div>
+              </th>
+              <th onclick="sortTable('ten_chuyen_khoa')" data-col="ten_chuyen_khoa">
+                <div class="th-inner">Chuyên khoa <span class="sort-icon"><span class="sort-arrow arrow-up">▲</span><span class="sort-arrow arrow-down">▼</span></span></div>
+              </th>
+              <th onclick="sortTable('ngay_kham')" data-col="ngay_kham">
+                <div class="th-inner">Ngày khám <span class="sort-icon"><span class="sort-arrow arrow-up">▲</span><span class="sort-arrow arrow-down">▼</span></span></div>
+              </th>
+              <th onclick="sortTable('gio_kham')" data-col="gio_kham">
+                <div class="th-inner">Giờ <span class="sort-icon"><span class="sort-arrow arrow-up">▲</span><span class="sort-arrow arrow-down">▼</span></span></div>
+              </th>
+              <th onclick="sortTable('trang_thai')" data-col="trang_thai">
+                <div class="th-inner">Trạng thái <span class="sort-icon"><span class="sort-arrow arrow-up">▲</span><span class="sort-arrow arrow-down">▼</span></span></div>
+              </th>
+              <th style="text-align:center;cursor:default;"><div class="th-inner" style="justify-content:center;">Hành động</div></th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            {% for i in range(6) %}
+            <tr class="skeleton-row">
+              <td><span class="skeleton" style="width:90px;height:14px;"></span></td>
+              <td><span class="skeleton" style="width:130px;height:14px;display:block;margin-bottom:5px;"></span><span class="skeleton" style="width:70px;height:10px;"></span></td>
+              <td><span class="skeleton" style="width:110px;height:14px;"></span></td>
+              <td><span class="skeleton" style="width:90px;height:22px;border-radius:20px;"></span></td>
+              <td><span class="skeleton" style="width:85px;height:14px;"></span></td>
+              <td><span class="skeleton" style="width:45px;height:14px;"></span></td>
+              <td><span class="skeleton" style="width:90px;height:22px;border-radius:20px;"></span></td>
+              <td></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination bar -->
+      <div class="pagination-bar" id="paginationBar">
+        <span class="pagination-info" id="paginationInfo"></span>
+        <div class="pagination-controls" id="paginationControls"></div>
+      </div>
+    </div>
+
+
+
+<!-- ===================== MODAL CHI TIẾT LỊCH KHÁM ===================== -->
+<div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-header-icon"><i class="fas fa-calendar-check"></i></div>
+        <div>
+          <h3 id="modalTitle">Chi tiết Lịch khám</h3>
+          <div class="modal-header-sub" id="modalSubtitle">Mã lịch: —</div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal()" title="Đóng"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="modal-tabs" id="modalTabs">
+      <div class="modal-tab active" data-tab="info" onclick="switchTab('info')">
+        <i class="fas fa-info-circle"></i> Thông tin
+      </div>
+      <div class="modal-tab" data-tab="form" onclick="switchTab('form')">
+        <i class="fas fa-edit"></i> Chi tiết lịch hẹn
+      </div>
+      <div class="modal-tab" data-tab="history" onclick="switchTab('history')">
+        <i class="fas fa-history"></i> Lịch sử
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body" id="modalBody">
+      <!-- Tab: Thông tin tổng quan -->
+      <div class="tab-panel active" id="tab-info"></div>
+      <!-- Tab: Form chi tiết lịch hẹn -->
+      <div class="tab-panel" id="tab-form"></div>
+      <!-- Tab: Lịch sử -->
+      <div class="tab-panel" id="tab-history"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block admin_js %}
+<script>
+/* ============================================================
+   DATA — từ backend Flask/Jinja
+   ============================================================ */
+const RAW_DATA    = {{ lich_list | tojson }};
+const CSRF_TOKEN  = "{{ csrf_token() }}";
+const URL_XAC_NHAN = "{{ url_for('admin.xac_nhan_lich', lich_id=0) }}".replace('/0', '/');
+const URL_HUY      = "{{ url_for('admin.huy_lich', lich_id=0) }}".replace('/0', '/');
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let state = {
+  data: [...RAW_DATA],
+  filtered: [...RAW_DATA],
+  sortCol: null,
+  sortDir: 0,      // 0=none, 1=asc, -1=desc
+  page: 1,
+  perPage: 20,
+  searchQ: '',
+  statusFilter: '',
+  activeTab: 'info',   // tab hiện tại trong modal
+  currentRecord: null, // record đang xem
+};
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  buildStats();
+  applyFilters();
+  setupSearch();
+});
+
+/* ============================================================
+   STATS STRIP — đếm số lịch theo trạng thái
+   ============================================================ */
+function buildStats() {
+  const counts = { all: RAW_DATA.length };
+  RAW_DATA.forEach(r => {
+    counts[r.trang_thai] = (counts[r.trang_thai] || 0) + 1;
+  });
+  document.getElementById('cnt-all').textContent = counts.all || 0;
+  ['cho_xac_nhan','da_xac_nhan','dang_kham','hoan_thanh'].forEach(k => {
+    const el = document.getElementById('cnt-' + k);
+    if (el) el.textContent = counts[k] || 0;
+  });
+}
+
+/* ============================================================
+   FILTER BY STATUS — click stat card
+   ============================================================ */
+function filterByStatus(status) {
+  state.statusFilter = status;
+  state.page = 1;
+  document.querySelectorAll('.stat-card').forEach(c => {
+    c.classList.toggle('active-filter', c.dataset.filter === status);
+  });
+  applyFilters();
+}
+
+/* ============================================================
+   SEARCH — debounce 300ms
+   ============================================================ */
+let searchTimer = null;
+function setupSearch() {
+  const inp = document.getElementById('searchInput');
+  const clr = document.getElementById('searchClear');
+  inp.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    const q = inp.value.trim();
+    clr.style.display = q ? 'flex' : 'none';
+    searchTimer = setTimeout(() => {
+      state.searchQ = q;
+      state.page = 1;
+      applyFilters();
+    }, 300);
+  });
+}
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchClear').style.display = 'none';
+  state.searchQ = '';
+  state.page = 1;
+  applyFilters();
+}
+
+/* ============================================================
+   APPLY FILTERS — kết hợp search + status filter
+   ============================================================ */
+function applyFilters() {
+  const q = state.searchQ.toLowerCase();
+  const s = state.statusFilter;
+
+  state.filtered = state.data.filter(r => {
+    // Lọc theo trạng thái
+    if (s && r.trang_thai !== s) return false;
+    // Tìm kiếm đa trường
+    if (q) {
+      const haystack = [
+        r.ma_lich, r.ten_benh_nhan, r.ma_benh_nhan,
+        (r.hoc_vi || '') + ' ' + (r.ten_bac_si || ''),
+        r.ten_chuyen_khoa, r.ngay_kham, r.gio_kham,
+        statusLabel(r.trang_thai), r.phong_kham,
+        r.ly_do, r.sdt_bn, r.so_dien_thoai, r.email
+      ].join(' ').toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    return true;
+  });
+
+  if (state.sortCol && state.sortDir !== 0) doSort();
+  renderTable();
+  renderPagination();
+}
+
+/* ============================================================
+   SORT — click tiêu đề cột
+   ============================================================ */
+function sortTable(col) {
+  if (state.sortCol === col) {
+    state.sortDir = state.sortDir === 1 ? -1 : state.sortDir === -1 ? 0 : 1;
+  } else {
+    state.sortCol = col;
+    state.sortDir = 1;
+  }
+  // Cập nhật UI header
+  document.querySelectorAll('th[data-col]').forEach(th => {
+    th.classList.remove('sort-asc','sort-desc');
+    if (th.dataset.col === col) {
+      if (state.sortDir === 1) th.classList.add('sort-asc');
+      if (state.sortDir === -1) th.classList.add('sort-desc');
+    }
+  });
+  doSort();
+  state.page = 1;
+  renderTable();
+  renderPagination();
+}
+
+function doSort() {
+  if (!state.sortCol || state.sortDir === 0) return;
+  const col = state.sortCol;
+  const dir = state.sortDir;
+  state.filtered.sort((a, b) => {
+    let va = (a[col] || '').toString().toLowerCase();
+    let vb = (b[col] || '').toString().toLowerCase();
+    // Sort ngày
+    if (col === 'ngay_kham') { va = new Date(va); vb = new Date(vb); }
+    if (va < vb) return -dir;
+    if (va > vb) return dir;
+    return 0;
+  });
+}
+
+/* ============================================================
+   PER PAGE — thay đổi số dòng/trang
+   ============================================================ */
+function changePerPage(val) {
+  state.perPage = parseInt(val);
+  state.page = 1;
+  renderTable();
+  renderPagination();
+}
+
+/* ============================================================
+   RENDER TABLE
+   ============================================================ */
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  const start = (state.page - 1) * state.perPage;
+  const slice = state.filtered.slice(start, start + state.perPage);
+
+  if (slice.length === 0) {
+    tbody.innerHTML = `
+      <tr><td colspan="8">
+        <div class="empty-state">
+          <div class="empty-icon"><i class="fas fa-calendar-times"></i></div>
+          <h3>Không tìm thấy lịch khám</h3>
+          <p>Thử thay đổi bộ lọc hoặc từ khoá tìm kiếm</p>
+        </div>
+      </td></tr>`;
+    return;
+  }
+  tbody.innerHTML = slice.map(r => rowHTML(r)).join('');
+}
+
+/* ============================================================
+   ROW HTML
+   ============================================================ */
+function statusBadge(ts) {
+  const map = {
+    cho_xac_nhan: ['badge-pending',   '<i class="fas fa-clock" style="font-size:.62rem;"></i> Chờ xác nhận'],
+    da_xac_nhan:  ['badge-confirmed', '<i class="fas fa-check" style="font-size:.62rem;"></i> Đã xác nhận'],
+    dang_kham:    ['badge-ongoing',   '<i class="fas fa-stethoscope" style="font-size:.62rem;"></i> Đang khám'],
+    hoan_thanh:   ['badge-done',      '<i class="fas fa-flag-checkered" style="font-size:.62rem;"></i> Hoàn thành'],
+    da_huy:       ['badge-cancelled', '<i class="fas fa-ban" style="font-size:.62rem;"></i> Đã hủy'],
+  };
+  const [cls, lbl] = map[ts] || ['', ts];
+  return `<span class="badge ${cls}" style="gap:5px;">${lbl}</span>`;
+}
+// Không có dot khi dùng icon
+document.querySelectorAll('.badge').forEach(b => b.style.setProperty('--dot','none'));
+
+function statusLabel(ts) {
+  const map = {
+    cho_xac_nhan:'Chờ xác nhận', da_xac_nhan:'Đã xác nhận',
+    dang_kham:'Đang khám', hoan_thanh:'Hoàn thành', da_huy:'Đã hủy'
+  };
+  return map[ts] || ts;
+}
+
+function rowHTML(r) {
+  const rowCls = r.trang_thai === 'dang_kham' ? ' class="row-dang-kham"' : '';
+  const gioBs  = r.gio_kham ? r.gio_kham.substring(0,5) : '—';
+  const initials = (r.ten_benh_nhan || 'BN').split(' ').slice(-1)[0].charAt(0).toUpperCase();
+
+  const confirmBtn = r.trang_thai === 'cho_xac_nhan'
+    ? `<button class="btn-action btn-confirm" title="Xác nhận lịch" onclick="event.stopPropagation();quickAction('confirm',${r.id})"><i class="fas fa-check"></i></button>`
+    : '';
+  const cancelBtn = ['cho_xac_nhan','da_xac_nhan'].includes(r.trang_thai)
+    ? `<button class="btn-action btn-cancel" title="Hủy lịch" onclick="event.stopPropagation();quickAction('cancel',${r.id})"><i class="fas fa-ban"></i></button>`
+    : '';
+  const viewBtn = `<button class="btn-action btn-view" title="Xem chi tiết" onclick='event.stopPropagation();openDetail(${JSON.stringify(r)})'><i class="fas fa-eye"></i></button>`;
+
+  return `
+  <tr${rowCls} data-id="${r.id}" style="cursor:pointer;" onclick='openDetail(${JSON.stringify(r)})'>
+    <td><span class="badge-id">${r.ma_lich || '—'}</span></td>
+    <td>
+      <div class="patient-cell">
+        <div class="name">${r.ten_benh_nhan || '—'}</div>
+        <div class="code">${r.ma_benh_nhan || ''}</div>
+        ${r.sdt_bn || r.so_dien_thoai ? `<div class="phone"><i class="fas fa-phone" style="font-size:0.6rem;margin-right:3px;color:var(--med-primary);"></i>${r.sdt_bn || r.so_dien_thoai}</div>` : ''}
+      </div>
+    </td>
+    <td>
+      <div class="doctor-cell">
+        <div class="name">${(r.hoc_vi||'')} ${r.ten_bac_si||'—'}</div>
+        ${r.ten_chuyen_khoa ? `<div class="dept">${r.ten_chuyen_khoa}</div>` : ''}
+      </div>
+    </td>
+    <td><span class="badge badge-specialty">${r.ten_chuyen_khoa||'—'}</span></td>
+    <td style="font-weight:600;font-size:0.85rem;">${r.ngay_kham||'—'}</td>
+    <td>
+      <span style="font-weight:800;color:var(--med-primary);font-size:0.9rem;font-family:var(--font-mono);">${gioBs}</span>
+    </td>
+    <td>${statusBadge(r.trang_thai)}</td>
+    <td onclick="event.stopPropagation()"><div class="action-group">${confirmBtn}${cancelBtn}${viewBtn}</div></td>
+  </tr>`;
+}
+
+/* ============================================================
+   PAGINATION — smart range
+   ============================================================ */
+function renderPagination() {
+  const total = state.filtered.length;
+  const pages = Math.ceil(total / state.perPage);
+  const p     = state.page;
+  const start = total === 0 ? 0 : (p - 1) * state.perPage + 1;
+  const end   = Math.min(p * state.perPage, total);
+
+  document.getElementById('paginationInfo').innerHTML =
+    `Hiển thị <strong>${start}–${end}</strong> / <strong>${total}</strong> lịch khám`;
+
+  const ctrl = document.getElementById('paginationControls');
+  if (pages <= 1) { ctrl.innerHTML = ''; return; }
+
+  let html = '';
+  html += `<button class="pg-btn" onclick="goPage(1)" ${p===1?'disabled':''} title="Trang đầu">«</button>`;
+  html += `<button class="pg-btn" onclick="goPage(${p-1})" ${p===1?'disabled':''} title="Trang trước">‹</button>`;
+
+  const range = buildPageRange(p, pages);
+  let prev = null;
+  range.forEach(n => {
+    if (prev !== null && n - prev > 1) html += `<span class="pg-ellipsis">…</span>`;
+    html += `<button class="pg-btn ${n===p?'active':''}" onclick="goPage(${n})">${n}</button>`;
+    prev = n;
+  });
+
+  html += `<button class="pg-btn" onclick="goPage(${p+1})" ${p===pages?'disabled':''} title="Trang sau">›</button>`;
+  html += `<button class="pg-btn" onclick="goPage(${pages})" ${p===pages?'disabled':''} title="Trang cuối">»</button>`;
+
+  ctrl.innerHTML = html;
+}
+
+function buildPageRange(cur, total) {
+  if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+  const set = new Set([1, total, cur]);
+  for (let d = -2; d <= 2; d++) {
+    const n = cur + d;
+    if (n > 0 && n <= total) set.add(n);
+  }
+  return [...set].sort((a, b) => a - b);
+}
+
+function goPage(n) {
+  state.page = Math.max(1, Math.min(n, Math.ceil(state.filtered.length / state.perPage)));
+  renderTable();
+  renderPagination();
+  document.querySelector('.table-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ============================================================
+   MODAL — mở chi tiết lịch khám
+   ============================================================ */
+function openDetail(r) {
+  state.currentRecord = r;
+  state.activeTab = 'info';
+
+  // Cập nhật header modal
+  document.getElementById('modalTitle').textContent = 'Chi tiết Lịch khám';
+  document.getElementById('modalSubtitle').innerHTML =
+    `Mã lịch: <strong style="color:var(--med-primary);font-family:var(--font-mono);">${r.ma_lich || '—'}</strong>
+     &nbsp;·&nbsp; ${statusBadge(r.trang_thai)}`;
+
+  // Render các tab
+  renderTabInfo(r);
+  renderTabForm(r);
+  renderTabHistory(r);
+
+  // Render footer buttons
+  renderModalFooter(r);
+
+  // Kích hoạt tab info
+  switchTab('info');
+
+  // Mở modal
+  document.getElementById('detailModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('detailModal').classList.remove('open');
+  document.body.style.overflow = '';
+  state.currentRecord = null;
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+/* ============================================================
+   SWITCH TAB trong modal
+   ============================================================ */
+function switchTab(tabName) {
+  state.activeTab = tabName;
+  // Cập nhật tab buttons
+  document.querySelectorAll('.modal-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tabName);
+  });
+  // Cập nhật tab panels
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'tab-' + tabName);
+  });
+}
+
+/* ============================================================
+   TAB 1: THÔNG TIN TỔNG QUAN
+   ============================================================ */
+function renderTabInfo(r) {
+  const gio = r.gio_kham ? r.gio_kham.substring(0,5) : '—';
+  const initials = (r.ten_benh_nhan || 'BN').split(' ').slice(-1)[0].charAt(0).toUpperCase();
+  const docInitials = (r.ten_bac_si || 'BS').split(' ').slice(-1)[0].charAt(0).toUpperCase();
+
+  document.getElementById('tab-info').innerHTML = `
+    <!-- Patient header card -->
+    <div class="patient-header">
+      <div class="patient-avatar">${initials}</div>
+      <div class="patient-header-info">
+        <div class="name">${r.ten_benh_nhan || '—'}</div>
+        <div class="meta">
+          ${r.ma_benh_nhan ? `<span><i class="fas fa-id-card" style="color:var(--med-primary);margin-right:4px;"></i>${r.ma_benh_nhan}</span>` : ''}
+          ${(r.sdt_bn || r.so_dien_thoai) ? `&nbsp;·&nbsp;<span><i class="fas fa-phone" style="color:var(--med-success);margin-right:4px;"></i>${r.sdt_bn || r.so_dien_thoai}</span>` : ''}
+          ${r.email ? `&nbsp;·&nbsp;<span><i class="fas fa-envelope" style="color:var(--med-info);margin-right:4px;"></i>${r.email}</span>` : ''}
+        </div>
+      </div>
+      <div class="patient-header-status">${statusBadge(r.trang_thai)}</div>
+    </div>
+
+    <!-- Thông tin lịch khám -->
+    <div class="section-title">Thông tin lịch khám</div>
+    <div class="detail-grid">
+      <div class="detail-group">
+        <label>Mã lịch khám</label>
+        <div class="val"><span class="badge-id">${r.ma_lich || '—'}</span></div>
+      </div>
+      <div class="detail-group">
+        <label>Trạng thái</label>
+        <div class="val">${statusBadge(r.trang_thai)}</div>
+      </div>
+      <div class="detail-group">
+        <label><i class="fas fa-calendar" style="color:var(--med-primary);margin-right:4px;"></i>Ngày khám</label>
+        <div class="val" style="font-weight:700;color:var(--med-primary);">${r.ngay_kham || '—'}</div>
+      </div>
+      <div class="detail-group">
+        <label><i class="fas fa-clock" style="color:var(--med-warning);margin-right:4px;"></i>Giờ khám</label>
+        <div class="val" style="font-weight:800;font-size:1.1rem;color:var(--med-primary);font-family:var(--font-mono);">${gio}</div>
+      </div>
+      <div class="detail-group">
+        <label>Phòng khám</label>
+        <div class="val">${r.phong_kham || '—'}</div>
+      </div>
+      <div class="detail-group">
+        <label>Ngày tạo lịch</label>
+        <div class="val" style="font-size:0.82rem;color:var(--text-muted);">${r.created_at || r.ngay_tao || '—'}</div>
+      </div>
+    </div>
+
+    <!-- Thông tin bác sĩ -->
+    <div class="section-title" style="margin-top:16px;">Bác sĩ phụ trách</div>
+    <div class="doctor-card">
+      <div class="doctor-avatar">${docInitials}</div>
+      <div class="doctor-card-info">
+        <div class="name">${(r.hoc_vi || '')} ${r.ten_bac_si || '—'}</div>
+        <div class="dept">
+          <span class="badge badge-specialty" style="margin-right:4px;">${r.ten_chuyen_khoa || '—'}</span>
+          ${r.phong_kham ? `<span style="font-size:0.72rem;color:var(--text-muted);">${r.phong_kham}</span>` : ''}
+        </div>
+      </div>
+    </div>
+
+    ${r.ly_do ? `
+    <!-- Lý do khám -->
+    <div class="modal-note">
+      <label><i class="fas fa-notes-medical" style="margin-right:5px;"></i>Ghi chú / Lý do khám</label>
+      <p>${r.ly_do}</p>
+    </div>` : ''}
+  `;
+}
+
+/* ============================================================
+   TAB 2: FORM CHI TIẾT LỊCH HẸN — có thể chỉnh sửa
+   ============================================================ */
+function renderTabForm(r) {
+  const gio = r.gio_kham ? r.gio_kham.substring(0,5) : '';
+  const initials = (r.ten_benh_nhan || 'BN').split(' ').slice(-1)[0].charAt(0).toUpperCase();
+  const docInitials = (r.ten_bac_si || 'BS').split(' ').slice(-1)[0].charAt(0).toUpperCase();
+
+  const statusOptions = [
+    { val: 'cho_xac_nhan', lbl: 'Chờ xác nhận' },
+    { val: 'da_xac_nhan',  lbl: 'Đã xác nhận' },
+    { val: 'dang_kham',    lbl: 'Đang khám' },
+    { val: 'hoan_thanh',   lbl: 'Hoàn thành' },
+    { val: 'da_huy',       lbl: 'Đã hủy' },
+  ].map(o => `<option value="${o.val}" ${r.trang_thai === o.val ? 'selected' : ''}>${o.lbl}</option>`).join('');
+
+  document.getElementById('tab-form').innerHTML = `
+    <!-- ====== THÔNG TIN BỆNH NHÂN ====== -->
+    <div class="form-section-header">
+      <i class="fas fa-user"></i> Thông tin bệnh nhân
+    </div>
+
+    <!-- Patient card hiển thị -->
+    <div class="patient-header" style="margin-bottom:14px;">
+      <div class="patient-avatar">${initials}</div>
+      <div class="patient-header-info">
+        <div class="name">${r.ten_benh_nhan || '—'}</div>
+        <div class="meta">Mã BN: <strong>${r.ma_benh_nhan || '—'}</strong></div>
+      </div>
+    </div>
+
+    <div class="form-row col-2">
+      <div class="form-group">
+        <label>Họ và tên bệnh nhân</label>
+        <input type="text" class="form-input" id="f_ten_benh_nhan"
+               value="${escHtml(r.ten_benh_nhan || '')}" placeholder="Nhập họ tên...">
+      </div>
+      <div class="form-group">
+        <label>Mã bệnh nhân</label>
+        <input type="text" class="form-input" value="${escHtml(r.ma_benh_nhan || '')}" readonly>
+        <span class="form-hint">Mã tự động, không chỉnh sửa</span>
+      </div>
+    </div>
+    <div class="form-row col-2">
+      <div class="form-group">
+        <label>Số điện thoại <span class="required">*</span></label>
+        <input type="tel" class="form-input" id="f_sdt"
+               value="${escHtml(r.sdt_bn || r.so_dien_thoai || '')}"
+               placeholder="0xxx xxx xxx">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" class="form-input" id="f_email"
+               value="${escHtml(r.email || '')}"
+               placeholder="example@email.com">
+      </div>
+    </div>
+
+    <!-- ====== THÔNG TIN BÁC SĨ ====== -->
+    <div class="form-section-header">
+      <i class="fas fa-user-md"></i> Thông tin bác sĩ
+    </div>
+
+    <!-- Doctor card hiển thị -->
+    <div class="doctor-card" style="margin-bottom:14px;">
+      <div class="doctor-avatar">${docInitials}</div>
+      <div class="doctor-card-info">
+        <div class="name">${(r.hoc_vi || '')} ${r.ten_bac_si || '—'}</div>
+        <div class="dept"><span class="badge badge-specialty">${r.ten_chuyen_khoa || '—'}</span></div>
+      </div>
+    </div>
+
+    <div class="form-row col-2">
+      <div class="form-group">
+        <label>Tên bác sĩ</label>
+        <input type="text" class="form-input"
+               value="${escHtml((r.hoc_vi||'') + ' ' + (r.ten_bac_si||''))}" readonly>
+        <span class="form-hint">Chọn từ danh mục bác sĩ</span>
+      </div>
+      <div class="form-group">
+        <label>Chuyên khoa</label>
+        <input type="text" class="form-input" id="f_chuyen_khoa"
+               value="${escHtml(r.ten_chuyen_khoa || '')}" readonly>
+      </div>
+    </div>
+
+    <!-- ====== THÔNG TIN LỊCH KHÁM ====== -->
+    <div class="form-section-header">
+      <i class="fas fa-calendar-alt"></i> Thông tin lịch khám
+    </div>
+
+    <div class="form-row col-3">
+      <div class="form-group">
+        <label>Mã lịch khám</label>
+        <input type="text" class="form-input" value="${escHtml(r.ma_lich || '')}" readonly>
+      </div>
+      <div class="form-group">
+        <label>Ngày khám <span class="required">*</span></label>
+        <input type="date" class="form-input" id="f_ngay_kham"
+               value="${r.ngay_kham || ''}">
+      </div>
+      <div class="form-group">
+        <label>Giờ khám <span class="required">*</span></label>
+        <input type="time" class="form-input" id="f_gio_kham"
+               value="${gio}">
+      </div>
+    </div>
+
+    <div class="form-row col-2">
+      <div class="form-group">
+        <label>Phòng khám</label>
+        <input type="text" class="form-input" id="f_phong_kham"
+               value="${escHtml(r.phong_kham || '')}"
+               placeholder="VD: Phòng 101, Tầng 2...">
+      </div>
+      <div class="form-group">
+        <label>Trạng thái lịch</label>
+        <select class="form-select status-${r.trang_thai}" id="f_trang_thai"
+                onchange="this.className='form-select status-'+this.value">
+          ${statusOptions}
+        </select>
+      </div>
+    </div>
+
+    <!-- ====== GHI CHÚ ====== -->
+    <div class="form-section-header">
+      <i class="fas fa-notes-medical"></i> Ghi chú & Triệu chứng
+    </div>
+
+    <div class="form-row col-1">
+      <div class="form-group">
+        <label>Lý do khám / Triệu chứng</label>
+        <textarea class="form-textarea" id="f_ly_do"
+                  placeholder="Mô tả triệu chứng, lý do khám bệnh..."
+                  rows="3">${escHtml(r.ly_do || '')}</textarea>
+      </div>
+    </div>
+    <div class="form-row col-1">
+      <div class="form-group">
+        <label>Ghi chú nội bộ</label>
+        <textarea class="form-textarea" id="f_ghi_chu"
+                  placeholder="Ghi chú dành cho nhân viên y tế..."
+                  rows="2">${escHtml(r.ghi_chu || '')}</textarea>
+      </div>
+    </div>
+
+    <!-- ====== NGÀY TẠO ====== -->
+    <div class="form-row col-2" style="margin-top:4px;">
+      <div class="form-group">
+        <label>Ngày tạo lịch</label>
+        <input type="text" class="form-input" value="${escHtml(r.created_at || r.ngay_tao || '—')}" readonly>
+      </div>
+      <div class="form-group">
+        <label>Cập nhật lần cuối</label>
+        <input type="text" class="form-input" value="${escHtml(r.updated_at || '—')}" readonly>
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   TAB 3: LỊCH SỬ THAO TÁC
+   ============================================================ */
+function renderTabHistory(r) {
+  // Tạo timeline giả lập dựa trên trạng thái
+  const events = [];
+
+  if (r.created_at || r.ngay_tao) {
+    events.push({
+      dot: 'created', icon: 'fas fa-plus-circle',
+      time: r.created_at || r.ngay_tao,
+      action: 'Tạo lịch khám',
+      detail: `Bệnh nhân ${r.ten_benh_nhan || '—'} đặt lịch khám`
+    });
+  }
+
+  if (['da_xac_nhan','dang_kham','hoan_thanh'].includes(r.trang_thai)) {
+    events.push({
+      dot: 'confirm', icon: 'fas fa-check-circle',
+      time: r.ngay_xac_nhan || '—',
+      action: 'Xác nhận lịch',
+      detail: 'Lịch đã được xác nhận bởi quản trị viên'
+    });
+  }
+
+  if (r.trang_thai === 'dang_kham' || r.trang_thai === 'hoan_thanh') {
+    events.push({
+      dot: 'ongoing', icon: 'fas fa-stethoscope',
+      time: r.gio_kham ? r.ngay_kham + ' ' + r.gio_kham.substring(0,5) : r.ngay_kham || '—',
+      action: 'Bắt đầu khám',
+      detail: `Bác sĩ ${r.ten_bac_si || '—'} tiếp nhận bệnh nhân`
+    });
+  }
+
+  if (r.trang_thai === 'hoan_thanh') {
+    events.push({
+      dot: 'confirm', icon: 'fas fa-flag-checkered',
+      time: r.ngay_hoan_thanh || '—',
+      action: 'Hoàn thành khám',
+      detail: 'Lịch khám đã kết thúc thành công'
+    });
+  }
+
+  if (r.trang_thai === 'da_huy') {
+    events.push({
+      dot: 'cancel', icon: 'fas fa-times-circle',
+      time: r.ngay_huy || '—',
+      action: 'Hủy lịch khám',
+      detail: r.ly_do_huy || 'Lịch khám đã bị hủy'
+    });
+  }
+
+  const timelineHTML = events.length > 0
+    ? events.map(e => `
+      <div class="timeline-item">
+        <div class="timeline-dot ${e.dot}"><i class="${e.icon}"></i></div>
+        <div class="timeline-content">
+          <div class="time"><i class="fas fa-clock" style="margin-right:3px;font-size:0.65rem;"></i>${e.time}</div>
+          <div class="action">${e.action}</div>
+          <div class="detail">${e.detail}</div>
+        </div>
+      </div>`).join('')
+    : `<div style="text-align:center;padding:30px;color:var(--text-muted);">
+        <i class="fas fa-history" style="font-size:2rem;display:block;margin-bottom:10px;opacity:0.3;"></i>
+        Chưa có lịch sử thao tác
+      </div>`;
+
+  document.getElementById('tab-history').innerHTML = `
+    <div class="section-title">Lịch sử thao tác</div>
+    <div class="timeline" style="margin-top:16px;">
+      ${timelineHTML}
+    </div>
+  `;
+}
+
+/* ============================================================
+   MODAL FOOTER — buttons theo trạng thái
+   ============================================================ */
+function renderModalFooter(r) {
+  let html = `<button class="btn-lich ghost" onclick="closeModal()"><i class="fas fa-times"></i> Đóng</button>`;
+  html += `<button class="btn-lich outline" onclick="printRecord(${r.id})"><i class="fas fa-print"></i> In phiếu</button>`;
+
+  if (['cho_xac_nhan','da_xac_nhan'].includes(r.trang_thai)) {
+    html += `<button class="btn-lich danger" onclick="quickAction('cancel',${r.id},true)"><i class="fas fa-ban"></i> Hủy lịch</button>`;
+  }
+  if (r.trang_thai === 'cho_xac_nhan') {
+    html += `<button class="btn-lich success" onclick="quickAction('confirm',${r.id},true)"><i class="fas fa-check"></i> Xác nhận</button>`;
+  }
+
+  // Nút lưu khi ở tab form
+  html += `<button class="btn-lich primary" id="btnSaveForm" style="display:none;" onclick="saveFormChanges(${r.id})"><i class="fas fa-save"></i> Lưu thay đổi</button>`;
+
+  document.getElementById('modalFooter').innerHTML = html;
+}
+
+/* ============================================================
+   SAVE FORM CHANGES — lưu thay đổi từ tab form
+   ============================================================ */
+function saveFormChanges(id) {
+  // Thu thập dữ liệu form
+  const updated = {
+    ten_benh_nhan: document.getElementById('f_ten_benh_nhan')?.value || '',
+    sdt_bn: document.getElementById('f_sdt')?.value || '',
+    email: document.getElementById('f_email')?.value || '',
+    ngay_kham: document.getElementById('f_ngay_kham')?.value || '',
+    gio_kham: document.getElementById('f_gio_kham')?.value || '',
+    phong_kham: document.getElementById('f_phong_kham')?.value || '',
+    trang_thai: document.getElementById('f_trang_thai')?.value || '',
+    ly_do: document.getElementById('f_ly_do')?.value || '',
+    ghi_chu: document.getElementById('f_ghi_chu')?.value || '',
+  };
+
+  // Cập nhật state local
+  const idx = state.data.findIndex(r => r.id === id);
+  if (idx !== -1) {
+    Object.assign(state.data[idx], updated);
+    state.currentRecord = state.data[idx];
+  }
+
+  // Nếu muốn lưu lên server, thêm AJAX call ở đây:
+  // fetch('/admin/cap_nhat_lich/' + id, { method:'POST', headers:{...}, body: JSON.stringify(updated) })
+
+  applyFilters();
+  buildStats();
+  closeModal();
+  showToast('Đã lưu thay đổi thành công!', 'success');
+}
+
+// Hiện/ẩn nút lưu khi chuyển tab
+const origSwitchTab = switchTab;
+switchTab = function(tabName) {
+  origSwitchTab(tabName);
+  const btnSave = document.getElementById('btnSaveForm');
+  if (btnSave) btnSave.style.display = tabName === 'form' ? 'inline-flex' : 'none';
+};
+
+/* ============================================================
+   QUICK ACTIONS — xác nhận / hủy lịch
+   ============================================================ */
+function quickAction(type, id, fromModal = false) {
+  if (type === 'cancel' && !confirm('Bạn chắc chắn muốn hủy lịch khám này?')) return;
+
+  const url = type === 'confirm' ? `${URL_XAC_NHAN}${id}` : `${URL_HUY}${id}`;
+  const form = document.createElement('form');
+  form.method = 'POST'; form.action = url; form.style.display = 'none';
+  const csrf = document.createElement('input');
+  csrf.type = 'hidden'; csrf.name = '_csrf_token'; csrf.value = CSRF_TOKEN;
+  form.appendChild(csrf);
+  document.body.appendChild(form);
+
+  // Cập nhật state trước khi submit
+  const newStatus = type === 'confirm' ? 'da_xac_nhan' : 'da_huy';
+  const idx = state.data.findIndex(r => r.id === id);
+  if (idx !== -1) state.data[idx].trang_thai = newStatus;
+
+  if (fromModal) closeModal();
+  applyFilters();
+  buildStats();
+  showToast(
+    type === 'confirm' ? '✓ Xác nhận lịch khám thành công!' : '✕ Đã hủy lịch khám.',
+    type === 'confirm' ? 'success' : 'error'
+  );
+  form.submit();
+}
+
+/* ============================================================
+   PRINT — in phiếu khám bệnh
+   ============================================================ */
+function printRecord(id) {
+  const r = state.data.find(x => x.id === id);
+  if (!r) return;
+  const win = window.open('', '_blank', 'width=640,height=750');
+  win.document.write(`
+    <!DOCTYPE html><html><head>
+    <meta charset="utf-8"><title>Phiếu khám - ${r.ma_lich}</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { font-family: 'Segoe UI', Arial, sans-serif; padding: 32px; color: #1a1a2e; line-height: 1.5; }
+      .header { text-align: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 2px solid #0EA5E9; }
+      .header h2 { font-size: 1.4rem; color: #0EA5E9; margin: 0 0 4px; }
+      .header p { color: #666; font-size: 0.85rem; margin: 0; }
+      .section { margin-bottom: 16px; }
+      .section-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #0EA5E9; margin-bottom: 8px; }
+      table { width: 100%; border-collapse: collapse; }
+      td { padding: 8px 12px; border: 1px solid #e2e8f0; font-size: 0.88rem; }
+      td:first-child { background: #f8fafc; font-weight: 600; width: 38%; color: #475569; }
+      .status { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; background: #d1fae5; color: #065f46; }
+      .footer { margin-top: 32px; text-align: center; color: #999; font-size: 0.75rem; border-top: 1px dashed #ddd; padding-top: 16px; }
+    </style>
+    </head><body>
+    <div class="header">
+      <h2>🏥 MedPro — Phiếu khám bệnh</h2>
+      <p>Ngày in: ${new Date().toLocaleDateString('vi-VN', {weekday:'long',year:'numeric',month:'long',day:'numeric'})}</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Thông tin lịch khám</div>
+      <table>
+        <tr><td>Mã lịch khám</td><td><strong>${r.ma_lich || '—'}</strong></td></tr>
+        <tr><td>Ngày khám</td><td><strong>${r.ngay_kham || '—'}</strong></td></tr>
+        <tr><td>Giờ khám</td><td><strong>${(r.gio_kham || '—').substring(0,5)}</strong></td></tr>
+        <tr><td>Phòng khám</td><td>${r.phong_kham || '—'}</td></tr>
+        <tr><td>Trạng thái</td><td><span class="status">${statusLabel(r.trang_thai)}</span></td></tr>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Thông tin bệnh nhân</div>
+      <table>
+        <tr><td>Họ và tên</td><td><strong>${r.ten_benh_nhan || '—'}</strong></td></tr>
+        <tr><td>Mã bệnh nhân</td><td>${r.ma_benh_nhan || '—'}</td></tr>
+        <tr><td>Số điện thoại</td><td>${r.sdt_bn || r.so_dien_thoai || '—'}</td></tr>
+        <tr><td>Email</td><td>${r.email || '—'}</td></tr>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Thông tin bác sĩ</div>
+      <table>
+        <tr><td>Bác sĩ</td><td><strong>${(r.hoc_vi || '')} ${r.ten_bac_si || '—'}</strong></td></tr>
+        <tr><td>Chuyên khoa</td><td>${r.ten_chuyen_khoa || '—'}</td></tr>
+      </table>
+    </div>
+
+    ${r.ly_do ? `
+    <div class="section">
+      <div class="section-title">Lý do khám / Triệu chứng</div>
+      <table><tr><td colspan="2" style="padding:12px;">${r.ly_do}</td></tr></table>
+    </div>` : ''}
+
+    <div class="footer">
+      MedPro — Hệ thống quản lý phòng khám &nbsp;|&nbsp; Mã: ${r.ma_lich} &nbsp;|&nbsp; In lúc ${new Date().toLocaleTimeString('vi-VN')}
+    </div>
+    </body></html>
+  `);
+  win.document.close();
+  win.print();
+}
+
+/* ============================================================
+   TOAST NOTIFICATIONS
+   ============================================================ */
+function showToast(msg, type = 'info') {
+  const icon = { success: '<i class="fas fa-check-circle"></i>', error: '<i class="fas fa-times-circle"></i>', info: '<i class="fas fa-info-circle"></i>' }[type] || '';
+  const t = document.createElement('div');
+  t.className = `lich-toast toast-${type}`;
+  t.innerHTML = `<span class="toast-icon">${icon}</span><span>${msg}</span>`;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => {
+    t.classList.add('hiding');
+    t.addEventListener('animationend', () => t.remove(), { once: true });
+  }, 3500);
+}
+
+/* ============================================================
+   UTILS
+   ============================================================ */
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+/* Ghi đè style badge để ẩn dot khi dùng icon */
+(function patchBadges() {
+  const style = document.createElement('style');
+  style.textContent = `.badge { gap: 5px; } .badge::before { display: none; }`;
+  document.head.appendChild(style);
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Đăng nhập - MedPro{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; background: linear-gradient(135deg, #f0fdf4, #ecfdf5, #f0f9ff);">
+    <div class="animate-fade-in-up" style="width: 100%; max-width: 440px;">
+        <!-- Logo -->
+        <div class="text-center mb-24">
+            <a href="{{ url_for('benh_nhan.trang_chu') }}" style="display: inline-flex; align-items: center; gap: 10px; font-size: 1.5rem; font-weight: 800; color: var(--primary-dark);">
+                <div style="width: 44px; height: 44px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: white;">
+                    <i class="fas fa-plus"></i>
+                </div>
+                Medpro
+            </a>
+        </div>
+
+        <!-- Form Card -->
+        <div class="glass-card" style="padding: 40px;">
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; text-align: center;">Đăng nhập</h2>
+            <p style="color: var(--gray-500); text-align: center; margin-bottom: 32px; font-size: 0.9rem;">Chào mừng bạn quay lại!</p>
+
+            <form method="POST" action="{{ url_for('auth.dang_nhap') }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-user" style="margin-right: 6px; color: var(--gray-400);"></i>Email hoặc Số điện thoại
+                    </label>
+                    <input type="text" name="tai_khoan" class="form-control" placeholder="Email hoặc SĐT" required autofocus
+                           value="{{ request.form.get('tai_khoan', '') }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-lock" style="margin-right: 6px; color: var(--gray-400);"></i>Mật khẩu
+                    </label>
+                    <div style="position: relative;">
+                        <input type="password" name="mat_khau" id="mat_khau" class="form-control" placeholder="Nhập mật khẩu" required>
+                        <button type="button" onclick="togglePassword('mat_khau')"
+                                style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--gray-400);">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin-top: 8px;">
+                    <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                </button>
+            </form>
+
+            <div style="text-align: center; margin-top: 24px;">
+                <span style="color: var(--gray-500); font-size: 0.88rem;">Chưa có tài khoản?</span>
+                <a href="{{ url_for('auth.dang_ky') }}" style="font-weight: 600; margin-left: 4px;">Đăng ký ngay</a>
+            </div>
+
+            <!-- Demo accounts -->
+            <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--gray-100);">
+                <p style="font-size: 0.78rem; color: var(--gray-400); text-align: center; margin-bottom: 12px;">Tài khoản demo</p>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <button type="button" onclick="fillDemo('admin@medpro.vn', 'admin123')"
+                            class="btn btn-sm" style="background: var(--gray-50); color: var(--gray-600); justify-content: center; font-size: 0.78rem;">
+                        👨‍💼 Admin: admin@medpro.vn
+                    </button>
+                    <button type="button" onclick="fillDemo('bs001@medpro.vn', 'bacsi123')"
+                            class="btn btn-sm" style="background: var(--gray-50); color: var(--gray-600); justify-content: center; font-size: 0.78rem;">
+                        🩺 Bác sĩ: bs001@medpro.vn
+                    </button>
+                    <button type="button" onclick="fillDemo('bn0001@medpro.vn', 'benhnhan123')"
+                            class="btn btn-sm" style="background: var(--gray-50); color: var(--gray-600); justify-content: center; font-size: 0.78rem;">
+                        🧑 Bệnh nhân: bn0001@medpro.vn
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword(id) {
+    const input = document.getElementById(id);
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+function fillDemo(account, pass) {
+    document.querySelector('input[name="tai_khoan"]').value = account;
+    document.querySelector('input[name="mat_khau"]').value = pass;
+}
+</script>
+{% endblock %}

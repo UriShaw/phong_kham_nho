@@ -1,0 +1,203 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Thông tin cá nhân - Bác sĩ{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon"><i class="fas fa-heartbeat"></i></div>
+            <div class="sidebar-brand-text"><h3>MedPro</h3><span>Bác sĩ</span></div>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="{{ url_for('bac_si.dashboard') }}"><i class="fas fa-th-large"></i> Tổng quan</a></li>
+            <li><a href="{{ url_for('bac_si.lich_kham') }}"><i class="fas fa-calendar-alt"></i> Lịch hẹn</a></li>
+            <li><a href="{{ url_for('bac_si.benh_nhan_cua_toi') }}"><i class="fas fa-users"></i> Bệnh nhân</a></li>
+            <li><a href="{{ url_for('bac_si.co_so_thuoc') }}"><i class="fas fa-pills"></i> Tra cứu thuốc</a></li>
+            <li><a href="{{ url_for('bac_si.thong_tin_ca_nhan') }}" class="active"><i class="fas fa-id-badge"></i> Thông tin</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.dang_xuat') }}"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div style="margin-bottom:24px;">
+            <h1 style="font-size:1.5rem;font-weight:800;"><i class="fas fa-id-badge" style="color:#059669;"></i> Thông tin cá nhân</h1>
+            <p style="color:var(--gray-400);font-size:0.82rem;">Xem và chỉnh sửa thông tin hồ sơ bác sĩ</p>
+        </div>
+
+        <!-- TABS -->
+        <div style="display:flex;gap:8px;margin-bottom:24px;">
+            <button class="btn btn-primary btn-sm" id="tabView" onclick="switchTab('view')"><i class="fas fa-eye"></i> Xem thông tin</button>
+            <button class="btn btn-sm" id="tabEdit" onclick="switchTab('edit')" style="background:#f1f5f9;color:#475569;"><i class="fas fa-edit"></i> Chỉnh sửa</button>
+            <button class="btn btn-sm" id="tabPass" onclick="switchTab('pass')" style="background:#f1f5f9;color:#475569;"><i class="fas fa-key"></i> Đổi mật khẩu</button>
+        </div>
+
+        <!-- ============ TAB XEM ============ -->
+        <div id="panelView">
+            <div style="display:grid;grid-template-columns:300px 1fr;gap:24px;">
+                <!-- Avatar Card -->
+                <div class="card animate-fade-in" style="text-align:center;">
+                    <div style="position:relative;width:140px;height:140px;margin:0 auto 16px;">
+                        {% if bac_si.avatar %}
+                        <img src="{{ url_for('static', filename='uploads/avatars/' + bac_si.avatar) }}" onerror="this.src='{{ url_for('static', filename='images/doctor_default.png') }}'" style="width:140px;height:140px;border-radius:50%;object-fit:cover;border:4px solid #059669;">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='images/doctor_default.png') }}" style="width:140px;height:140px;border-radius:50%;object-fit:cover;border:4px solid #059669;">
+                        {% endif %}
+                        <div style="position:absolute;bottom:4px;right:4px;width:32px;height:32px;border-radius:50%;background:#059669;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.15);" onclick="document.getElementById('avatarInput').click()">
+                            <i class="fas fa-camera" style="color:#fff;font-size:0.75rem;"></i>
+                        </div>
+                        <input type="file" id="avatarInput" accept="image/*" style="display:none;" onchange="uploadAvatar(this)">
+                    </div>
+                    <h2 style="font-size:1.3rem;font-weight:900;margin-bottom:4px;">{{ bac_si.hoc_vi }} {{ bac_si.ho_ten }}</h2>
+                    <div style="color:#059669;font-weight:600;font-size:0.88rem;margin-bottom:16px;">{{ bac_si.ten_chuyen_khoa }}</div>
+
+                    <div style="text-align:left;font-size:0.88rem;color:#475569;line-height:2.2;">
+                        <div><i class="fas fa-envelope" style="width:24px;color:#94a3b8;"></i> {{ bac_si.email }}</div>
+                        <div><i class="fas fa-phone" style="width:24px;color:#94a3b8;"></i> {{ bac_si.so_dien_thoai or 'Chưa cập nhật' }}</div>
+                        <div><i class="fas fa-hospital" style="width:24px;color:#94a3b8;"></i> {{ bac_si.benh_vien or 'Chưa cập nhật' }}</div>
+                        <div><i class="fas fa-map-marker-alt" style="width:24px;color:#94a3b8;"></i> {{ bac_si.dia_chi_phong_kham or 'Chưa cập nhật' }}</div>
+                    </div>
+
+                    <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e2e8f0;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                            <div style="background:#ecfdf5;border-radius:12px;padding:14px;">
+                                <div style="font-size:0.72rem;color:#059669;font-weight:600;">Kinh nghiệm</div>
+                                <div style="font-size:1.3rem;font-weight:900;color:#059669;">{{ bac_si.kinh_nghiem or 0 }}<small style="font-size:0.7rem;font-weight:400;"> năm</small></div>
+                            </div>
+                            <div style="background:#eff6ff;border-radius:12px;padding:14px;">
+                                <div style="font-size:0.72rem;color:#3b82f6;font-weight:600;">Đánh giá</div>
+                                <div style="font-size:1.3rem;font-weight:900;color:#3b82f6;">{{ bac_si.danh_gia|default(0)|round(1) }}<small style="font-size:0.7rem;font-weight:400;"> ⭐</small></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Cards -->
+                <div>
+                    <div class="card animate-fade-in" style="margin-bottom:20px;">
+                        <h3 style="font-weight:700;margin-bottom:18px;font-size:1rem;"><i class="fas fa-user-doctor" style="color:#059669;"></i> Thông tin chuyên môn</h3>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                            <div><div style="font-size:0.78rem;color:#94a3b8;margin-bottom:4px;">Họ tên</div><div style="font-weight:700;font-size:1rem;">{{ bac_si.ho_ten }}</div></div>
+                            <div><div style="font-size:0.78rem;color:#94a3b8;margin-bottom:4px;">Học vị</div><div style="font-weight:700;font-size:1rem;">{{ bac_si.hoc_vi or 'N/A' }}</div></div>
+                            <div><div style="font-size:0.78rem;color:#94a3b8;margin-bottom:4px;">Chuyên khoa</div><div style="font-weight:700;font-size:1rem;">{{ bac_si.ten_chuyen_khoa }}</div></div>
+                            <div><div style="font-size:0.78rem;color:#94a3b8;margin-bottom:4px;">Giá khám</div><div style="font-weight:700;font-size:1rem;color:#059669;">{{ '{:,.0f}'.format(bac_si.gia_kham|default(0)|float) }}đ</div></div>
+                            <div><div style="font-size:0.78rem;color:#94a3b8;margin-bottom:4px;">Bệnh viện</div><div style="font-weight:700;font-size:1rem;">{{ bac_si.benh_vien or 'Chưa cập nhật' }}</div></div>
+                            <div><div style="font-size:0.78rem;color:#94a3b8;margin-bottom:4px;">Số đánh giá</div><div style="font-weight:700;font-size:1rem;">{{ bac_si.so_danh_gia or 0 }} lượt</div></div>
+                        </div>
+                    </div>
+
+                    {% if bac_si.mo_ta %}
+                    <div class="card animate-fade-in" style="margin-bottom:20px;">
+                        <h3 style="font-weight:700;margin-bottom:14px;font-size:1rem;"><i class="fas fa-info-circle" style="color:#0ea5e9;"></i> Giới thiệu</h3>
+                        <div style="color:#475569;font-size:0.92rem;line-height:1.8;white-space:pre-line;">{{ bac_si.mo_ta }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ TAB SỬA ============ -->
+        <div id="panelEdit" style="display:none;">
+            <div class="card animate-fade-in" style="max-width:750px;">
+                <h3 style="font-weight:700;margin-bottom:20px;font-size:1.1rem;"><i class="fas fa-edit" style="color:#d97706;"></i> Chỉnh sửa thông tin</h3>
+                <form id="formEdit">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                        <div class="form-group"><label class="form-label">Họ tên *</label><input type="text" id="ed_ho_ten" class="form-control" value="{{ bac_si.ho_ten }}" required></div>
+                        <div class="form-group"><label class="form-label">Học vị</label><input type="text" id="ed_hoc_vi" class="form-control" value="{{ bac_si.hoc_vi or '' }}" placeholder="PGS.TS.BS, ThS.BS..."></div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                        <div class="form-group"><label class="form-label">Email</label><input type="email" id="ed_email" class="form-control" value="{{ bac_si.email }}" placeholder="your@gmail.com"></div>
+                        <div class="form-group"><label class="form-label">Số điện thoại</label><input type="text" id="ed_sdt" class="form-control" value="{{ bac_si.so_dien_thoai or '' }}"></div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                        <div class="form-group"><label class="form-label">Giá khám (VNĐ)</label><input type="number" id="ed_gia" class="form-control" value="{{ bac_si.gia_kham|int if bac_si.gia_kham else 0 }}" min="0" step="10000"></div>
+                        <div class="form-group"><label class="form-label">Kinh nghiệm (năm)</label><input type="number" id="ed_kn" class="form-control" value="{{ bac_si.kinh_nghiem or 0 }}" min="0"></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Bệnh viện / Phòng khám</label><input type="text" id="ed_bv" class="form-control" value="{{ bac_si.benh_vien or '' }}"></div>
+                    <div class="form-group"><label class="form-label">Địa chỉ phòng khám</label><input type="text" id="ed_dc" class="form-control" value="{{ bac_si.dia_chi_phong_kham or '' }}"></div>
+                    <div class="form-group"><label class="form-label">Mô tả bản thân</label><textarea id="ed_mota" class="form-control" rows="4" placeholder="Giới thiệu ngắn...">{{ bac_si.mo_ta or '' }}</textarea></div>
+                    <div style="display:flex;gap:12px;margin-top:20px;">
+                        <button type="button" class="btn btn-primary" onclick="luuThongTin()"><i class="fas fa-save"></i> Lưu thay đổi</button>
+                        <button type="button" class="btn" style="background:#fef3c7;color:#d97706;" onclick="resetThongTin()"><i class="fas fa-undo"></i> Reset về mặc định</button>
+                        <button type="button" class="btn" style="background:var(--gray-100);color:var(--gray-600);" onclick="switchTab('view')">Hủy</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ============ TAB ĐỔI MẬT KHẨU ============ -->
+        <div id="panelPass" style="display:none;">
+            <div class="card animate-fade-in" style="max-width:500px;">
+                <h3 style="font-weight:700;margin-bottom:20px;font-size:1.1rem;"><i class="fas fa-key" style="color:#ef4444;"></i> Đổi mật khẩu</h3>
+                <div class="form-group"><label class="form-label">Mật khẩu hiện tại</label><input type="password" id="pw_old" class="form-control"></div>
+                <div class="form-group"><label class="form-label">Mật khẩu mới</label><input type="password" id="pw_new" class="form-control" placeholder="Tối thiểu 6 ký tự"></div>
+                <div class="form-group"><label class="form-label">Xác nhận mật khẩu mới</label><input type="password" id="pw_confirm" class="form-control"></div>
+                <button class="btn btn-primary" onclick="doiMatKhau()"><i class="fas fa-lock"></i> Đổi mật khẩu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function switchTab(tab){
+  ['View','Edit','Pass'].forEach(t=>{
+    document.getElementById('panel'+t).style.display = t.toLowerCase()===tab?'block':'none';
+    const btn=document.getElementById('tab'+t);
+    if(t.toLowerCase()===tab){btn.className='btn btn-primary btn-sm';btn.style.background='';btn.style.color='';}
+    else{btn.className='btn btn-sm';btn.style.background='#f1f5f9';btn.style.color='#475569';}
+  });
+}
+
+async function uploadAvatar(input){
+  if(!input.files[0]) return;
+  const fd=new FormData();
+  fd.append('avatar',input.files[0]);
+  const r=await fetch('/bac-si/api/avatar',{method:'POST',body:fd});
+  const j=await r.json();
+  if(j.success){alert('Đã cập nhật ảnh! ✅');location.reload();}
+  else alert(j.message||'Lỗi upload');
+}
+
+async function luuThongTin(){
+  const data={
+    ho_ten:document.getElementById('ed_ho_ten').value,
+    hoc_vi:document.getElementById('ed_hoc_vi').value,
+    email:document.getElementById('ed_email').value,
+    so_dien_thoai:document.getElementById('ed_sdt').value,
+    gia_kham:+document.getElementById('ed_gia').value,
+    benh_vien:document.getElementById('ed_bv').value,
+    dia_chi_phong_kham:document.getElementById('ed_dc').value,
+    kinh_nghiem:+document.getElementById('ed_kn').value,
+    mo_ta:document.getElementById('ed_mota').value
+  };
+  const r=await fetch('/bac-si/api/cap-nhat-thong-tin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  const j=await r.json();
+  if(j.success){alert('Đã lưu thông tin! ✅');location.reload();}
+  else alert(j.message||'Lỗi');
+}
+
+async function resetThongTin(){
+  if(!confirm('Reset thông tin về mặc định? Các thay đổi sẽ bị mất.')) return;
+  const r=await fetch('/bac-si/api/reset-thong-tin',{method:'POST',headers:{'Content-Type':'application/json'}});
+  const j=await r.json();
+  if(j.success){alert('Đã reset! ✅');location.reload();}
+  else alert(j.message||'Lỗi');
+}
+
+async function doiMatKhau(){
+  const old=document.getElementById('pw_old').value;
+  const nw=document.getElementById('pw_new').value;
+  const cf=document.getElementById('pw_confirm').value;
+  if(!old||!nw){alert('Vui lòng nhập đủ thông tin.');return;}
+  if(nw.length<6){alert('Mật khẩu mới tối thiểu 6 ký tự.');return;}
+  if(nw!==cf){alert('Mật khẩu xác nhận không khớp.');return;}
+  const r=await fetch('/bac-si/api/doi-mat-khau',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mat_khau_cu:old,mat_khau_moi:nw})});
+  const j=await r.json();
+  if(j.success){alert('Đã đổi mật khẩu! ✅');document.getElementById('pw_old').value='';document.getElementById('pw_new').value='';document.getElementById('pw_confirm').value='';}
+  else alert(j.message||'Lỗi');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,283 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Hồ sơ sức khỏe - MedPro{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top:16px;padding-bottom:40px;">
+{% if benh_nhan %}
+<div style="display:grid;grid-template-columns:1fr 320px;gap:24px;">
+<div>
+    <!-- HEADER -->
+    <div class="card animate-fade-in" style="margin-bottom:24px;">
+        <div style="display:flex;gap:20px;align-items:center;">
+            <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#059669,#0891b2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <span style="font-size:2rem;color:#fff;font-weight:900;">{{ benh_nhan.ho_ten[0] }}</span>
+            </div>
+            <div style="flex:1;">
+                <h2 style="font-size:1.5rem;font-weight:900;margin-bottom:2px;">{{ benh_nhan.ho_ten }}</h2>
+                <div style="color:#64748b;font-size:0.85rem;display:flex;gap:14px;flex-wrap:wrap;">
+                    <span><i class="fas fa-id-card"></i> {{ benh_nhan.ma_benh_nhan }}</span>
+                    {% if benh_nhan.ngay_sinh %}<span><i class="fas fa-birthday-cake"></i> {{ benh_nhan.ngay_sinh }}</span>{% endif %}
+                    {% if benh_nhan.gioi_tinh %}<span><i class="fas fa-venus-mars"></i> {{ benh_nhan.gioi_tinh }}</span>{% endif %}
+                    <span><i class="fas fa-tint"></i> {{ benh_nhan.nhom_mau or 'N/A' }}</span>
+                </div>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:20px;padding-top:20px;border-top:1px solid #e2e8f0;">
+            <div class="text-center"><div style="font-size:0.72rem;color:#94a3b8;">Chiều cao</div><div style="font-size:1.1rem;font-weight:800;">{{ benh_nhan.chieu_cao or '--' }}</div><div style="font-size:0.68rem;color:#cbd5e1;">cm</div></div>
+            <div class="text-center"><div style="font-size:0.72rem;color:#94a3b8;">Cân nặng</div><div style="font-size:1.1rem;font-weight:800;">{{ benh_nhan.can_nang or '--' }}</div><div style="font-size:0.68rem;color:#cbd5e1;">kg</div></div>
+            <div class="text-center"><div style="font-size:0.72rem;color:#94a3b8;">Huyết áp</div><div style="font-size:1.1rem;font-weight:800;">{{ benh_nhan.huyet_ap or '--' }}</div><div style="font-size:0.68rem;color:#cbd5e1;">mmHg</div></div>
+            <div class="text-center"><div style="font-size:0.72rem;color:#94a3b8;">Nhịp tim</div><div style="font-size:1.1rem;font-weight:800;">{{ benh_nhan.nhip_tim or '--' }}</div><div style="font-size:0.68rem;color:#cbd5e1;">bpm</div></div>
+            <div class="text-center"><div style="font-size:0.72rem;color:#94a3b8;">BMI</div>
+                {% set bmi = (benh_nhan.can_nang / ((benh_nhan.chieu_cao/100)**2))|round(1) if benh_nhan.can_nang and benh_nhan.chieu_cao else 0 %}
+                <div style="font-size:1.1rem;font-weight:800;">{{ bmi if bmi else '--' }}</div>
+                <div style="font-size:0.68rem;color:#cbd5e1;">{{ 'Bình thường' if bmi and 18.5 <= bmi <= 24.9 else ('Gầy' if bmi and bmi < 18.5 else ('Thừa cân' if bmi else '')) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div style="display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm tab-btn active" onclick="showTab('lich-su')"><i class="fas fa-history"></i> Lịch sử khám</button>
+        <button class="btn btn-sm tab-btn" onclick="showTab('don-thuoc')" style="background:#f1f5f9;color:#475569;"><i class="fas fa-prescription"></i> Đơn thuốc</button>
+        <button class="btn btn-sm tab-btn" onclick="showTab('thong-tin')" style="background:#f1f5f9;color:#475569;"><i class="fas fa-user-edit"></i> Cập nhật hồ sơ</button>
+    </div>
+
+    <!-- TAB: LỊCH SỬ KHÁM -->
+    <div id="content-lich-su">
+        {% if timeline %}
+        <div class="timeline">
+            {% for hs in timeline %}
+            <div class="timeline-item animate-fade-in-up" data-delay="{{ loop.index * 0.08 }}">
+                <div class="timeline-dot completed"></div>
+                <div class="timeline-date">{{ hs.ngay_kham.strftime('%d/%m/%Y') if hs.ngay_kham else '' }}</div>
+                <div class="timeline-title">{{ hs.ten_chuyen_khoa }}<span class="badge badge-success" style="margin-left:8px;">Hoàn thành</span></div>
+                <div class="timeline-content">
+                    <p>BS: {{ hs.ten_hien_thi_bs }}</p>
+                    {% if hs.chan_doan %}<p><strong>Chẩn đoán:</strong> {{ hs.chan_doan }}</p>{% endif %}
+                    {% if hs.ghi_chu_lam_sang %}<p style="color:#64748b;font-size:0.85rem;">{{ hs.ghi_chu_lam_sang[:120] }}{% if hs.ghi_chu_lam_sang|length > 120 %}...{% endif %}</p>{% endif %}
+                    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+                        <a href="{{ url_for('ho_so.chi_tiet_ho_so', ho_so_id=hs.id) }}" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i> Chi tiết</a>
+                        <button class="btn btn-sm" style="background:#ecfdf5;color:#059669;" data-hsid="{{ hs.id }}" onclick="viewPrescription(this.dataset.hsid)"><i class="fas fa-prescription"></i> Đơn thuốc</button>
+                        <a href="{{ url_for('ho_so.in_ho_so', ho_so_id=hs.id) }}" class="btn btn-sm" style="background:#eff6ff;color:#3b82f6;" target="_blank"><i class="fas fa-print"></i> In</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center" style="padding:50px;"><div style="font-size:3rem;margin-bottom:12px;">📋</div><p style="color:#64748b;">Chưa có lịch sử khám bệnh</p><a href="{{ url_for('benh_nhan.tim_bac_si') }}" class="btn btn-primary btn-sm" style="margin-top:12px;">Đặt lịch khám ngay</a></div>
+        {% endif %}
+    </div>
+
+    <!-- TAB: ĐƠN THUỐC -->
+    <div id="content-don-thuoc" style="display:none;">
+        {% if don_thuoc_list %}
+        {% for don in don_thuoc_list %}
+        <div class="card animate-fade-in" style="margin-bottom:16px;border-left:4px solid #059669;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <div>
+                    <strong style="color:#0f172a;">Đơn #{{ don.id }}</strong> · <span style="color:#64748b;font-size:0.85rem;">{{ don.ngay_tao }}</span>
+                    <br><small style="color:#059669;">{{ don.ten_bac_si }} · {{ don.ten_chuyen_khoa }}</small>
+                </div>
+                <span class="badge badge-info">{{ don.chan_doan or 'Chưa ghi' }}</span>
+            </div>
+            {% if don.chi_tiet %}
+            <div class="table-responsive">
+                <table class="smart-table" style="margin:0;">
+                    <thead><tr><th>Thuốc</th><th>Liều dùng</th><th>SL</th><th>Đơn vị</th><th>Ghi chú</th></tr></thead>
+                    <tbody>
+                    {% for ct in don.chi_tiet %}
+                    <tr><td style="font-weight:700;">{{ ct.ten_thuoc }}</td><td>{{ ct.lieu_dung or '-' }}</td><td>{{ ct.so_luong }}</td><td>{{ ct.don_vi }}</td><td>{{ ct.ghi_chu or '-' }}</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+            {% if don.ghi_chu %}<div style="margin-top:10px;padding:10px 14px;background:#f0fdf4;border-radius:8px;font-size:0.85rem;color:#166534;"><i class="fas fa-info-circle"></i> {{ don.ghi_chu }}</div>{% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="text-center" style="padding:50px;"><div style="font-size:3rem;margin-bottom:12px;">💊</div><p style="color:#64748b;">Chưa có đơn thuốc nào</p></div>
+        {% endif %}
+    </div>
+
+    <!-- TAB: CẬP NHẬT HỒ SƠ -->
+    <div id="content-thong-tin" style="display:none;">
+        <form method="POST" action="{{ url_for('ho_so.cap_nhat') }}">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                <div class="card">
+                    <h3 style="font-weight:700;margin-bottom:16px;"><i class="fas fa-user" style="color:#059669;"></i> Thông tin cá nhân</h3>
+                    <div class="form-group"><label class="form-label">Họ tên</label><input type="text" name="ho_ten" class="form-control" value="{{ benh_nhan.ho_ten }}" required></div>
+                    <div class="form-group"><label class="form-label">Email / Gmail</label><input type="email" name="email" class="form-control" value="{{ benh_nhan.email or '' }}" placeholder="your@gmail.com"></div>
+                    <div class="form-group"><label class="form-label">SĐT</label><input type="text" name="so_dien_thoai" class="form-control" value="{{ benh_nhan.so_dien_thoai or '' }}"></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div class="form-group"><label class="form-label">Ngày sinh</label><input type="date" name="ngay_sinh" class="form-control" value="{{ benh_nhan.ngay_sinh or '' }}"></div>
+                        <div class="form-group"><label class="form-label">Giới tính</label><select name="gioi_tinh" class="form-control"><option value="Nam" {{ 'selected' if benh_nhan.gioi_tinh=='Nam' }}>Nam</option><option value="Nữ" {{ 'selected' if benh_nhan.gioi_tinh=='Nữ' }}>Nữ</option><option value="Khác" {{ 'selected' if benh_nhan.gioi_tinh=='Khác' }}>Khác</option></select></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Địa chỉ</label><input type="text" name="dia_chi" class="form-control" value="{{ benh_nhan.dia_chi or '' }}"></div>
+                    <h4 style="font-weight:700;margin:18px 0 12px;"><i class="fas fa-shield-alt" style="color:#0ea5e9;"></i> Bảo hiểm & Liên hệ</h4>
+                    <div class="form-group"><label class="form-label">Số BHYT</label><input type="text" name="bao_hiem_y_te" class="form-control" value="{{ benh_nhan.bao_hiem_y_te or '' }}"></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div class="form-group"><label class="form-label">Người liên hệ</label><input type="text" name="nguoi_lien_he" class="form-control" value="{{ benh_nhan.nguoi_lien_he or '' }}"></div>
+                        <div class="form-group"><label class="form-label">SĐT liên hệ</label><input type="text" name="sdt_lien_he" class="form-control" value="{{ benh_nhan.sdt_lien_he or '' }}"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 style="font-weight:700;margin-bottom:16px;"><i class="fas fa-heartbeat" style="color:#ef4444;"></i> Chỉ số sức khỏe</h3>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div class="form-group"><label class="form-label">Nhóm máu</label><select name="nhom_mau" class="form-control"><option value="">-- Chọn --</option>{% for nm in ['A+','A-','B+','B-','O+','O-','AB+','AB-'] %}<option value="{{ nm }}" {{ 'selected' if benh_nhan.nhom_mau==nm }}>{{ nm }}</option>{% endfor %}</select></div>
+                        <div class="form-group"><label class="form-label">Huyết áp</label><input type="text" name="huyet_ap" class="form-control" value="{{ benh_nhan.huyet_ap or '' }}" placeholder="120/80"></div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+                        <div class="form-group"><label class="form-label">Chiều cao (cm)</label><input type="number" name="chieu_cao" class="form-control" value="{{ benh_nhan.chieu_cao or '' }}" step="0.1"></div>
+                        <div class="form-group"><label class="form-label">Cân nặng (kg)</label><input type="number" name="can_nang" class="form-control" value="{{ benh_nhan.can_nang or '' }}" step="0.1"></div>
+                        <div class="form-group"><label class="form-label">Nhịp tim</label><input type="number" name="nhip_tim" class="form-control" value="{{ benh_nhan.nhip_tim or '' }}"></div>
+                    </div>
+                    <h4 style="font-weight:700;margin:18px 0 12px;"><i class="fas fa-notes-medical" style="color:#f59e0b;"></i> Tiền sử & Dị ứng</h4>
+                    <div class="form-group"><label class="form-label">Tiền sử bệnh</label><textarea name="tien_su_benh" class="form-control" rows="3" placeholder="Bệnh đã mắc, phẫu thuật...">{{ benh_nhan.tien_su_benh or '' }}</textarea></div>
+                    <div class="form-group"><label class="form-label">Dị ứng</label><textarea name="di_ung" class="form-control" rows="2" placeholder="Thuốc, thức ăn...">{{ benh_nhan.di_ung or '' }}</textarea></div>
+                    <button type="submit" class="btn btn-primary btn-block" style="margin-top:16px;"><i class="fas fa-save"></i> Lưu thay đổi</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SIDEBAR -->
+<div>
+    <div class="card animate-fade-in text-center" style="margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h4 style="font-weight:700;font-size:1rem;">Health Score</h4>
+            <span class="badge badge-success">AI</span>
+        </div>
+        <div class="health-score-circle">
+            <svg viewBox="0 0 120 120">
+                <circle class="bg" cx="60" cy="60" r="54"></circle>
+                <circle class="progress" cx="60" cy="60" r="54" data-offset="{{ 339.292 - (339.292 * health_score.diem / 100) }}" data-color="{{ health_score.mau }}"></circle>
+            </svg>
+            <div class="health-score-value">
+                <div class="health-score-number" data-color="{{ health_score.mau }}">{{ health_score.diem }}</div>
+                <div class="health-score-label">/100</div>
+            </div>
+        </div>
+        <p style="font-size:0.82rem;color:#64748b;margin-top:8px;">{{ health_score.nhan_xet }}</p>
+    </div>
+
+    <!-- Thông tin liên hệ -->
+    <div class="card animate-fade-in" style="margin-bottom:20px;">
+        <h4 style="font-weight:700;font-size:1rem;margin-bottom:14px;"><i class="fas fa-address-card" style="color:#059669;"></i> Liên hệ</h4>
+        <div style="font-size:0.85rem;color:#475569;line-height:2;">
+            <div><i class="fas fa-envelope" style="width:20px;color:#94a3b8;"></i> {{ benh_nhan.email }}</div>
+            <div><i class="fas fa-phone" style="width:20px;color:#94a3b8;"></i> {{ benh_nhan.so_dien_thoai or 'Chưa cập nhật' }}</div>
+            <div><i class="fas fa-map-marker-alt" style="width:20px;color:#94a3b8;"></i> {{ benh_nhan.dia_chi or 'Chưa cập nhật' }}</div>
+            {% if benh_nhan.bao_hiem_y_te %}<div><i class="fas fa-id-badge" style="width:20px;color:#94a3b8;"></i> BHYT: {{ benh_nhan.bao_hiem_y_te }}</div>{% endif %}
+        </div>
+    </div>
+
+    <!-- Tiền sử -->
+    <div class="card animate-fade-in" style="margin-bottom:20px;">
+        <h4 style="font-weight:700;font-size:1rem;margin-bottom:14px;"><i class="fas fa-notes-medical" style="color:#f59e0b;"></i> Tiền sử</h4>
+        <div style="font-size:0.85rem;color:#475569;">
+            <div style="margin-bottom:8px;"><strong>Tiền sử bệnh:</strong><br>{{ benh_nhan.tien_su_benh or 'Chưa ghi nhận' }}</div>
+            <div><strong>Dị ứng:</strong><br>{{ benh_nhan.di_ung or 'Không có' }}</div>
+        </div>
+    </div>
+
+    <!-- Thống kê nhanh -->
+    <div class="card animate-fade-in" style="margin-bottom:20px;background:linear-gradient(135deg,#ecfdf5,#f0fdfa);">
+        <h4 style="font-weight:700;font-size:1rem;margin-bottom:14px;"><i class="fas fa-chart-bar" style="color:#059669;"></i> Thống kê</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div style="text-align:center;padding:10px;background:#fff;border-radius:10px;">
+                <div style="font-size:1.5rem;font-weight:900;color:#059669;">{{ timeline|length }}</div>
+                <div style="font-size:0.72rem;color:#64748b;">Lần khám</div>
+            </div>
+            <div style="text-align:center;padding:10px;background:#fff;border-radius:10px;">
+                <div style="font-size:1.5rem;font-weight:900;color:#8b5cf6;">{{ don_thuoc_list|length }}</div>
+                <div style="font-size:0.72rem;color:#64748b;">Đơn thuốc</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gia đình -->
+    <div class="card animate-fade-in">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <h4 style="font-weight:700;font-size:1rem;"><i class="fas fa-users" style="color:#0ea5e9;"></i> Gia đình</h4>
+        </div>
+        {% if gia_dinh %}
+        {% for gd in gia_dinh %}
+        <div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #f1f5f9;">
+            <div style="width:36px;height:36px;border-radius:50%;background:#ecfdf5;display:flex;align-items:center;justify-content:center;"><i class="fas fa-user" style="color:#059669;font-size:0.8rem;"></i></div>
+            <div><div style="font-weight:600;font-size:0.85rem;">{{ gd.ho_ten }}</div><div style="font-size:0.72rem;color:#94a3b8;">{{ gd.quan_he or 'Thành viên' }}</div></div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p style="font-size:0.82rem;color:#94a3b8;text-align:center;padding:14px;">Chưa thêm thành viên</p>
+        {% endif %}
+    </div>
+</div>
+</div>
+{% else %}
+<div class="text-center" style="padding:80px;">
+    <div style="font-size:4rem;margin-bottom:16px;">📋</div>
+    <h2>Chưa có hồ sơ bệnh nhân</h2>
+    <p style="color:#64748b;margin-bottom:24px;">Hồ sơ sẽ được tạo tự động khi đăng ký</p>
+</div>
+{% endif %}
+</div>
+
+<!-- Modal đơn thuốc -->
+<div id="prescriptionModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:20px;padding:28px;max-width:700px;width:92%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h2 style="margin:0;font-weight:900;">💊 Đơn thuốc</h2>
+            <button onclick="document.getElementById('prescriptionModal').style.display='none'" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#64748b;">&times;</button>
+        </div>
+        <div id="prescriptionContent"><p style="color:#64748b;text-align:center;padding:30px;">Đang tải...</p></div>
+    </div>
+</div>
+
+<script>
+function showTab(tab) {
+    ['lich-su','don-thuoc','thong-tin'].forEach(t => {
+        const el = document.getElementById('content-' + t);
+        if (el) el.style.display = t === tab ? 'block' : 'none';
+    });
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        const isActive = btn.textContent.toLowerCase().includes(
+            tab === 'lich-su' ? 'lịch' : tab === 'don-thuoc' ? 'đơn' : 'cập nhật'
+        );
+        btn.className = isActive ? 'btn btn-primary btn-sm tab-btn active' : 'btn btn-sm tab-btn';
+        if (!isActive) { btn.style.background = '#f1f5f9'; btn.style.color = '#475569'; }
+        else { btn.style.background = ''; btn.style.color = ''; }
+    });
+}
+
+async function viewPrescription(hoSoId) {
+    const modal = document.getElementById('prescriptionModal');
+    const content = document.getElementById('prescriptionContent');
+    modal.style.display = 'flex';
+    content.innerHTML = '<p style="color:#64748b;text-align:center;padding:30px;">Đang tải...</p>';
+    try {
+        const res = await fetch(`/ho-so/don-thuoc/${hoSoId}`);
+        const json = await res.json();
+        if (json.success && json.data) {
+            const d = json.data;
+            let html = `<div style="background:#f0fdf4;border-radius:12px;padding:14px;margin-bottom:16px;"><strong>Ghi chú:</strong> ${d.ghi_chu || 'Không có'}</div>`;
+            if (d.chi_tiet && d.chi_tiet.length) {
+                html += '<table class="smart-table" style="margin:0;"><thead><tr><th>Thuốc</th><th>Liều dùng</th><th>SL</th><th>Đơn vị</th></tr></thead><tbody>';
+                d.chi_tiet.forEach(ct => { html += `<tr><td style="font-weight:700;">${ct.ten_thuoc}</td><td>${ct.lieu_dung||'-'}</td><td>${ct.so_luong}</td><td>${ct.don_vi}</td></tr>`; });
+                html += '</tbody></table>';
+            } else { html += '<p style="color:#64748b;text-align:center;">Đơn thuốc trống</p>'; }
+            content.innerHTML = html;
+        } else { content.innerHTML = '<p style="color:#ef4444;text-align:center;padding:30px;">Không tìm thấy đơn thuốc</p>'; }
+    } catch(e) { content.innerHTML = '<p style="color:#ef4444;text-align:center;padding:30px;">Lỗi tải đơn thuốc</p>'; }
+}
+document.getElementById('prescriptionModal').addEventListener('click', function(e) { if (e.target === this) this.style.display = 'none'; });
+
+// Apply data attributes as styles (avoids Jinja2 in style= causing IDE errors)
+document.querySelectorAll('[data-delay]').forEach(el => { el.style.animationDelay = el.dataset.delay + 's'; });
+document.querySelectorAll('[data-offset]').forEach(el => { el.style.strokeDashoffset = el.dataset.offset; el.style.stroke = el.dataset.color; });
+document.querySelectorAll('[data-color]').forEach(el => { if (!el.closest('svg')) el.style.color = el.dataset.color; });
+</script>
+{% endblock %}

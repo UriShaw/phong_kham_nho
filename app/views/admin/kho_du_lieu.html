@@ -1,0 +1,541 @@
+{% extends 'admin/layout.html' %}
+{% block title %}Kho dữ liệu sức khỏe | Admin{% endblock %}
+{% set active_page = 'kho_du_lieu' %}
+
+{% block admin_content %}
+<div class="adm-page-header anim-up">
+    <h1><i class="fas fa-database" style="color:#059669;margin-right:8px;"></i>Kho dữ liệu hệ thống</h1>
+    <p>Quản lý thuốc, nhật ký tâm trạng AI, thực phẩm, bài tập, bệnh và lịch sử hoạt động.</p>
+</div>
+
+        <!-- Stats -->
+        <div class="metric-grid" style="grid-template-columns:repeat(6,1fr);margin-bottom:20px;">
+            <div class="metric-tile"><div class="metric-label">Thuốc</div><div class="metric-value" style="color:#8b5cf6;">{{ thuoc_total }}</div></div>
+            <div class="metric-tile"><div class="metric-label">Nhật ký TT</div><div class="metric-value" style="color:#059669;">{{ mood_stats.total or 0 }}</div></div>
+            <div class="metric-tile"><div class="metric-label">Thực phẩm</div><div class="metric-value">{{ stats.foods }}</div></div>
+            <div class="metric-tile"><div class="metric-label">Bài tập</div><div class="metric-value">{{ stats.exercises }}</div></div>
+            <div class="metric-tile"><div class="metric-label">Bệnh</div><div class="metric-value">{{ stats.diseases }}</div></div>
+            <div class="metric-tile"><div class="metric-label">Triệu chứng</div><div class="metric-value">{{ stats.symptoms }}</div></div>
+        </div>
+
+        <!-- Tabs -->
+        <div style="display:flex;gap:0;border-bottom:2px solid var(--gray-100);margin-bottom:20px;">
+            <button class="tab-btn {% if tab == 'thuc_pham' %}active{% endif %}" onclick="switchTab('thuc_pham')"><i class="fas fa-utensils"></i> Thực phẩm</button>
+            <button class="tab-btn {% if tab == 'bai_tap' %}active{% endif %}" onclick="switchTab('bai_tap')"><i class="fas fa-dumbbell"></i> Bài tập</button>
+            <button class="tab-btn {% if tab == 'benh' %}active{% endif %}" onclick="switchTab('benh')"><i class="fas fa-virus"></i> Bệnh</button>
+            <button class="tab-btn {% if tab == 'thuoc' %}active{% endif %}" onclick="switchTab('thuoc')"><i class="fas fa-pills"></i> Danh mục thuốc</button>
+            <button class="tab-btn {% if tab == 'mood' %}active{% endif %}" onclick="switchTab('mood')"><i class="fas fa-brain"></i> Nhật ký tâm trạng</button>
+            <button class="tab-btn {% if tab == 'log' %}active{% endif %}" onclick="switchTab('log')"><i class="fas fa-history"></i> Hoạt động</button>
+        </div>
+
+        <!-- Search -->
+        <div class="utility-panel" style="margin-bottom:20px;">
+            <form method="GET" action="{{ url_for('admin.kho_du_lieu') }}" style="display:flex;gap:8px;align-items:center;">
+                <input type="hidden" name="tab" id="hiddenTab" value="{{ tab }}">
+                <input name="q" class="form-control" value="{{ search }}" placeholder="Tìm kiếm trong kho dữ liệu..." style="max-width:400px;">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search"></i> Tìm</button>
+                {% if search %}<a href="{{ url_for('admin.kho_du_lieu') }}?tab={{ tab }}" class="btn btn-outline btn-sm"><i class="fas fa-times"></i> Xóa</a>{% endif %}
+            </form>
+        </div>
+
+        <!-- TAB: Thực phẩm -->
+        <div class="tab-content" id="tab-thuc_pham" style="{% if tab != 'thuc_pham' %}display:none;{% endif %}">
+            <div class="utility-panel">
+                <div class="utility-panel-title"><h2>Thực phẩm ({{ foods|length }})</h2><button class="btn btn-primary btn-sm" onclick="openThemFood()"><i class="fas fa-plus"></i> Thêm</button></div>
+                <div class="table-responsive">
+                    <table class="smart-table">
+                        <thead><tr><th>Tên</th><th>Nhóm</th><th>Kcal</th><th>Đạm</th><th style="text-align:center;">Hành động</th></tr></thead>
+                        <tbody>
+                            {% for item in foods[:30] %}
+                            <tr>
+                                <td style="font-weight:800;">{{ item.name }}</td>
+                                <td>{{ item.group }}</td>
+                                <td>{{ item.calories }}</td>
+                                <td>{{ item.protein }}g</td>
+                                <td style="text-align:center;">
+                                    <div style="display:flex;gap:4px;justify-content:center;">
+                                        <button class="btn btn-sm" style="background:#dbeafe;color:#2563eb;padding:4px 8px;" onclick="openSuaFood({{ loop.index0 }},'{{ item.name|e }}','{{ item.group|e }}',{{ item.calories }},{{ item.protein }},{{ item.fat|default(0) }})"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;padding:4px 8px;" onclick="xoaFood({{ loop.index0 }},'{{ item.name|e }}')"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" style="text-align:center;">Không có dữ liệu.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: Bài tập -->
+        <div class="tab-content" id="tab-bai_tap" style="{% if tab != 'bai_tap' %}display:none;{% endif %}">
+            <div class="utility-panel">
+                <div class="utility-panel-title"><h2>Bài tập ({{ exercises|length }})</h2><button class="btn btn-primary btn-sm" onclick="openThemExercise()"><i class="fas fa-plus"></i> Thêm</button></div>
+                <div class="table-responsive">
+                    <table class="smart-table">
+                        <thead><tr><th>Tên</th><th>Loại</th><th>Mức</th><th>Phút</th><th style="text-align:center;">Hành động</th></tr></thead>
+                        <tbody>
+                            {% for item in exercises[:30] %}
+                            <tr>
+                                <td style="font-weight:800;">{{ item.name }}</td>
+                                <td>{{ item.type }}</td>
+                                <td>{{ item.level }}</td>
+                                <td>{{ item.minutes }}</td>
+                                <td style="text-align:center;">
+                                    <div style="display:flex;gap:4px;justify-content:center;">
+                                        <button class="btn btn-sm" style="background:#dbeafe;color:#2563eb;padding:4px 8px;" onclick="openSuaExercise({{ loop.index0 }},'{{ item.name|e }}','{{ item.type|e }}','{{ item.level|e }}',{{ item.minutes }})"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;padding:4px 8px;" onclick="xoaExercise({{ loop.index0 }},'{{ item.name|e }}')"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" style="text-align:center;">Không có dữ liệu.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: Bệnh -->
+        <div class="tab-content" id="tab-benh" style="{% if tab != 'benh' %}display:none;{% endif %}">
+            <div class="utility-panel">
+                <div class="utility-panel-title"><h2>Dataset bệnh ({{ diseases|length }})</h2><button class="btn btn-primary btn-sm" onclick="openThemDisease()"><i class="fas fa-plus"></i> Thêm</button></div>
+                <div class="table-responsive">
+                    <table class="smart-table">
+                        <thead><tr><th>Bệnh</th><th>Chuyên khoa</th><th>Mô tả</th><th>Dấu hiệu đỏ</th><th style="text-align:center;">Hành động</th></tr></thead>
+                        <tbody>
+                            {% for item in diseases[:30] %}
+                            <tr>
+                                <td style="font-weight:800;">{{ item.name }}</td>
+                                <td><span class="badge badge-info">{{ item.specialist }}</span></td>
+                                <td style="max-width:250px;">{{ item.description }}</td>
+                                <td>{{ item.red_flags|join(', ') }}</td>
+                                <td style="text-align:center;">
+                                    <div style="display:flex;gap:4px;justify-content:center;">
+                                        <button class="btn btn-sm" style="background:#dbeafe;color:#2563eb;padding:4px 8px;" onclick="openSuaDisease({{ loop.index0 }},'{{ item.name|e }}','{{ item.specialist|e }}','{{ item.red_flags|join(", ")|e }}','{{ item.description|e }}')"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;padding:4px 8px;" onclick="xoaDisease({{ loop.index0 }},'{{ item.name|e }}')"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" style="text-align:center;">Không có dữ liệu.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: Danh mục thuốc -->
+        <div class="tab-content" id="tab-thuoc" style="{% if tab != 'thuoc' %}display:none;{% endif %}">
+            <div class="utility-panel" style="margin-bottom:16px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                    <form method="GET" action="{{ url_for('admin.kho_du_lieu') }}" style="display:flex;gap:8px;align-items:center;">
+                        <input type="hidden" name="tab" value="thuoc">
+                        <input name="thuoc_q" class="form-control" value="{{ thuoc_search }}" placeholder="Tìm tên thuốc, hoạt chất, nhóm..." style="max-width:350px;">
+                        <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search"></i> Tìm</button>
+                        {% if thuoc_search %}<a href="{{ url_for('admin.kho_du_lieu') }}?tab=thuoc" class="btn btn-outline btn-sm"><i class="fas fa-times"></i></a>{% endif %}
+                    </form>
+                    <button class="btn btn-primary btn-sm" onclick="openThemThuoc()"><i class="fas fa-plus"></i> Thêm thuốc</button>
+                </div>
+            </div>
+            <div class="utility-panel">
+                <div class="utility-panel-title"><h2><i class="fas fa-pills" style="color:#8b5cf6;"></i> Danh mục thuốc ({{ thuoc_total }} loại)</h2></div>
+                <div class="table-responsive">
+                    <table class="smart-table">
+                        <thead><tr><th>ID</th><th>Tên thuốc</th><th>Hoạt chất</th><th>Nhóm thuốc</th><th>Đơn vị</th><th>Hãng SX</th><th style="text-align:center;">Hành động</th></tr></thead>
+                        <tbody>
+                            {% for t in thuoc_list %}
+                            <tr>
+                                <td><strong>#{{ t.id }}</strong></td>
+                                <td style="font-weight:800;color:var(--primary);">{{ t.ten_thuoc }}</td>
+                                <td style="font-size:0.82rem;">{{ t.hoat_chat or '-' }}</td>
+                                <td><span class="badge badge-info">{{ t.nhom_thuoc or '-' }}</span></td>
+                                <td>{{ t.don_vi or '-' }}</td>
+                                <td style="font-size:0.82rem;color:#64748b;">{{ t.hang_san_xuat or '-' }}</td>
+                                <td style="text-align:center;">
+                                    <div style="display:flex;gap:4px;justify-content:center;">
+                                        <button class="btn btn-sm" style="background:#f0fdf4;color:#059669;padding:4px 8px;" title="Chi tiết"
+                                            onclick="xemChiTiet({{ t.id }},'{{ t.ten_thuoc|e }}','{{ (t.hoat_chat or '')|e }}','{{ (t.nhom_thuoc or '')|e }}','{{ (t.don_vi or '')|e }}','{{ (t.hang_san_xuat or '')|e }}','{{ (t.mo_ta or '')|e }}')"><i class="fas fa-eye"></i></button>
+                                        <button class="btn btn-sm" style="background:#dbeafe;color:#2563eb;padding:4px 8px;" title="Sửa"
+                                            onclick="openSuaThuoc({{ t.id }},'{{ t.ten_thuoc|e }}','{{ (t.hoat_chat or '')|e }}','{{ (t.nhom_thuoc or '')|e }}','{{ (t.don_vi or '')|e }}','{{ (t.hang_san_xuat or '')|e }}','{{ (t.mo_ta or '')|e }}')"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;padding:4px 8px;" title="Xóa"
+                                            onclick="xoaThuoc({{ t.id }},'{{ t.ten_thuoc|e }}')"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="7" style="text-align:center;padding:32px;">Chưa có dữ liệu thuốc.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: Nhật ký tâm trạng AI -->
+        <div class="tab-content" id="tab-mood" style="{% if tab != 'mood' %}display:none;{% endif %}">
+            <div class="utility-panel">
+                <div class="utility-panel-title">
+                    <h2><i class="fas fa-brain" style="color:#8b5cf6;"></i> Nhật ký tâm trạng AI</h2>
+                    <div style="display:flex;gap:8px;">
+                        <span class="badge" style="background:#ede9fe;color:#7c3aed;">Hôm nay: {{ mood_stats.today or 0 }}</span>
+                        <span class="badge badge-info">TB: {{ mood_stats.avg_mood or 0 }}/5</span>
+                        <span class="badge badge-success">{{ mood_stats.active_users or 0 }} user tuần này</span>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="smart-table">
+                        <thead><tr><th>Bệnh nhân</th><th>Ngày</th><th>Tâm trạng</th><th>Nội dung</th><th>AI Phân tích</th></tr></thead>
+                        <tbody>
+                            {% for nk in mood_list %}
+                            <tr>
+                                <td style="font-weight:700;">{{ nk.ho_ten }}</td>
+                                <td style="white-space:nowrap;">{{ nk.ngay }}</td>
+                                <td style="font-size:1.5rem;text-align:center;">
+                                    {% if nk.muc_tam_trang == 5 %}😄{% elif nk.muc_tam_trang == 4 %}🙂{% elif nk.muc_tam_trang == 3 %}😐{% elif nk.muc_tam_trang == 2 %}😔{% else %}😢{% endif %}
+                                </td>
+                                <td style="max-width:250px;color:#475569;font-size:0.85rem;">{{ (nk.noi_dung or '')|truncate(60) }}</td>
+                                <td><span class="badge" style="background:#ede9fe;color:#7c3aed;">{{ nk.ai_phan_tich or '-' }}</span></td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" style="text-align:center;padding:32px;">Chưa có nhật ký tâm trạng nào.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: Hoạt động gần đây -->
+        <div class="tab-content" id="tab-log" style="{% if tab != 'log' %}display:none;{% endif %}">
+            <div class="doctor-grid">
+                <div class="utility-panel">
+                    <div class="utility-panel-title"><h2><i class="fas fa-history" style="color:#0ea5e9;"></i> Đăng nhập gần đây</h2></div>
+                    <div class="table-responsive">
+                        <table class="smart-table">
+                            <thead><tr><th>Người dùng</th><th>Vai trò</th><th>Email</th><th>Lần đăng nhập cuối</th></tr></thead>
+                            <tbody>
+                                {% for hd in hoat_dong %}
+                                <tr>
+                                    <td style="font-weight:700;">{{ hd.ho_ten }}</td>
+                                    <td>
+                                        {% if hd.vai_tro == 'admin' %}<span class="badge" style="background:#ede9fe;color:#7c3aed;">Admin</span>
+                                        {% elif hd.vai_tro == 'bac_si' %}<span class="badge badge-success">Bác sĩ</span>
+                                        {% else %}<span class="badge badge-info">Bệnh nhân</span>{% endif %}
+                                    </td>
+                                    <td style="font-size:0.82rem;color:#64748b;">{{ hd.email }}</td>
+                                    <td>{{ hd.lan_dang_nhap_cuoi.strftime('%d/%m/%Y %H:%M') if hd.lan_dang_nhap_cuoi else '-' }}</td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="4" style="text-align:center;">Chưa có hoạt động.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="utility-panel">
+                    <div class="utility-panel-title"><h2><i class="fas fa-heartbeat" style="color:#dc2626;"></i> Log sức khỏe mới</h2></div>
+                    <div class="table-responsive">
+                        <table class="smart-table">
+                            <thead><tr><th>Bệnh nhân</th><th>Ngày</th><th>Nhịp tim</th><th>Huyết áp</th><th>Ngủ</th></tr></thead>
+                            <tbody>
+                                {% for item in recent_health_logs %}
+                                <tr>
+                                    <td><strong>{{ item.ho_ten }}</strong><br><small>{{ item.ma_benh_nhan }}</small></td>
+                                    <td>{{ item.ngay }}</td>
+                                    <td>{{ item.nhip_tim or '-' }}</td>
+                                    <td>{% if item.huyet_ap_tam_thu and item.huyet_ap_tam_truong %}{{ item.huyet_ap_tam_thu }}/{{ item.huyet_ap_tam_truong }}{% else %}-{% endif %}</td>
+                                    <td>{{ item.giac_ngu or '-' }}</td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="5" style="text-align:center;">Chưa có log sức khỏe.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal Thêm/Sửa Thuốc -->
+<div id="modalThuoc" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;padding:28px;width:95%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,.2);position:relative;">
+        <button onclick="closeModal('modalThuoc')" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.4rem;cursor:pointer;color:#94a3b8;">&times;</button>
+        <h2 id="modalThuocTitle" style="margin:0 0 18px;font-size:1.2rem;color:#0f172a;"><i class="fas fa-pills" style="color:#8b5cf6;"></i> Thêm thuốc mới</h2>
+        <input type="hidden" id="thuocId">
+        <div style="display:grid;gap:12px;">
+            <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Tên thuốc *</label><input id="thuoc_ten" class="form-control" placeholder="VD: Paracetamol 500mg"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Hoạt chất</label><input id="thuoc_hoat_chat" class="form-control" placeholder="Paracetamol"></div>
+                <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Nhóm thuốc</label><input id="thuoc_nhom" class="form-control" placeholder="Giảm đau, hạ sốt"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Đơn vị</label><input id="thuoc_don_vi" class="form-control" value="viên"></div>
+                <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Hãng SX</label><input id="thuoc_hang" class="form-control" placeholder="Hãng sản xuất"></div>
+            </div>
+            <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Mô tả</label><textarea id="thuoc_mo_ta" class="form-control" rows="2" placeholder="Mô tả, chỉ định..."></textarea></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end;">
+            <button class="btn btn-outline btn-sm" onclick="closeModal('modalThuoc')">Hủy</button>
+            <button class="btn btn-primary btn-sm" id="btnSaveThuoc" onclick="saveThuoc()"><i class="fas fa-save"></i> Lưu</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Chi tiết Thuốc -->
+<div id="modalChiTietThuoc" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;padding:28px;width:95%;max-width:450px;box-shadow:0 20px 60px rgba(0,0,0,.2);position:relative;">
+        <button onclick="closeModal('modalChiTietThuoc')" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.4rem;cursor:pointer;color:#94a3b8;">&times;</button>
+        <h2 style="margin:0 0 18px;font-size:1.2rem;color:#0f172a;"><i class="fas fa-capsules" style="color:#8b5cf6;"></i> Chi tiết thuốc</h2>
+        <div id="chiTietThuocBody" style="display:grid;gap:10px;font-size:.9rem;"></div>
+        <div style="margin-top:18px;text-align:right;"><button class="btn btn-outline btn-sm" onclick="closeModal('modalChiTietThuoc')">Đóng</button></div>
+    </div>
+</div>
+
+<!-- Modal Thêm/Sửa Thực phẩm -->
+<div id="modalFood" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;padding:28px;width:95%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.2);position:relative;">
+        <button onclick="closeModal('modalFood')" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.4rem;cursor:pointer;color:#94a3b8;">&times;</button>
+        <h2 id="modalFoodTitle" style="margin:0 0 18px;font-size:1.2rem;color:#0f172a;"><i class="fas fa-utensils" style="color:#059669;"></i> Thêm thực phẩm</h2>
+        <input type="hidden" id="foodIdx" value="-1">
+        <div style="display:grid;gap:12px;">
+            <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Tên *</label><input id="food_name" class="form-control" placeholder="Tên thực phẩm"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Nhóm</label><input id="food_group" class="form-control" placeholder="Rau, Thịt..."></div>
+                <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Calories</label><input id="food_cal" class="form-control" type="number" placeholder="0"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Đạm (g)</label><input id="food_protein" class="form-control" type="number" step="0.1" placeholder="0"></div>
+                <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Béo (g)</label><input id="food_fat" class="form-control" type="number" step="0.1" placeholder="0"></div>
+            </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end;">
+            <button class="btn btn-outline btn-sm" onclick="closeModal('modalFood')">Hủy</button>
+            <button class="btn btn-primary btn-sm" onclick="saveFood()"><i class="fas fa-save"></i> Lưu</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm/Sửa Bài tập -->
+<div id="modalExercise" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;padding:28px;width:95%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.2);position:relative;">
+        <button onclick="closeModal('modalExercise')" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.4rem;cursor:pointer;color:#94a3b8;">&times;</button>
+        <h2 id="modalExerciseTitle" style="margin:0 0 18px;font-size:1.2rem;color:#0f172a;"><i class="fas fa-dumbbell" style="color:#0ea5e9;"></i> Thêm bài tập</h2>
+        <input type="hidden" id="exIdx" value="-1">
+        <div style="display:grid;gap:12px;">
+            <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Tên *</label><input id="ex_name" class="form-control" placeholder="Tên bài tập"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+                <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Loại</label><input id="ex_type" class="form-control" placeholder="cardio"></div>
+                <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Mức</label><input id="ex_level" class="form-control" placeholder="beginner"></div>
+                <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Phút</label><input id="ex_min" class="form-control" type="number" placeholder="30"></div>
+            </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end;">
+            <button class="btn btn-outline btn-sm" onclick="closeModal('modalExercise')">Hủy</button>
+            <button class="btn btn-primary btn-sm" onclick="saveExercise()"><i class="fas fa-save"></i> Lưu</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm/Sửa Bệnh -->
+<div id="modalDisease" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;padding:28px;width:95%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,.2);position:relative;">
+        <button onclick="closeModal('modalDisease')" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.4rem;cursor:pointer;color:#94a3b8;">&times;</button>
+        <h2 id="modalDiseaseTitle" style="margin:0 0 18px;font-size:1.2rem;color:#0f172a;"><i class="fas fa-virus" style="color:#ef4444;"></i> Thêm bệnh</h2>
+        <input type="hidden" id="diseaseIdx" value="-1">
+        <div style="display:grid;gap:12px;">
+            <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Tên bệnh *</label><input id="dis_name" class="form-control" placeholder="Tên bệnh"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Chuyên khoa</label><input id="dis_spec" class="form-control" placeholder="Nội tổng quát"></div>
+                <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Dấu hiệu đỏ</label><input id="dis_red" class="form-control" placeholder="dấu hiệu 1, dấu hiệu 2"></div>
+            </div>
+            <div><label style="font-weight:700;font-size:.82rem;color:#475569;">Mô tả</label><textarea id="dis_desc" class="form-control" rows="2" placeholder="Mô tả bệnh"></textarea></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end;">
+            <button class="btn btn-outline btn-sm" onclick="closeModal('modalDisease')">Hủy</button>
+            <button class="btn btn-primary btn-sm" onclick="saveDisease()"><i class="fas fa-save"></i> Lưu</button>
+        </div>
+    </div>
+
+<style>
+.tab-btn {
+    padding:10px 18px;font-size:0.85rem;font-weight:700;color:var(--gray-400);
+    background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;
+    transition:all 0.2s;display:flex;align-items:center;gap:6px;
+}
+</style>
+{% endblock %}
+
+{% block admin_css %}
+<style>
+.tab-btn:hover { color:#059669; }
+.tab-btn.active { color:#059669;border-bottom-color:#059669; }
+.detail-row { display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #f1f5f9; }
+.detail-row strong { min-width:110px;color:#475569;font-size:.82rem; }
+.detail-row span { color:#0f172a; }
+</style>
+{% endblock %}
+
+{% block admin_js %}
+<script>
+/* ── Tab switching ── */
+function switchTab(name) {
+    document.querySelectorAll('.tab-content').forEach(function(el) { el.style.display = 'none'; });
+    document.querySelectorAll('.tab-btn').forEach(function(el) { el.classList.remove('active'); });
+    var target = document.getElementById('tab-' + name);
+    if (target) target.style.display = 'block';
+    event.target.closest('.tab-btn').classList.add('active');
+    document.getElementById('hiddenTab').value = name;
+}
+
+/* ── Modal helpers ── */
+function openModal(id) { var m=document.getElementById(id); m.style.display='flex'; }
+function closeModal(id) { document.getElementById(id).style.display='none'; }
+
+/* ═══ THUỐC CRUD ═══ */
+function openThemThuoc() {
+    document.getElementById('modalThuocTitle').innerHTML='<i class="fas fa-pills" style="color:#8b5cf6;"></i> Thêm thuốc mới';
+    document.getElementById('thuocId').value='';
+    ['thuoc_ten','thuoc_hoat_chat','thuoc_nhom','thuoc_don_vi','thuoc_hang','thuoc_mo_ta'].forEach(function(id){document.getElementById(id).value='';});
+    document.getElementById('thuoc_don_vi').value='viên';
+    openModal('modalThuoc');
+}
+function openSuaThuoc(id,ten,hc,nhom,dv,hang,mota) {
+    document.getElementById('modalThuocTitle').innerHTML='<i class="fas fa-edit" style="color:#2563eb;"></i> Sửa thuốc #'+id;
+    document.getElementById('thuocId').value=id;
+    document.getElementById('thuoc_ten').value=ten;
+    document.getElementById('thuoc_hoat_chat').value=hc;
+    document.getElementById('thuoc_nhom').value=nhom;
+    document.getElementById('thuoc_don_vi').value=dv;
+    document.getElementById('thuoc_hang').value=hang;
+    document.getElementById('thuoc_mo_ta').value=mota;
+    openModal('modalThuoc');
+}
+function saveThuoc() {
+    var id=document.getElementById('thuocId').value;
+    var data={ten_thuoc:document.getElementById('thuoc_ten').value,hoat_chat:document.getElementById('thuoc_hoat_chat').value,nhom_thuoc:document.getElementById('thuoc_nhom').value,don_vi:document.getElementById('thuoc_don_vi').value,hang_san_xuat:document.getElementById('thuoc_hang').value,mo_ta:document.getElementById('thuoc_mo_ta').value};
+    if(!data.ten_thuoc){alert('Vui lòng nhập tên thuốc.');return;}
+    var url=id?'/admin/api/thuoc/sua/'+id:'/admin/api/thuoc/them';
+    fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+    .then(function(r){return r.json();}).then(function(r){
+        if(r.success!==false){alert(r.message||'Thành công!');location.reload();}
+        else{alert(r.message||'Lỗi!');}
+    }).catch(function(){alert('Lỗi kết nối.');});
+}
+function xoaThuoc(id,ten) {
+    if(!confirm('Xóa thuốc "'+ten+'"?')) return;
+    fetch('/admin/api/thuoc/xoa/'+id,{method:'POST',headers:{'Content-Type':'application/json'}})
+    .then(function(r){return r.json();}).then(function(r){
+        alert(r.message||'Đã xóa.'); location.reload();
+    }).catch(function(){alert('Lỗi kết nối.');});
+}
+function xemChiTiet(id,ten,hc,nhom,dv,hang,mota) {
+    var html='<div class="detail-row"><strong>Tên thuốc:</strong><span style="font-weight:800;color:#8b5cf6;">'+ten+'</span></div>';
+    html+='<div class="detail-row"><strong>Hoạt chất:</strong><span>'+(hc||'—')+'</span></div>';
+    html+='<div class="detail-row"><strong>Nhóm thuốc:</strong><span>'+(nhom||'—')+'</span></div>';
+    html+='<div class="detail-row"><strong>Đơn vị:</strong><span>'+(dv||'—')+'</span></div>';
+    html+='<div class="detail-row"><strong>Hãng SX:</strong><span>'+(hang||'—')+'</span></div>';
+    html+='<div class="detail-row"><strong>Mô tả:</strong><span>'+(mota||'—')+'</span></div>';
+    document.getElementById('chiTietThuocBody').innerHTML=html;
+    openModal('modalChiTietThuoc');
+}
+
+/* ═══ THỰC PHẨM CRUD ═══ */
+function openThemFood() {
+    document.getElementById('modalFoodTitle').innerHTML='<i class="fas fa-utensils" style="color:#059669;"></i> Thêm thực phẩm';
+    document.getElementById('foodIdx').value='-1';
+    ['food_name','food_group','food_cal','food_protein','food_fat'].forEach(function(id){document.getElementById(id).value='';});
+    openModal('modalFood');
+}
+function openSuaFood(idx,name,group,cal,protein,fat) {
+    document.getElementById('modalFoodTitle').innerHTML='<i class="fas fa-edit" style="color:#059669;"></i> Sửa thực phẩm';
+    document.getElementById('foodIdx').value=idx;
+    document.getElementById('food_name').value=name;
+    document.getElementById('food_group').value=group;
+    document.getElementById('food_cal').value=cal;
+    document.getElementById('food_protein').value=protein;
+    document.getElementById('food_fat').value=fat||'';
+    openModal('modalFood');
+}
+function saveFood() {
+    var data={index:parseInt(document.getElementById('foodIdx').value),name:document.getElementById('food_name').value,group:document.getElementById('food_group').value,calories:parseInt(document.getElementById('food_cal').value)||0,protein:parseFloat(document.getElementById('food_protein').value)||0,fat:parseFloat(document.getElementById('food_fat').value)||0};
+    if(!data.name){alert('Vui lòng nhập tên.');return;}
+    fetch('/admin/api/kho-du-lieu/food',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+    .then(function(r){return r.json();}).then(function(r){
+        if(r.success!==false){alert(r.message||'OK!');location.reload();}else{alert(r.message||'Lỗi!');}
+    }).catch(function(){alert('Lỗi kết nối.');});
+}
+function xoaFood(idx,name) {
+    if(!confirm('Xóa "'+name+'"?')) return;
+    fetch('/admin/api/kho-du-lieu/food/xoa',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({index:idx})})
+    .then(function(r){return r.json();}).then(function(r){alert(r.message||'OK!');location.reload();});
+}
+
+/* ═══ BÀI TẬP CRUD ═══ */
+function openThemExercise() {
+    document.getElementById('modalExerciseTitle').innerHTML='<i class="fas fa-dumbbell" style="color:#0ea5e9;"></i> Thêm bài tập';
+    document.getElementById('exIdx').value='-1';
+    ['ex_name','ex_type','ex_level','ex_min'].forEach(function(id){document.getElementById(id).value='';});
+    openModal('modalExercise');
+}
+function openSuaExercise(idx,name,type,level,min) {
+    document.getElementById('modalExerciseTitle').innerHTML='<i class="fas fa-edit" style="color:#0ea5e9;"></i> Sửa bài tập';
+    document.getElementById('exIdx').value=idx;
+    document.getElementById('ex_name').value=name;
+    document.getElementById('ex_type').value=type;
+    document.getElementById('ex_level').value=level;
+    document.getElementById('ex_min').value=min;
+    openModal('modalExercise');
+}
+function saveExercise() {
+    var data={index:parseInt(document.getElementById('exIdx').value),name:document.getElementById('ex_name').value,type:document.getElementById('ex_type').value,level:document.getElementById('ex_level').value,minutes:parseInt(document.getElementById('ex_min').value)||0};
+    if(!data.name){alert('Vui lòng nhập tên.');return;}
+    fetch('/admin/api/kho-du-lieu/exercise',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+    .then(function(r){return r.json();}).then(function(r){
+        if(r.success!==false){alert(r.message||'OK!');location.reload();}else{alert(r.message||'Lỗi!');}
+    }).catch(function(){alert('Lỗi kết nối.');});
+}
+function xoaExercise(idx,name) {
+    if(!confirm('Xóa "'+name+'"?')) return;
+    fetch('/admin/api/kho-du-lieu/exercise/xoa',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({index:idx})})
+    .then(function(r){return r.json();}).then(function(r){alert(r.message||'OK!');location.reload();});
+}
+
+/* ═══ BỆNH CRUD ═══ */
+function openThemDisease() {
+    document.getElementById('modalDiseaseTitle').innerHTML='<i class="fas fa-virus" style="color:#ef4444;"></i> Thêm bệnh';
+    document.getElementById('diseaseIdx').value='-1';
+    ['dis_name','dis_spec','dis_red','dis_desc'].forEach(function(id){document.getElementById(id).value='';});
+    openModal('modalDisease');
+}
+function openSuaDisease(idx,name,spec,red,desc) {
+    document.getElementById('modalDiseaseTitle').innerHTML='<i class="fas fa-edit" style="color:#ef4444;"></i> Sửa bệnh';
+    document.getElementById('diseaseIdx').value=idx;
+    document.getElementById('dis_name').value=name;
+    document.getElementById('dis_spec').value=spec;
+    document.getElementById('dis_red').value=red;
+    document.getElementById('dis_desc').value=desc;
+    openModal('modalDisease');
+}
+function saveDisease() {
+    var data={index:parseInt(document.getElementById('diseaseIdx').value),name:document.getElementById('dis_name').value,specialist:document.getElementById('dis_spec').value,red_flags:document.getElementById('dis_red').value.split(',').map(function(s){return s.trim();}).filter(Boolean),description:document.getElementById('dis_desc').value};
+    if(!data.name){alert('Vui lòng nhập tên.');return;}
+    fetch('/admin/api/kho-du-lieu/disease',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+    .then(function(r){return r.json();}).then(function(r){
+        if(r.success!==false){alert(r.message||'OK!');location.reload();}else{alert(r.message||'Lỗi!');}
+    }).catch(function(){alert('Lỗi kết nối.');});
+}
+function xoaDisease(idx,name) {
+    if(!confirm('Xóa "'+name+'"?')) return;
+    fetch('/admin/api/kho-du-lieu/disease/xoa',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({index:idx})})
+    .then(function(r){return r.json();}).then(function(r){alert(r.message||'OK!');location.reload();});
+}
+</script>
+{% endblock %}

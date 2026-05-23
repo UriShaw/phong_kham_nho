@@ -1,0 +1,146 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Đặt lịch khám - {{ bac_si.ten_hien_thi }} - MedPro{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 16px;">
+    <!-- Steps Progress -->
+    <div class="steps-progress">
+        <div class="step completed"><div class="step-number"><i class="fas fa-check"></i></div><span class="step-label">Chọn bác sĩ</span></div>
+        <div class="step-line active"></div>
+        <div class="step active"><div class="step-number">2</div><span class="step-label">Chọn giờ</span></div>
+        <div class="step-line"></div>
+        <div class="step"><div class="step-number">3</div><span class="step-label">Thanh toán</span></div>
+    </div>
+
+    <div class="grid-2" style="gap: 32px; margin-top: 24px;">
+        <!-- Thông tin bác sĩ -->
+        <div class="card animate-fade-in">
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px;">
+                <i class="fas fa-user-md" style="color: var(--primary); margin-right: 8px;"></i>Bác sĩ đã chọn
+            </h3>
+            <div style="display: flex; gap: 16px; align-items: center; padding: 16px; background: var(--primary-50); border-radius: var(--radius-md); margin-bottom: 20px;">
+                {% if bac_si.avatar %}
+                <img src="{{ url_for('static', filename='uploads/avatars/' + bac_si.avatar) }}"
+                     style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-200); flex-shrink: 0;"
+                     alt="{{ bac_si.ten_hien_thi }}"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-100), var(--primary-200)); display: none; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <span style="font-size: 1.3rem; font-weight: 800; color: var(--primary);">{{ bac_si.ho_ten[0] if bac_si.ho_ten else 'B' }}</span>
+                </div>
+                {% else %}
+                <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-100), var(--primary-200)); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <span style="font-size: 1.3rem; font-weight: 800; color: var(--primary);">{{ bac_si.ho_ten[0] if bac_si.ho_ten else 'B' }}</span>
+                </div>
+                {% endif %}
+                <div>
+                    <h4 style="font-weight: 700;">{{ bac_si.ten_hien_thi }}</h4>
+                    <div style="color: var(--primary); font-size: 0.85rem;">{{ bac_si.ten_chuyen_khoa }}</div>
+                    <div style="font-size: 0.82rem; color: var(--gray-500);">{{ bac_si.benh_vien }}</div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--gray-100); font-size: 0.9rem;">
+                <span style="color: var(--gray-500);">Giá khám</span>
+                <span style="font-weight: 700; color: var(--primary-dark);">{{ '{:,.0f}'.format(bac_si.gia_kham) }}đ</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--gray-100); font-size: 0.9rem;">
+                <span style="color: var(--gray-500);">Kinh nghiệm</span>
+                <span style="font-weight: 600;">{{ bac_si.kinh_nghiem }} năm</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 12px 0; font-size: 0.9rem;">
+                <span style="color: var(--gray-500);">Đánh giá</span>
+                <span style="font-weight: 600; color: #F59E0B;"><i class="fas fa-star"></i> {{ bac_si.danh_gia }}</span>
+            </div>
+        </div>
+
+        <!-- Form đặt lịch -->
+        <div class="card animate-fade-in-up">
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px;">
+                <i class="fas fa-calendar-alt" style="color: var(--primary); margin-right: 8px;"></i>Chọn lịch khám
+            </h3>
+
+            <form method="POST" action="{{ url_for('lich_kham.dat_lich', bac_si_id=bac_si.id) }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+                <div class="form-group">
+                    <label class="form-label" for="ngay_kham">Chọn ngày khám</label>
+                    <input type="date" name="ngay_kham" id="ngay_kham" class="form-control" required
+                           min="{{ now().strftime('%Y-%m-%d') if now is defined else '' }}"
+                           onchange="loadSlots()" title="Ngày khám">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Chọn giờ khám</label>
+                    <div id="time-slots" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                        <p style="grid-column: 1/-1; color: var(--gray-400); font-size: 0.85rem; text-align: center; padding: 20px;">
+                            Vui lòng chọn ngày trước
+                        </p>
+                    </div>
+                    <input type="hidden" name="gio_kham" id="gio_kham" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Lý do khám (không bắt buộc)</label>
+                    <textarea name="ly_do" class="form-control" rows="3" placeholder="Mô tả triệu chứng hoặc lý do khám..."></textarea>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <a href="{{ url_for('benh_nhan.tim_bac_si') }}" class="btn btn-outline" style="flex: 1; justify-content: center;">
+                        <i class="fas fa-arrow-left"></i> Quay lại
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-lg" style="flex: 2; justify-content: center;" id="btn-submit">
+                        Xác nhận đặt lịch <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set min date = today
+document.getElementById('ngay_kham').min = new Date().toISOString().split('T')[0];
+
+// Load time slots
+async function loadSlots() {
+    const ngay = document.getElementById('ngay_kham').value;
+    if (!ngay) return;
+
+    const container = document.getElementById('time-slots');
+    container.innerHTML = '<div class="spinner" style="margin: 20px auto;"></div>';
+
+    try {
+        const res = await fetch(`/lich-kham/api/slots/{{ bac_si.id }}/${ngay}`);
+        const data = await res.json();
+
+        if (data.success && data.data.slots.length > 0) {
+            container.innerHTML = data.data.slots.map(slot => {
+                const time = slot.substring(0, 5);
+                return `<button type="button" class="slot-btn" onclick="selectSlot(this, '${slot}')"
+                         style="padding: 10px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
+                                background: white; cursor: pointer; font-family: var(--font-family); font-weight: 600;
+                                font-size: 0.88rem; transition: var(--transition);">
+                            ${time}
+                        </button>`;
+            }).join('');
+        } else {
+            container.innerHTML = '<p style="grid-column: 1/-1; color: var(--warning); text-align: center; padding: 20px;">Không còn khung giờ trống trong ngày này</p>';
+        }
+    } catch (err) {
+        container.innerHTML = '<p style="grid-column: 1/-1; color: var(--danger); text-align: center; padding: 20px;">Lỗi tải dữ liệu</p>';
+    }
+}
+
+function selectSlot(btn, time) {
+    document.querySelectorAll('.slot-btn').forEach(b => {
+        b.style.background = 'white';
+        b.style.borderColor = 'var(--gray-200)';
+        b.style.color = 'var(--gray-800)';
+    });
+    btn.style.background = 'var(--primary)';
+    btn.style.borderColor = 'var(--primary)';
+    btn.style.color = 'white';
+    document.getElementById('gio_kham').value = time;
+}
+</script>
+{% endblock %}

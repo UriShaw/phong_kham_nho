@@ -1,0 +1,235 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Nhắc uống thuốc Gmail | MedPro{% endblock %}
+
+{% block content %}
+<section class="utility-shell">
+    <div class="container">
+        <div class="utility-hero-main" style="margin-bottom:20px;">
+            <div>
+                <div class="utility-kicker"><i class="fas fa-pills"></i> Gmail Reminder</div>
+                <h1 class="utility-title">Nhắc uống thuốc qua Gmail</h1>
+                <p class="utility-subtitle">Chọn thuốc từ đơn bác sĩ kê để đặt lịch nhắc tự động qua email.</p>
+            </div>
+        </div>
+
+        <div class="split-layout">
+            <!-- ĐƠN THUỐC BÁC SĨ KÊ -->
+            <div class="utility-panel">
+                <div class="utility-panel-title"><h2>Đơn thuốc của bạn</h2><span class="badge badge-info">Bác sĩ kê</span></div>
+                {% if don_thuoc_list %}
+                <div class="alert-list" style="max-height:520px;overflow-y:auto;">
+                    {% for don in don_thuoc_list %}
+                    <div class="prescription-card" style="border:1px solid #e2e8f0;border-radius:14px;padding:16px;margin-bottom:14px;background:#fafffe;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                            <div>
+                                <strong style="color:#0f172a;">{{ don.ten_bac_si }}</strong>
+                                <br><small style="color:#64748b;">{{ don.chan_doan or 'Chưa ghi' }} · {{ don.ngay_tao }}</small>
+                            </div>
+                            <span class="badge badge-success" style="font-size:0.7rem;">Đơn #{{ don.id }}</span>
+                        </div>
+                        {% for ct in don.chi_tiet %}
+                        <div class="medicine-item" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#ecfdf5;border-radius:10px;margin-bottom:6px;">
+                            <div style="flex:1;">
+                                <div style="font-weight:800;color:#134e4a;">{{ ct.ten_thuoc }}</div>
+                                <small style="color:#475569;">{{ ct.lieu_dung or '-' }} · {{ ct.so_luong }} {{ ct.don_vi }}</small>
+                            </div>
+                            <button class="btn btn-sm btn-primary" onclick="openReminderModal({{ ct.id }}, '{{ ct.ten_thuoc|e }}', '{{ ct.lieu_dung|e }}')" title="Đặt nhắc thuốc">
+                                <i class="fas fa-bell"></i>
+                            </button>
+                        </div>
+                        {% endfor %}
+                        {% if don.ghi_chu %}
+                        <small style="color:#64748b;display:block;margin-top:6px;"><i class="fas fa-info-circle"></i> {{ don.ghi_chu }}</small>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div style="text-align:center;padding:40px 20px;">
+                    <div class="stat-icon green" style="margin:0 auto 14px;"><i class="fas fa-file-prescription"></i></div>
+                    <h3 style="color:#0f172a;font-weight:800;">Chưa có đơn thuốc</h3>
+                    <p style="color:#64748b;">Bác sĩ sẽ kê đơn thuốc sau khi khám bệnh. Bạn chỉ có thể đặt nhắc thuốc từ đơn đã được kê.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- MẪU EMAIL & HƯỚNG DẪN -->
+            <div class="utility-panel">
+                <div class="utility-panel-title"><h2>Mẫu email nhắc</h2><span class="badge badge-success">SMTP Gmail</span></div>
+                <div class="email-preview">
+                    <div style="font-size:0.82rem;color:#0f766e;font-weight:800;margin-bottom:8px;">MedPro Health Reminder</div>
+                    <h3 style="color:#0f172a;margin-bottom:8px;">💊 Đến giờ uống thuốc</h3>
+                    <p style="color:#334155;line-height:1.6;">Xin chào <strong>{{ current_user.ho_ten if current_user else 'Bạn' }}</strong>,<br>Hãy uống <strong id="previewMedicine">tên thuốc</strong> vào lúc <strong id="previewTime">08:00</strong>.</p>
+                    <div style="background:#ecfdf5;border-radius:8px;padding:12px;margin-top:12px;color:#14532d;">
+                        <div><strong>Liều dùng:</strong> <span id="previewDose">theo hướng dẫn</span></div>
+                        <div><strong>Ghi chú:</strong> <span id="previewNote">không tự ý đổi liều</span></div>
+                    </div>
+                </div>
+                <div class="alert-row info" style="margin-top:14px;">
+                    <i class="fas fa-circle-info"></i>
+                    <span>Cấu hình Gmail: <code>SMTP_USER</code> và <code>SMTP_PASS</code> trong <code>.env</code>. Nếu chưa có, hệ thống ghi log email để demo.</span>
+                </div>
+                <div class="alert-row" style="margin-top:8px;">
+                    <i class="fas fa-shield-halved"></i>
+                    <span>Bệnh nhân <strong>không tự nhập thuốc</strong>. Thuốc chỉ được lấy từ đơn bác sĩ kê để đảm bảo an toàn.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- DANH SÁCH NHẮC ĐANG BẬT -->
+        <div class="utility-panel" style="margin-top:20px;">
+            <div class="smart-table-tools">
+                <div class="utility-panel-title" style="margin:0;"><h2>Lịch nhắc đang bật</h2></div>
+                <input id="reminderSearch" class="form-control" placeholder="Tìm thuốc..." style="max-width:260px;">
+            </div>
+            <div class="table-responsive">
+                <table class="smart-table" id="reminderTable">
+                    <thead>
+                        <tr>
+                            <th>Thuốc</th>
+                            <th>Giờ</th>
+                            <th>Liều dùng</th>
+                            <th>Email</th>
+                            <th>Gửi gần nhất</th>
+                            <th style="text-align:right;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in nhac_list %}
+                        <tr id="reminder-{{ item.id }}">
+                            <td style="font-weight:800;color:#0f172a;">{{ item.ten_thuoc }}</td>
+                            <td><span class="badge badge-info">{{ item.gio_nhac }}</span></td>
+                            <td>{{ item.lieu_dung or '-' }}</td>
+                            <td>{{ item.email_nhan or current_user.email }}</td>
+                            <td>{{ item.lan_gui_cuoi or '-' }}</td>
+                            <td style="text-align:right;">
+                                <button class="btn btn-sm btn-outline" onclick="sendTest({{ item.id }})" title="Gửi thử"><i class="fas fa-paper-plane"></i></button>
+                                <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;" onclick="deleteReminder({{ item.id }})" title="Xóa"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6" style="text-align:center;color:#64748b;">Chưa có lịch nhắc thuốc. Chọn thuốc từ đơn bác sĩ để đặt nhắc.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- MODAL ĐẶT NHẮC THUỐC -->
+<div id="reminderModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:20px;padding:28px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <h2 style="margin:0;font-weight:900;color:#0f172a;">⏰ Đặt nhắc uống thuốc</h2>
+            <button onclick="closeReminderModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#64748b;">&times;</button>
+        </div>
+        <div style="background:#ecfdf5;border-radius:12px;padding:14px;margin-bottom:16px;">
+            <div style="font-weight:800;color:#134e4a;font-size:1.1rem;" id="modalMedicineName"></div>
+            <small style="color:#475569;" id="modalMedicineDose"></small>
+        </div>
+        <input type="hidden" id="modal_chi_tiet_id">
+        <div class="form-group">
+            <label class="form-label">Giờ nhắc uống</label>
+            <input id="modal_gio_nhac" type="time" class="form-control" value="08:00">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Email nhận nhắc</label>
+            <input id="modal_email" type="email" class="form-control" value="{{ current_user.email if current_user else '' }}">
+        </div>
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label class="form-label">Ngày bắt đầu</label>
+                <input id="modal_ngay_bd" type="date" class="form-control">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Ngày kết thúc</label>
+                <input id="modal_ngay_kt" type="date" class="form-control">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Ghi chú</label>
+            <textarea id="modal_ghi_chu" class="form-control" rows="2" placeholder="Uống sau ăn, tránh cà phê..."></textarea>
+        </div>
+        <button id="confirmReminderBtn" class="btn btn-primary btn-lg btn-block"><i class="fas fa-bell"></i> Xác nhận đặt nhắc</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openReminderModal(chiTietId, tenThuoc, lieuDung) {
+    document.getElementById('modal_chi_tiet_id').value = chiTietId;
+    document.getElementById('modalMedicineName').textContent = tenThuoc;
+    document.getElementById('modalMedicineDose').textContent = lieuDung || 'Theo chỉ định bác sĩ';
+    document.getElementById('previewMedicine').textContent = tenThuoc;
+    document.getElementById('previewDose').textContent = lieuDung || 'theo hướng dẫn';
+    const modal = document.getElementById('reminderModal');
+    modal.style.display = 'flex';
+    // Set default dates
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('modal_ngay_bd').value = today;
+}
+
+function closeReminderModal() {
+    document.getElementById('reminderModal').style.display = 'none';
+}
+
+document.getElementById('reminderModal').addEventListener('click', function(e) {
+    if (e.target === this) closeReminderModal();
+});
+
+document.getElementById('modal_gio_nhac').addEventListener('input', function() {
+    document.getElementById('previewTime').textContent = this.value || '08:00';
+});
+
+document.getElementById('confirmReminderBtn').addEventListener('click', async () => {
+    const payload = {
+        chi_tiet_don_thuoc_id: parseInt(document.getElementById('modal_chi_tiet_id').value),
+        gio_nhac: document.getElementById('modal_gio_nhac').value,
+        email_nhan: document.getElementById('modal_email').value,
+        ngay_bat_dau: document.getElementById('modal_ngay_bd').value,
+        ngay_ket_thuc: document.getElementById('modal_ngay_kt').value,
+        ghi_chu: document.getElementById('modal_ghi_chu').value
+    };
+    const response = await fetch('/tien-ich/api/nhac-thuoc', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    });
+    const json = await response.json();
+    if (json.success) {
+        showToast('Đã thêm lịch nhắc thuốc! 🔔', 'success');
+        closeReminderModal();
+        setTimeout(() => location.reload(), 700);
+    } else {
+        showToast(json.message || 'Không thêm được lịch', 'error');
+    }
+});
+
+async function sendTest(id) {
+    const response = await fetch(`/tien-ich/api/nhac-thuoc/${id}/send-test`, {method: 'POST', headers: {'Content-Type': 'application/json'}});
+    const json = await response.json();
+    showToast(json.message || 'Đã xử lý gửi thử', json.success ? 'success' : 'error');
+}
+
+async function deleteReminder(id) {
+    if (!confirm('Xóa lịch nhắc này?')) return;
+    const response = await fetch(`/tien-ich/api/nhac-thuoc/${id}`, {method: 'DELETE'});
+    const json = await response.json();
+    if (json.success) {
+        document.getElementById(`reminder-${id}`)?.remove();
+        showToast('Đã xóa lịch nhắc', 'success');
+    } else {
+        showToast(json.message || 'Không xóa được', 'error');
+    }
+}
+
+document.getElementById('reminderSearch').addEventListener('input', event => {
+    const keyword = event.target.value.toLowerCase();
+    document.querySelectorAll('#reminderTable tbody tr').forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(keyword) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

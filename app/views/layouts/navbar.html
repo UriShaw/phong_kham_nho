@@ -1,0 +1,120 @@
+<!-- Thanh điều hướng chính -->
+<nav class="navbar" id="navbar">
+    <div class="navbar-container">
+        <!-- Logo -->
+        <a href="{{ url_for('benh_nhan.trang_chu') }}" class="navbar-brand">
+            <div class="logo-icon">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+            <span>Medpro</span>
+        </a>
+
+        <!-- Navigation Links -->
+        <ul class="navbar-nav">
+            {% if current_user and current_user.vai_tro == 'bac_si' %}
+            <li><a href="{{ url_for('bac_si.dashboard') }}"><i class="fas fa-th-large"></i> Dashboard</a></li>
+            <li><a href="{{ url_for('bac_si.lich_kham') }}"><i class="fas fa-calendar-alt"></i> Lịch hẹn</a></li>
+            <li><a href="{{ url_for('bac_si.benh_nhan_cua_toi') }}"><i class="fas fa-users"></i> Bệnh nhân</a></li>
+            {% elif current_user and current_user.vai_tro == 'admin' %}
+            <li><a href="{{ url_for('benh_nhan.trang_chu') }}" class="{{ 'active' if request.endpoint == 'benh_nhan.trang_chu' }}">Trang chủ</a></li>
+            <li><a href="{{ url_for('benh_nhan.tim_bac_si') }}" class="{{ 'active' if request.endpoint == 'benh_nhan.tim_bac_si' }}">Bác sĩ</a></li>
+            <li><a href="{{ url_for('tien_ich.dashboard') }}" class="{{ 'active' if 'tien_ich' in (request.endpoint or '') }}">Tiện ích</a></li>
+            <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            {% else %}
+            <li><a href="{{ url_for('benh_nhan.trang_chu') }}" class="{{ 'active' if request.endpoint == 'benh_nhan.trang_chu' }}">Trang chủ</a></li>
+            <li><a href="{{ url_for('benh_nhan.tim_bac_si') }}" class="{{ 'active' if request.endpoint == 'benh_nhan.tim_bac_si' }}">Bác sĩ</a></li>
+            <li><a href="{{ url_for('tien_ich.dashboard') }}" class="{{ 'active' if 'tien_ich' in (request.endpoint or '') }}">Tiện ích</a></li>
+            {% if current_user %}
+            <li><a href="{{ url_for('lich_kham.danh_sach') }}" class="{{ 'active' if 'lich_kham' in (request.endpoint or '') }}">Lịch khám</a></li>
+            <li><a href="{{ url_for('ho_so.ho_so') }}" class="{{ 'active' if 'ho_so' in (request.endpoint or '') }}">Hồ sơ</a></li>
+            {% endif %}
+            {% endif %}
+        </ul>
+
+        <!-- Actions -->
+        <div class="navbar-actions">
+            <!-- Search -->
+            <div class="navbar-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Tìm kiếm..." id="navbar-search-input">
+            </div>
+
+            {% if current_user %}
+            <!-- Notifications -->
+            <div class="notification-bell" data-href="{{ url_for('benh_nhan.thong_bao') }}">
+                <i class="fas fa-bell" style="font-size: 1.1rem; color: var(--gray-600);"></i>
+                {% if thong_bao_count > 0 %}
+                <span class="notification-badge">{{ thong_bao_count }}</span>
+                {% endif %}
+            </div>
+
+            <!-- User Menu -->
+            <div class="user-menu" style="position: relative;">
+                <div class="user-avatar-placeholder" title="{{ current_user.ho_ten }}">
+                    {{ current_user.ho_ten[0] if current_user.ho_ten else 'U' }}
+                </div>
+                <div class="user-dropdown" id="user-dropdown" style="display:none; position:absolute; right:0; top:45px; background:white; border-radius:var(--radius-md); box-shadow:var(--shadow-xl); min-width:200px; padding:8px; z-index:1100;">
+                    <div style="padding:12px 16px; border-bottom:1px solid var(--gray-100); margin-bottom:8px;">
+                        <div style="font-weight:600; font-size:0.9rem;">{{ current_user.ho_ten }}</div>
+                        <div style="font-size:0.78rem; color:var(--gray-500);">{{ current_user.email }}</div>
+                    </div>
+                    {% if current_user.vai_tro == 'admin' %}
+                    <a href="{{ url_for('admin.dashboard') }}" style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-radius:var(--radius-sm); color:var(--gray-700); font-size:0.88rem;">
+                        <i class="fas fa-tachometer-alt" style="width:18px;"></i> Admin Dashboard
+                    </a>
+                    {% elif current_user.vai_tro == 'bac_si' %}
+                    <a href="{{ url_for('bac_si.dashboard') }}" style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-radius:var(--radius-sm); color:var(--gray-700); font-size:0.88rem;">
+                        <i class="fas fa-stethoscope" style="width:18px;"></i> Dashboard Bác sĩ
+                    </a>
+                    {% endif %}
+                    {% if current_user.vai_tro == 'benh_nhan' %}
+                    <a href="{{ url_for('benh_nhan.ho_so_ca_nhan') }}" style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-radius:var(--radius-sm); color:var(--gray-700); font-size:0.88rem;">
+                        <i class="fas fa-file-medical" style="width:18px;"></i> Hồ sơ của tôi
+                    </a>
+                    {% endif %}
+                    {% if current_user.vai_tro == 'benh_nhan' %}
+                    <a href="{{ url_for('lich_kham.danh_sach') }}" style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-radius:var(--radius-sm); color:var(--gray-700); font-size:0.88rem;">
+                        <i class="fas fa-calendar-check" style="width:18px;"></i> Lịch khám
+                    </a>
+                    {% endif %}
+                    <hr style="border:none; border-top:1px solid var(--gray-100); margin:8px 0;">
+                    <a href="{{ url_for('auth.dang_xuat') }}" style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-radius:var(--radius-sm); color:var(--danger); font-size:0.88rem;">
+                        <i class="fas fa-sign-out-alt" style="width:18px;"></i> Đăng xuất
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <a href="{{ url_for('auth.dang_nhap') }}" class="btn btn-outline btn-sm">Đăng nhập</a>
+            <a href="{{ url_for('auth.dang_ky') }}" class="btn btn-primary btn-sm">Đăng ký</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<script>
+// Toggle user dropdown
+document.addEventListener('click', function(e) {
+    var dropdown = document.getElementById('user-dropdown');
+    if (dropdown && !e.target.closest('.user-menu')) {
+        dropdown.style.display = 'none';
+        dropdown.classList.remove('show');
+    }
+});
+document.querySelectorAll('.user-avatar-placeholder').forEach(function(el) {
+    el.addEventListener('click', function() {
+        var dd = document.getElementById('user-dropdown');
+        dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+    });
+});
+// Notification bell click
+document.querySelectorAll('.notification-bell[data-href]').forEach(function(el) {
+    el.addEventListener('click', function() { window.location.href = this.dataset.href; });
+});
+// Search input enter key
+var searchInput = document.getElementById('navbar-search-input');
+if (searchInput) {
+    searchInput.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') { window.location.href = '/tim-bac-si?q=' + this.value; }
+    });
+}
+</script>

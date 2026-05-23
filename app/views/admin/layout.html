@@ -1,0 +1,106 @@
+{% extends 'layouts/base.html' %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="adm-shell">
+    <aside class="adm-side">
+        <div class="adm-logo"><div class="adm-logo-icon"><i class="fas fa-heartbeat"></i></div><div><strong>MedPro</strong><small>Admin Panel</small></div></div>
+        <nav class="adm-nav">
+            <a href="{{ url_for('admin.dashboard') }}" class="{{ 'active' if active_page == 'dashboard' }}"><i class="fas fa-th-large"></i><span>Tổng quan</span></a>
+            <a href="{{ url_for('admin.quan_ly_tai_khoan') }}" class="{{ 'active' if active_page == 'tai_khoan' }}"><i class="fas fa-users-cog"></i><span>Tài khoản</span></a>
+            <a href="{{ url_for('admin.quan_ly_lich') }}" class="{{ 'active' if active_page == 'lich_hen' }}"><i class="fas fa-calendar-alt"></i><span>Lịch hẹn</span></a>
+            <a href="{{ url_for('admin.quan_ly_benh_nhan') }}" class="{{ 'active' if active_page == 'benh_nhan' }}"><i class="fas fa-users"></i><span>Bệnh nhân</span></a>
+            <a href="{{ url_for('admin.quan_ly_bac_si') }}" class="{{ 'active' if active_page == 'bac_si' }}"><i class="fas fa-user-md"></i><span>Bác sĩ</span></a>
+            <a href="{{ url_for('admin.kho_du_lieu') }}" class="{{ 'active' if active_page == 'kho_du_lieu' }}"><i class="fas fa-database"></i><span>Kho dữ liệu</span></a>
+            <div class="adm-nav-sep"></div>
+            <a href="{{ url_for('benh_nhan.trang_chu') }}"><i class="fas fa-home"></i><span>Trang chủ</span></a>
+            <a href="{{ url_for('auth.dang_xuat') }}" class="adm-logout"><i class="fas fa-sign-out-alt"></i><span>Đăng xuất</span></a>
+        </nav>
+    </aside>
+    <main class="adm-main">
+        {% block admin_content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+*{box-sizing:border-box}
+.anim-up{opacity:0;animation:admUp .5s ease-out forwards;animation-delay:var(--delay,0s)}
+@keyframes admUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.adm-shell{display:flex;min-height:100vh;background:#f8fafc;}
+.main-content:has(.adm-shell){padding:0!important;margin:0!important;}
+.adm-side{width:240px;background:#fff;border-right:1px solid #e2e8f0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;}
+.adm-logo{display:flex;align-items:center;gap:10px;padding:20px 18px;border-bottom:1px solid #f1f5f9;}
+.adm-logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#059669,#34d399);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.9rem;}
+.adm-logo strong{color:#0f172a;font-size:.92rem;display:block;line-height:1.2;}
+.adm-logo small{color:#94a3b8;font-size:.68rem;}
+.adm-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
+.adm-nav a{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;color:#64748b;font-size:.82rem;font-weight:600;text-decoration:none;transition:all .2s;}
+.adm-nav a i{width:18px;text-align:center;font-size:.8rem;}
+.adm-nav a:hover{background:#f0fdf4;color:#059669;}
+.adm-nav a.active{background:linear-gradient(135deg,#ecfdf5,#d1fae5);color:#059669;font-weight:700;}
+.adm-nav a.active i{color:#059669;}
+.adm-nav-sep{height:1px;background:#f1f5f9;margin:8px 0;}
+.adm-logout{margin-top:auto;}
+.adm-logout:hover{color:#ef4444!important;background:#fef2f2!important;}
+.adm-main{flex:1;padding:24px 28px;overflow-y:auto;background:#f8fafc;min-width:0;}
+/* Common panel */
+.adm-panel{background:#fff;border:1px solid #f1f5f9;border-radius:16px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.03);margin-bottom:16px;}
+.adm-panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+.adm-panel-head h3{font-size:.92rem;font-weight:800;color:#0f172a;display:flex;align-items:center;gap:8px;margin:0;}
+/* Page header */
+.adm-page-header{margin-bottom:22px;}
+.adm-page-header h1{font-size:1.4rem;font-weight:800;color:#0f172a;margin:0 0 2px;}
+.adm-page-header p{color:#94a3b8;font-size:.82rem;margin:0;}
+/* Table */
+.adm-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+.adm-table th{text-align:left;padding:10px 12px;background:#f8fafc;color:#64748b;font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #f1f5f9;}
+.adm-table td{padding:10px 12px;border-bottom:1px solid #f1f5f9;color:#475569;vertical-align:middle;}
+.adm-table tr:hover td{background:#f0fdf4;}
+/* Badges */
+.adm-badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:.68rem;font-weight:700;}
+.adm-badge.green{background:#d1fae5;color:#059669;}
+.adm-badge.yellow{background:#fef3c7;color:#d97706;}
+.adm-badge.red{background:#fee2e2;color:#dc2626;}
+.adm-badge.blue{background:#dbeafe;color:#2563eb;}
+.adm-badge.gray{background:#f1f5f9;color:#64748b;}
+/* Buttons */
+.adm-btn{padding:7px 14px;border:none;border-radius:8px;font-size:.76rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .2s;text-decoration:none;}
+.adm-btn.green{background:#d1fae5;color:#059669;}.adm-btn.green:hover{background:#a7f3d0;}
+.adm-btn.red{background:#fee2e2;color:#dc2626;}.adm-btn.red:hover{background:#fecaca;}
+.adm-btn.blue{background:#dbeafe;color:#2563eb;}.adm-btn.blue:hover{background:#bfdbfe;}
+.adm-btn.primary{background:linear-gradient(135deg,#059669,#10b981);color:#fff;}.adm-btn.primary:hover{box-shadow:0 4px 12px rgba(5,150,105,.25);}
+/* Search/filter bar */
+.adm-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
+.adm-search{padding:8px 12px 8px 34px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.82rem;min-width:220px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") 10px center no-repeat;transition:border .2s;}
+.adm-search:focus{outline:none;border-color:#059669;}
+.adm-select{padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.82rem;background:#fff;cursor:pointer;}
+/* Avatar small */
+.adm-av-sm{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#059669,#34d399);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:800;flex-shrink:0;}
+/* Pagination */
+.adm-paging{display:flex;justify-content:center;gap:4px;margin-top:14px;}
+.adm-paging a,.adm-paging span{padding:6px 12px;border-radius:8px;font-size:.78rem;font-weight:600;border:1px solid #e2e8f0;color:#64748b;text-decoration:none;transition:all .2s;}
+.adm-paging a:hover{border-color:#a7f3d0;color:#059669;}
+.adm-paging .active{background:linear-gradient(135deg,#059669,#10b981);color:#fff;border-color:transparent;}
+/* Modal */
+.adm-modal-bg{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.4);align-items:center;justify-content:center;}
+.adm-modal{background:#fff;border-radius:18px;padding:26px;width:95%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,.15);position:relative;max-height:90vh;overflow-y:auto;}
+.adm-modal h2{font-size:1.1rem;font-weight:800;color:#0f172a;margin:0 0 16px;display:flex;align-items:center;gap:8px;}
+.adm-modal-close{position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.4rem;cursor:pointer;color:#94a3b8;}
+.adm-form-group{margin-bottom:12px;}
+.adm-form-group label{display:block;font-size:.78rem;font-weight:700;color:#475569;margin-bottom:4px;}
+.adm-form-group input,.adm-form-group select,.adm-form-group textarea{width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.84rem;transition:border .2s;box-sizing:border-box;}
+.adm-form-group input:focus,.adm-form-group select:focus,.adm-form-group textarea:focus{outline:none;border-color:#059669;}
+/* Empty */
+.adm-empty{text-align:center;padding:40px;color:#94a3b8;font-size:.85rem;}
+.adm-empty i{font-size:2rem;display:block;margin-bottom:8px;color:#d1fae5;}
+@media(max-width:900px){.adm-side{display:none;}}
+</style>
+{% block admin_css %}{% endblock %}
+{% endblock %}
+
+{% block extra_js %}
+{% block admin_js %}{% endblock %}
+{% endblock %}

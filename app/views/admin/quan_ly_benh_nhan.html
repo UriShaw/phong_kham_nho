@@ -1,0 +1,234 @@
+{% extends 'admin/layout.html' %}
+{% block title %}Quản lý Bệnh nhân - Admin{% endblock %}
+{% set active_page = 'benh_nhan' %}
+
+{% block admin_content %}
+<div class="adm-page-header anim-up">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div>
+            <h1><i class="fas fa-users" style="color:#059669;margin-right:8px;"></i>Quản lý Bệnh nhân</h1>
+            <p>Tổng: {{ result.total }} bệnh nhân</p>
+        </div>
+        <form method="GET" class="adm-toolbar" style="margin:0;">
+            <input type="text" name="q" class="adm-search" placeholder="Tìm kiếm..." value="{{ search }}">
+            <button type="submit" class="adm-btn primary"><i class="fas fa-search"></i></button>
+        </form>
+    </div>
+</div>
+
+<div class="adm-panel anim-up" style="--delay:.1s;padding:0;overflow:hidden;">
+    <div style="overflow-x:auto;">
+        <table class="adm-table">
+            <thead>
+                        <tr>
+                            <th>Mã BN</th><th>Họ tên</th><th>Email</th><th>SĐT</th>
+                            <th>Giới tính</th><th>Ngày sinh</th><th>Nhóm máu</th>
+                            <th style="text-align:center;">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bn in result.danh_sach %}
+                        <tr>
+                            <td><span class="adm-badge blue">{{ bn.ma_benh_nhan }}</span></td>
+                            <td style="font-weight:600;">{{ bn.ho_ten }}</td>
+                            <td style="font-size:0.82rem;">{{ bn.email }}</td>
+                            <td>{{ bn.so_dien_thoai }}</td>
+                            <td>{{ bn.gioi_tinh or '-' }}</td>
+                            <td>{{ bn.ngay_sinh or '-' }}</td>
+                            <td>{% if bn.nhom_mau %}<span class="adm-badge red">{{ bn.nhom_mau }}</span>{% else %}-{% endif %}</td>
+                            <td style="text-align:center;">
+                                <div style="display:flex;gap:4px;justify-content:center;">
+                                    <button type="button" class="btn btn-sm btn-detail-bn"
+                                        style="background:var(--gray-100);color:var(--gray-600);padding:4px 10px;"
+                                        title="Xem chi tiết"
+                                        data-ma="{{ bn.ma_benh_nhan }}"
+                                        data-ho_ten="{{ bn.ho_ten }}"
+                                        data-email="{{ bn.email or '' }}"
+                                        data-sdt="{{ bn.so_dien_thoai or '' }}"
+                                        data-gioi_tinh="{{ bn.gioi_tinh or '' }}"
+                                        data-ngay_sinh="{{ bn.ngay_sinh or '' }}"
+                                        data-nhom_mau="{{ bn.nhom_mau or '' }}"
+                                        data-dia_chi="{{ bn.dia_chi or '' }}"
+                                        data-chieu_cao="{{ bn.chieu_cao or '' }}"
+                                        data-can_nang="{{ bn.can_nang or '' }}"
+                                        data-nhip_tim="{{ bn.nhip_tim or '' }}"
+                                        data-huyet_ap="{{ bn.huyet_ap or '' }}"><i class="fas fa-eye"></i></button>
+                                    <button type="button" class="btn btn-sm btn-edit-bn"
+                                        style="background:#DBEAFE;color:#2563EB;padding:4px 10px;"
+                                        title="Sửa thông tin"
+                                        data-id="{{ bn.id }}"
+                                        data-ho_ten="{{ bn.ho_ten }}"
+                                        data-sdt="{{ bn.so_dien_thoai or '' }}"
+                                        data-ngay_sinh="{{ bn.ngay_sinh or '' }}"
+                                        data-gioi_tinh="{{ bn.gioi_tinh or 'Nam' }}"
+                                        data-nhom_mau="{{ bn.nhom_mau or '' }}"
+                                        data-dia_chi="{{ bn.dia_chi or '' }}"
+                                        data-chieu_cao="{{ bn.chieu_cao or '' }}"
+                                        data-can_nang="{{ bn.can_nang or '' }}"
+                                        data-nhip_tim="{{ bn.nhip_tim or '' }}"
+                                        data-huyet_ap="{{ bn.huyet_ap or '' }}"><i class="fas fa-edit"></i></button>
+                                    <form method="POST" action="{{ url_for('admin.xoa_benh_nhan', benh_nhan_id=bn.id) }}" onsubmit="return confirm('Xóa bệnh nhân này? Không thể hoàn tác!')">
+                                        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm" style="background:#FEE2E2;color:var(--danger);padding:4px 10px;" title="Xóa"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="8" style="text-align:center;padding:32px;color:var(--gray-400);">Không có bệnh nhân nào.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if result.total_pages > 1 %}
+            <div style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #e2e8f0;flex-wrap:wrap;gap:12px;">
+                <div style="font-size:0.82rem;color:#64748b;">
+                    Hiển thị <strong style="color:#0f172a;">{{ ((result.page - 1) * 20) + 1 }}-{{ [result.page * 20, result.total]|min }}</strong> / <strong style="color:#0f172a;">{{ result.total }}</strong> bệnh nhân
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;">
+                    {% if result.page > 1 %}
+                    <a href="?page=1&q={{ search }}" style="padding:6px 10px;border-radius:8px;background:#f1f5f9;color:#475569;font-size:0.82rem;font-weight:600;text-decoration:none;transition:all 0.2s;" title="Trang đầu"><i class="fas fa-angles-left"></i></a>
+                    <a href="?page={{ result.page - 1 }}&q={{ search }}" style="padding:6px 12px;border-radius:8px;background:#f1f5f9;color:#475569;font-size:0.82rem;font-weight:600;text-decoration:none;transition:all 0.2s;"><i class="fas fa-chevron-left"></i> Trước</a>
+                    {% endif %}
+
+                    {% set start_p = [1, result.page - 2]|max %}
+                    {% set end_p = [result.total_pages, result.page + 2]|min %}
+                    {% if start_p > 1 %}
+                    <span style="padding:6px 8px;color:#94a3b8;font-size:0.82rem;">...</span>
+                    {% endif %}
+                    {% for p in range(start_p, end_p + 1) %}
+                    <a href="?page={{ p }}&q={{ search }}" style="padding:6px 12px;border-radius:8px;font-size:0.82rem;font-weight:700;text-decoration:none;transition:all 0.2s;min-width:36px;text-align:center;
+                        {% if p == result.page %}background:#059669;color:#fff;box-shadow:0 2px 8px rgba(5,150,105,0.3);
+                        {% else %}background:#f1f5f9;color:#475569;{% endif %}">{{ p }}</a>
+                    {% endfor %}
+                    {% if end_p < result.total_pages %}
+                    <span style="padding:6px 8px;color:#94a3b8;font-size:0.82rem;">...</span>
+                    {% endif %}
+
+                    {% if result.page < result.total_pages %}
+                    <a href="?page={{ result.page + 1 }}&q={{ search }}" style="padding:6px 12px;border-radius:8px;background:#f1f5f9;color:#475569;font-size:0.82rem;font-weight:600;text-decoration:none;transition:all 0.2s;">Sau <i class="fas fa-chevron-right"></i></a>
+                    <a href="?page={{ result.total_pages }}&q={{ search }}" style="padding:6px 10px;border-radius:8px;background:#f1f5f9;color:#475569;font-size:0.82rem;font-weight:600;text-decoration:none;transition:all 0.2s;" title="Trang cuối"><i class="fas fa-angles-right"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+    </div>
+</div>
+
+<!-- Modal Chi tiết -->
+<div id="modalDetailBN" class="adm-modal-bg">
+    <div class="adm-modal" style="max-width:640px;">
+        <button class="adm-modal-close" id="closeDetailBN">&times;</button>
+        <h2><i class="fas fa-user" style="color:#059669;"></i> Chi tiết Bệnh nhân</h2>
+        <div id="detailBNContent"></div>
+    </div>
+</div>
+
+<!-- Modal Sửa -->
+<div id="modalEditBN" class="adm-modal-bg">
+    <div class="adm-modal" style="max-width:640px;">
+        <button class="adm-modal-close" id="closeEditBN">&times;</button>
+        <h2><i class="fas fa-edit" style="color:#0ea5e9;"></i> Sửa thông tin Bệnh nhân</h2>
+        <form id="formEditBN" method="POST">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <h4 style="font-size:.85rem;font-weight:700;color:#059669;margin-bottom:12px;"><i class="fas fa-id-card"></i> Thông tin cá nhân</h4>
+            <div class="adm-form-group"><label>Họ tên</label><input type="text" name="ho_ten" id="editBN_ho_ten" required></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="adm-form-group"><label>Số điện thoại</label><input type="text" name="so_dien_thoai" id="editBN_so_dien_thoai"></div>
+                <div class="adm-form-group"><label>Ngày sinh</label><input type="date" name="ngay_sinh" id="editBN_ngay_sinh"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="adm-form-group"><label>Giới tính</label>
+                    <select name="gioi_tinh" id="editBN_gioi_tinh"><option value="Nam">Nam</option><option value="Nữ">Nữ</option><option value="Khác">Khác</option></select>
+                </div>
+                <div class="adm-form-group"><label>Nhóm máu</label>
+                    <select name="nhom_mau" id="editBN_nhom_mau"><option value="">-- Chọn --</option><option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option><option value="O+">O+</option><option value="O-">O-</option><option value="AB+">AB+</option><option value="AB-">AB-</option></select>
+                </div>
+            </div>
+            <div class="adm-form-group"><label>Địa chỉ</label><input type="text" name="dia_chi" id="editBN_dia_chi"></div>
+            <h4 style="font-size:.85rem;font-weight:700;color:#ef4444;margin:16px 0 12px;"><i class="fas fa-heartbeat"></i> Chỉ số sức khỏe</h4>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+                <div class="adm-form-group"><label>Chiều cao (cm)</label><input type="number" name="chieu_cao" id="editBN_chieu_cao" step="0.1"></div>
+                <div class="adm-form-group"><label>Cân nặng (kg)</label><input type="number" name="can_nang" id="editBN_can_nang" step="0.1"></div>
+                <div class="adm-form-group"><label>Nhịp tim</label><input type="number" name="nhip_tim" id="editBN_nhip_tim"></div>
+            </div>
+            <div class="adm-form-group"><label>Huyết áp</label><input type="text" name="huyet_ap" id="editBN_huyet_ap" placeholder="120/80"></div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+                <button type="button" class="adm-btn" style="background:#f1f5f9;color:#475569;" id="cancelEditBN">Hủy</button>
+                <button type="submit" class="adm-btn primary"><i class="fas fa-save"></i> Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block admin_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var detailModal = document.getElementById('modalDetailBN');
+    var editModal = document.getElementById('modalEditBN');
+    function show(m) { m.style.display = 'flex'; }
+    function hide(m) { m.style.display = 'none'; }
+
+    document.getElementById('closeDetailBN').addEventListener('click', function() { hide(detailModal); });
+    document.getElementById('closeEditBN').addEventListener('click', function() { hide(editModal); });
+    document.getElementById('cancelEditBN').addEventListener('click', function() { hide(editModal); });
+    detailModal.addEventListener('click', function(e) { if (e.target === detailModal) hide(detailModal); });
+    editModal.addEventListener('click', function(e) { if (e.target === editModal) hide(editModal); });
+
+    function field(label, value) {
+        var v = value || '<span style="color:var(--gray-300)">—</span>';
+        return '<div><strong style="color:var(--gray-400);font-size:0.75rem;text-transform:uppercase;">' + label + '</strong><br><span style="font-size:0.92rem;">' + v + '</span></div>';
+    }
+
+    // Detail
+    document.querySelectorAll('.btn-detail-bn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var d = this.dataset;
+            var cc = parseFloat(d.chieu_cao), cn = parseFloat(d.can_nang);
+            var bmi = (cn && cc) ? (cn / Math.pow(cc / 100, 2)).toFixed(1) : '—';
+            var html = '<h4 style="font-size:0.85rem;font-weight:700;color:var(--primary);margin-bottom:12px;"><i class="fas fa-id-card"></i> Thông tin cá nhân</h4>';
+            html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 20px;margin-bottom:20px;">';
+            html += field('Mã BN', '<span class="badge" style="background:var(--primary-100);color:var(--primary)">' + d.ma + '</span>');
+            html += field('Họ tên', '<b>' + d.ho_ten + '</b>');
+            html += field('Email', d.email);
+            html += field('SĐT', d.sdt);
+            html += field('Giới tính', d.gioi_tinh);
+            html += field('Ngày sinh', d.ngay_sinh);
+            html += field('Nhóm máu', d.nhom_mau ? '<span class="badge" style="background:#FEE2E2;color:var(--danger)">' + d.nhom_mau + '</span>' : '');
+            html += field('Địa chỉ', d.dia_chi);
+            html += '</div>';
+            html += '<h4 style="font-size:0.85rem;font-weight:700;color:var(--danger);margin-bottom:12px;"><i class="fas fa-heartbeat"></i> Chỉ số sức khỏe</h4>';
+            html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px 20px;">';
+            html += field('Chiều cao', d.chieu_cao ? d.chieu_cao + ' cm' : '');
+            html += field('Cân nặng', d.can_nang ? d.can_nang + ' kg' : '');
+            html += field('BMI', bmi);
+            html += field('Huyết áp', d.huyet_ap);
+            html += field('Nhịp tim', d.nhip_tim ? d.nhip_tim + ' bpm' : '');
+            html += '</div>';
+            document.getElementById('detailBNContent').innerHTML = html;
+            show(detailModal);
+        });
+    });
+
+    // Edit
+    document.querySelectorAll('.btn-edit-bn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var d = this.dataset;
+            document.getElementById('formEditBN').action = '/admin/benh-nhan/sua/' + d.id;
+            document.getElementById('editBN_ho_ten').value = d.ho_ten || '';
+            document.getElementById('editBN_so_dien_thoai').value = d.sdt || '';
+            document.getElementById('editBN_ngay_sinh').value = d.ngay_sinh || '';
+            document.getElementById('editBN_gioi_tinh').value = d.gioi_tinh || 'Nam';
+            document.getElementById('editBN_nhom_mau').value = d.nhom_mau || '';
+            document.getElementById('editBN_dia_chi').value = d.dia_chi || '';
+            document.getElementById('editBN_chieu_cao').value = d.chieu_cao || '';
+            document.getElementById('editBN_can_nang').value = d.can_nang || '';
+            document.getElementById('editBN_nhip_tim').value = d.nhip_tim || '';
+            document.getElementById('editBN_huyet_ap').value = d.huyet_ap || '';
+            show(editModal);
+        });
+    });
+});
+</script>
+{% endblock %}

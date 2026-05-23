@@ -1,0 +1,94 @@
+{
+  "foods": [
+    {"id": "oats", "name": "Yến mạch", "group": "Tinh bột tốt", "goal": ["lose_weight", "maintain", "gain_weight"], "calories": 389, "protein": 16.9, "fiber": 10.6, "notes": "Giàu chất xơ, phù hợp bữa sáng no lâu."},
+    {"id": "brown_rice", "name": "Gạo lứt", "group": "Tinh bột tốt", "goal": ["lose_weight", "maintain"], "calories": 111, "protein": 2.6, "fiber": 1.8, "notes": "Dùng thay cơm trắng để kiểm soát đường huyết tốt hơn."},
+    {"id": "sweet_potato", "name": "Khoai lang", "group": "Tinh bột tốt", "goal": ["lose_weight", "maintain"], "calories": 86, "protein": 1.6, "fiber": 3.0, "notes": "No lâu, dễ chia khẩu phần."},
+    {"id": "chicken_breast", "name": "Ức gà", "group": "Đạm nạc", "goal": ["lose_weight", "maintain", "gain_weight"], "calories": 165, "protein": 31.0, "fiber": 0, "notes": "Đạm cao, ít mỡ, hợp gym và giảm mỡ."},
+    {"id": "salmon", "name": "Cá hồi", "group": "Đạm béo tốt", "goal": ["maintain", "gain_weight"], "calories": 208, "protein": 20.0, "fiber": 0, "notes": "Giàu omega-3, tốt cho tim mạch."},
+    {"id": "tuna", "name": "Cá ngừ", "group": "Đạm nạc", "goal": ["lose_weight", "maintain"], "calories": 132, "protein": 28.0, "fiber": 0, "notes": "Nhiều đạm, dễ kết hợp salad."},
+    {"id": "egg", "name": "Trứng gà", "group": "Đạm", "goal": ["maintain", "gain_weight"], "calories": 155, "protein": 13.0, "fiber": 0, "notes": "Rẻ, dễ chế biến, giàu vi chất."},
+    {"id": "tofu", "name": "Đậu phụ", "group": "Đạm thực vật", "goal": ["lose_weight", "maintain"], "calories": 76, "protein": 8.0, "fiber": 0.3, "notes": "Nhẹ bụng, hợp ngày ăn thanh đạm."},
+    {"id": "greek_yogurt", "name": "Sữa chua Hy Lạp", "group": "Đạm sữa", "goal": ["lose_weight", "maintain", "gain_weight"], "calories": 97, "protein": 10.0, "fiber": 0, "notes": "Chọn loại ít đường để kiểm soát calo."},
+    {"id": "milk", "name": "Sữa tươi", "group": "Sữa", "goal": ["gain_weight", "maintain"], "calories": 61, "protein": 3.2, "fiber": 0, "notes": "Tăng năng lượng dễ uống sau bữa phụ."},
+    {"id": "banana", "name": "Chuối", "group": "Trái cây", "goal": ["gain_weight", "maintain"], "calories": 89, "protein": 1.1, "fiber": 2.6, "notes": "Hợp trước hoặc sau tập, giàu kali."},
+    {"id": "apple", "name": "Táo", "group": "Trái cây", "goal": ["lose_weight", "maintain"], "calories": 52, "protein": 0.3, "fiber": 2.4, "notes": "Bữa phụ ít calo, hỗ trợ no lâu."},
+    {"id": "avocado", "name": "Bơ", "group": "Chất béo tốt", "goal": ["gain_weight", "maintain"], "calories": 160, "protein": 2.0, "fiber": 6.7, "notes": "Tăng calo lành mạnh, nên kiểm soát khẩu phần."},
+    {"id": "almond", "name": "Hạnh nhân", "group": "Hạt", "goal": ["gain_weight", "maintain"], "calories": 579, "protein": 21.0, "fiber": 12.5, "notes": "Bữa phụ giàu năng lượng, 15-25g mỗi lần."},
+    {"id": "peanut_butter", "name": "Bơ đậu phộng", "group": "Chất béo tốt", "goal": ["gain_weight"], "calories": 588, "protein": 25.0, "fiber": 6.0, "notes": "Dễ tăng calo, chọn loại ít đường."},
+    {"id": "broccoli", "name": "Bông cải xanh", "group": "Rau xanh", "goal": ["lose_weight", "maintain"], "calories": 34, "protein": 2.8, "fiber": 2.6, "notes": "Ít calo, giàu vi chất."},
+    {"id": "spinach", "name": "Rau bina", "group": "Rau xanh", "goal": ["lose_weight", "maintain"], "calories": 23, "protein": 2.9, "fiber": 2.2, "notes": "Bổ sung sắt, folate và chất xơ."},
+    {"id": "cucumber", "name": "Dưa leo", "group": "Rau củ", "goal": ["lose_weight"], "calories": 15, "protein": 0.7, "fiber": 0.5, "notes": "Ít calo, thêm vào salad."},
+    {"id": "beef_lean", "name": "Thịt bò nạc", "group": "Đạm nạc", "goal": ["gain_weight", "maintain"], "calories": 217, "protein": 26.0, "fiber": 0, "notes": "Hỗ trợ tăng cơ, bổ sung sắt."},
+    {"id": "shrimp", "name": "Tôm", "group": "Đạm nạc", "goal": ["lose_weight", "maintain"], "calories": 99, "protein": 24.0, "fiber": 0, "notes": "Ít calo, giàu đạm."},
+    {"id": "lentil", "name": "Đậu lăng", "group": "Đạm thực vật", "goal": ["lose_weight", "maintain", "gain_weight"], "calories": 116, "protein": 9.0, "fiber": 7.9, "notes": "Giàu chất xơ và đạm thực vật."},
+    {"id": "olive_oil", "name": "Dầu ô liu", "group": "Chất béo tốt", "goal": ["gain_weight", "maintain"], "calories": 884, "protein": 0, "fiber": 0, "notes": "Dùng 1-2 thìa nhỏ, tránh lạm dụng."},
+    {"id": "quinoa", "name": "Diêm mạch", "group": "Tinh bột tốt", "goal": ["maintain", "lose_weight"], "calories": 120, "protein": 4.4, "fiber": 2.8, "notes": "Có đạm hoàn chỉnh, hợp salad."},
+    {"id": "cottage_cheese", "name": "Phô mai tươi", "group": "Đạm sữa", "goal": ["gain_weight", "maintain"], "calories": 98, "protein": 11.0, "fiber": 0, "notes": "Bữa phụ giàu đạm, nên chọn loại ít muối."},
+    {"id": "pumpkin", "name": "Bí đỏ", "group": "Rau củ", "goal": ["lose_weight", "maintain"], "calories": 26, "protein": 1.0, "fiber": 0.5, "notes": "Ít calo, dễ nấu súp."},
+    {"id": "whole_wheat_bread", "name": "Bánh mì nguyên cám", "group": "Tinh bột tốt", "goal": ["maintain", "gain_weight"], "calories": 247, "protein": 13.0, "fiber": 7.0, "notes": "Dễ làm bữa sáng hoặc bữa phụ."}
+  ],
+  "exercises": [
+    {"id": "brisk_walk", "name": "Đi bộ nhanh", "type": "Cardio", "level": "Beginner", "goal": ["lose_weight", "maintain", "medical_weight_loss"], "minutes": 30, "calories_per_30_min": 140, "notes": "Phù hợp người mới, ít áp lực lên khớp."},
+    {"id": "cycling", "name": "Đạp xe", "type": "Cardio", "level": "Beginner", "goal": ["lose_weight", "maintain"], "minutes": 35, "calories_per_30_min": 220, "notes": "Tốt cho tim mạch, dễ tăng thời lượng."},
+    {"id": "swimming", "name": "Bơi", "type": "Cardio", "level": "Intermediate", "goal": ["lose_weight", "maintain"], "minutes": 30, "calories_per_30_min": 250, "notes": "Ít chấn động khớp, vận động toàn thân."},
+    {"id": "elliptical", "name": "Máy elliptical", "type": "Cardio", "level": "Beginner", "goal": ["lose_weight", "medical_weight_loss"], "minutes": 25, "calories_per_30_min": 240, "notes": "Tốt cho người thừa cân vì giảm tải đầu gối."},
+    {"id": "jogging", "name": "Chạy bộ nhẹ", "type": "Cardio", "level": "Intermediate", "goal": ["lose_weight", "maintain"], "minutes": 20, "calories_per_30_min": 280, "notes": "Tăng dần quãng đường, tránh quá sức."},
+    {"id": "hiit_low", "name": "HIIT cường độ thấp", "type": "Cardio", "level": "Intermediate", "goal": ["lose_weight"], "minutes": 18, "calories_per_30_min": 300, "notes": "Chỉ tập khi không có vấn đề tim mạch cấp."},
+    {"id": "bodyweight_squat", "name": "Squat không tạ", "type": "Gym", "level": "Beginner", "goal": ["gain_weight", "maintain", "lose_weight"], "minutes": 15, "calories_per_30_min": 120, "notes": "Tăng sức mạnh chân và mông."},
+    {"id": "push_up", "name": "Chống đẩy biến thể", "type": "Gym", "level": "Beginner", "goal": ["gain_weight", "maintain"], "minutes": 12, "calories_per_30_min": 110, "notes": "Có thể chống đẩy trên tường khi mới tập."},
+    {"id": "dumbbell_row", "name": "Kéo tạ tay", "type": "Gym", "level": "Intermediate", "goal": ["gain_weight", "maintain"], "minutes": 15, "calories_per_30_min": 130, "notes": "Tập lưng, hỗ trợ tư thế."},
+    {"id": "deadlift_light", "name": "Deadlift nhẹ", "type": "Gym", "level": "Intermediate", "goal": ["gain_weight"], "minutes": 20, "calories_per_30_min": 170, "notes": "Cần kỹ thuật đúng, bắt đầu rất nhẹ."},
+    {"id": "yoga_flow", "name": "Yoga flow", "type": "Yoga", "level": "Beginner", "goal": ["maintain", "lose_weight"], "minutes": 30, "calories_per_30_min": 120, "notes": "Giảm căng thẳng, tăng linh hoạt."},
+    {"id": "pilates", "name": "Pilates cơ bản", "type": "Pilates", "level": "Beginner", "goal": ["maintain", "lose_weight"], "minutes": 30, "calories_per_30_min": 150, "notes": "Tập core, phù hợp văn phòng."},
+    {"id": "stretching", "name": "Giãn cơ toàn thân", "type": "Recovery", "level": "Beginner", "goal": ["maintain", "gain_weight", "lose_weight", "medical_weight_loss"], "minutes": 12, "calories_per_30_min": 70, "notes": "Nên làm sau tập hoặc trước khi ngủ."},
+    {"id": "resistance_band", "name": "Dây kháng lực", "type": "Gym", "level": "Beginner", "goal": ["gain_weight", "maintain"], "minutes": 20, "calories_per_30_min": 140, "notes": "An toàn, dễ tập tại nhà."},
+    {"id": "stair_climb", "name": "Leo cầu thang", "type": "Cardio", "level": "Intermediate", "goal": ["lose_weight", "maintain"], "minutes": 15, "calories_per_30_min": 260, "notes": "Không phù hợp nếu đau gối."},
+    {"id": "tai_chi", "name": "Thái cực quyền", "type": "Mobility", "level": "Beginner", "goal": ["maintain", "medical_weight_loss"], "minutes": 25, "calories_per_30_min": 90, "notes": "Nhẹ nhàng, tốt cho thăng bằng."},
+    {"id": "plank", "name": "Plank", "type": "Core", "level": "Beginner", "goal": ["maintain", "lose_weight", "gain_weight"], "minutes": 8, "calories_per_30_min": 100, "notes": "Tập core, giữ lưng thẳng."},
+    {"id": "gym_compound", "name": "Tập compound toàn thân", "type": "Gym", "level": "Intermediate", "goal": ["gain_weight"], "minutes": 45, "calories_per_30_min": 190, "notes": "Kết hợp squat, press, row với tải tăng dần."}
+  ],
+  "weekly_plans": {
+    "severe_underweight": {
+      "title": "Tăng cân có theo dõi",
+      "nutrition": ["Tăng 350-500 kcal/ngày", "Ăn 3 bữa chính và 2-3 bữa phụ", "Ưu tiên sữa, trứng, cá, thịt nạc, hạt"],
+      "training": ["3 buổi sức mạnh nhẹ", "2 buổi đi bộ 20 phút", "Theo dõi cân nặng 2 lần/tuần"],
+      "days": ["T2: gym nhẹ + sữa sau tập", "T3: đi bộ + bữa phụ hạt", "T4: nghỉ chủ động", "T5: gym nhẹ", "T6: yoga phục hồi", "T7: gym nhẹ", "CN: nghỉ"]
+    },
+    "underweight": {
+      "title": "Tăng cơ lành mạnh",
+      "nutrition": ["Tăng 250-350 kcal/ngày", "Đạm 1.6-2.0 g/kg cân nặng", "Thêm bữa phụ sau tập"],
+      "training": ["4 buổi gym/sức mạnh", "2 buổi mobility/yoga", "Ngủ 7-8 giờ"],
+      "days": ["T2: thân trên", "T3: thân dưới", "T4: nghỉ", "T5: thân trên", "T6: thân dưới", "T7: đi bộ nhẹ", "CN: nghỉ"]
+    },
+    "normal": {
+      "title": "Duy trì thể trạng",
+      "nutrition": ["Ăn cân bằng 1/2 rau, 1/4 đạm, 1/4 tinh bột", "Hạn chế nước ngọt", "Uống 30-35 ml nước/kg"],
+      "training": ["150 phút cardio/tuần", "2-3 buổi sức mạnh", "Giãn cơ mỗi ngày 10 phút"],
+      "days": ["T2: gym", "T3: đi bộ nhanh", "T4: yoga", "T5: gym", "T6: đạp xe", "T7: hoạt động ngoài trời", "CN: nghỉ"]
+    },
+    "overweight": {
+      "title": "Giảm mỡ nhẹ",
+      "nutrition": ["Giảm 300-400 kcal/ngày", "Tăng rau và đạm nạc", "Giảm đồ chiên, bánh ngọt, trà sữa"],
+      "training": ["4-5 buổi cardio vừa", "2 buổi sức mạnh", "Mục tiêu 7000-9000 bước/ngày"],
+      "days": ["T2: đi bộ nhanh", "T3: gym toàn thân", "T4: đạp xe", "T5: nghỉ chủ động", "T6: gym", "T7: bơi/đi bộ dài", "CN: giãn cơ"]
+    },
+    "obese_1": {
+      "title": "Giảm cân an toàn",
+      "nutrition": ["Giảm 400-500 kcal/ngày", "Chia khẩu phần rõ ràng", "Theo dõi huyết áp và đường huyết nếu có nguy cơ"],
+      "training": ["Bắt đầu bằng đi bộ/elliptical", "Tập kháng lực nhẹ", "Tránh nhảy hoặc chạy mạnh nếu đau khớp"],
+      "days": ["T2: đi bộ 30 phút", "T3: dây kháng lực", "T4: nghỉ", "T5: elliptical", "T6: gym nhẹ", "T7: đi bộ", "CN: phục hồi"]
+    },
+    "obese_2": {
+      "title": "Giảm cân có giám sát y tế",
+      "nutrition": ["Trao đổi bác sĩ trước khi giảm cân mạnh", "Không nhịn ăn cực đoan", "Ưu tiên đạm nạc, rau, tinh bột nguyên hạt"],
+      "training": ["Đi bộ ngắn nhiều lần/ngày", "Tập thăng bằng và giãn cơ", "Tăng thời lượng từ từ theo khả năng"],
+      "days": ["T2: đi bộ 15 phút x2", "T3: giãn cơ", "T4: đi bộ 20 phút", "T5: nghỉ", "T6: dây kháng lực nhẹ", "T7: đi bộ", "CN: nghỉ"]
+    },
+    "maintain": {
+      "title": "Kế hoạch duy trì",
+      "nutrition": ["Ăn đủ đạm", "Tăng rau xanh", "Giữ lịch vận động đều"],
+      "training": ["Cardio vừa", "Sức mạnh", "Giãn cơ"],
+      "days": ["T2: cardio", "T3: gym", "T4: nghỉ", "T5: cardio", "T6: gym", "T7: yoga", "CN: nghỉ"]
+    }
+  }
+}

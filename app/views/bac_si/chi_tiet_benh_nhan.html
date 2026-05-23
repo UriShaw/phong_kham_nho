@@ -1,0 +1,368 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Chi tiết bệnh nhân - {{ benh_nhan.ho_ten }}{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon"><i class="fas fa-heartbeat"></i></div>
+            <div class="sidebar-brand-text"><h3>MedPro</h3><span>Bác sĩ</span></div>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="{{ url_for('bac_si.dashboard') }}"><i class="fas fa-th-large"></i> Tổng quan</a></li>
+            <li><a href="{{ url_for('bac_si.lich_kham') }}"><i class="fas fa-calendar-alt"></i> Lịch hẹn</a></li>
+            <li><a href="{{ url_for('bac_si.benh_nhan_cua_toi') }}" class="active"><i class="fas fa-users"></i> Bệnh nhân</a></li>
+            <li><a href="{{ url_for('bac_si.co_so_thuoc') }}"><i class="fas fa-pills"></i> Tra cứu thuốc</a></li>
+            <li><a href="{{ url_for('bac_si.thong_tin_ca_nhan') }}"><i class="fas fa-id-badge"></i> Thông tin</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.dang_xuat') }}"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <a href="{{ url_for('bac_si.benh_nhan_cua_toi') }}" class="btn btn-outline btn-sm" style="margin-bottom:20px;"><i class="fas fa-arrow-left"></i> Quay lại</a>
+
+        <!-- HEADER BỆNH NHÂN -->
+        <div class="card animate-fade-in" style="margin-bottom:24px;">
+            <div style="display:flex;gap:20px;align-items:center;">
+                <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#059669,#0891b2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <span style="font-size:2rem;color:#fff;font-weight:900;">{{ benh_nhan.ho_ten[0] }}</span>
+                </div>
+                <div style="flex:1;">
+                    <h1 style="font-size:1.5rem;font-weight:900;margin-bottom:2px;">{{ benh_nhan.ho_ten }}</h1>
+                    <div style="color:#64748b;font-size:0.85rem;display:flex;gap:14px;flex-wrap:wrap;">
+                        <span><i class="fas fa-id-card"></i> {{ benh_nhan.ma_benh_nhan }}</span>
+                        {% if benh_nhan.ngay_sinh %}<span><i class="fas fa-birthday-cake"></i> {{ benh_nhan.ngay_sinh }}</span>{% endif %}
+                        {% if benh_nhan.gioi_tinh %}<span><i class="fas fa-venus-mars"></i> {{ benh_nhan.gioi_tinh }}</span>{% endif %}
+                        <span><i class="fas fa-tint"></i> {{ benh_nhan.nhom_mau or 'N/A' }}</span>
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <button class="btn btn-sm btn-outline" onclick="openTaoHoSo()" title="Thêm bệnh án"><i class="fas fa-file-medical"></i> Thêm bệnh án</button>
+                </div>
+            </div>
+
+            <!-- Chỉ số sức khỏe -->
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:20px;padding-top:20px;border-top:1px solid #e2e8f0;">
+                <div class="text-center"><div style="font-size:0.72rem;color:#94a3b8;">Chiều cao</div><div style="font-size:1.1rem;font-weight:800;">{{ benh_nhan.chieu_cao or '--' }}</div><div style="font-size:0.68rem;color:#cbd5e1;">cm</div></div>
+                <div class="text-center"><div style="font-size:0.72rem;color:#94a3b8;">Cân nặng</div><div style="font-size:1.1rem;font-weight:800;">{{ benh_nhan.can_nang or '--' }}</div><div style="font-size:0.68rem;color:#cbd5e1;">kg</div></div>
+                <div class="text-center"><div style="font-size:0.72rem;color:#94a3b8;">Huyết áp</div><div style="font-size:1.1rem;font-weight:800;">{{ benh_nhan.huyet_ap or '--' }}</div><div style="font-size:0.68rem;color:#cbd5e1;">mmHg</div></div>
+                <div class="text-center"><div style="font-size:0.72rem;color:#94a3b8;">Nhịp tim</div><div style="font-size:1.1rem;font-weight:800;">{{ benh_nhan.nhip_tim or '--' }}</div><div style="font-size:0.68rem;color:#cbd5e1;">bpm</div></div>
+                <div class="text-center"><div style="font-size:0.72rem;color:#94a3b8;">BMI</div>
+                    {% set bmi = (benh_nhan.can_nang / ((benh_nhan.chieu_cao/100)**2))|round(1) if benh_nhan.can_nang and benh_nhan.chieu_cao else 0 %}
+                    <div style="font-size:1.1rem;font-weight:800;">{{ bmi if bmi else '--' }}</div>
+                    <div style="font-size:0.68rem;color:#cbd5e1;">{{ 'Bình thường' if bmi and 18.5 <= bmi <= 24.9 else ('Gầy' if bmi and bmi < 18.5 else ('Thừa cân' if bmi else '')) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:24px;">
+            <!-- MAIN CONTENT -->
+            <div>
+                <!-- Tabs -->
+                <div style="display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
+                    <h3 style="margin:0;font-weight:800;font-size:1.1rem;"><i class="fas fa-file-medical" style="color:#059669;"></i> Hồ sơ bệnh án</h3>
+                    <div style="margin-left:auto;display:flex;gap:6px;">
+                        <button class="btn btn-primary btn-sm" onclick="openTaoHoSo()"><i class="fas fa-plus"></i> Thêm bệnh án</button>
+                    </div>
+                </div>
+
+                <!-- DANH SÁCH HỒ SƠ -->
+                <div>
+                    {% if ho_so_list %}
+                    {% for hs in ho_so_list %}
+                    <div class="card animate-fade-in" style="margin-bottom:16px;border-left:4px solid #059669;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                            <div>
+                                <strong style="color:#0f172a;">{{ hs.chan_doan or 'Chưa ghi chẩn đoán' }}</strong>
+                                <br><small style="color:#64748b;">{{ hs.ngay_kham.strftime('%d/%m/%Y') if hs.ngay_kham else '' }} · {{ hs.gio_kham or '' }} · {{ hs.ten_chuyen_khoa }}</small>
+                            </div>
+                            <div style="display:flex;gap:6px;">
+                                <a href="{{ url_for('ho_so.chi_tiet_ho_so', ho_so_id=hs.id) }}" class="btn btn-outline btn-sm" title="Xem"><i class="fas fa-eye"></i></a>
+                                {% if hs.bac_si_id == bac_si_id %}
+                                <button class="btn btn-sm" style="background:#fef3c7;color:#d97706;" onclick="openSuaHoSo({{ hs.id }},'{{ hs.chan_doan|default("",true)|e }}','{{ hs.ghi_chu_lam_sang|default("",true)|e }}','{{ hs.huyet_ap|default("",true) }}','{{ hs.nhip_tim|default("",true) }}','{{ hs.can_nang|default("",true) }}','{{ hs.nhiet_do|default("",true) }}','{{ hs.hen_tai_kham|default("",true) }}')" title="Sửa"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;" onclick="xoaHoSo({{ hs.id }})" title="Xóa"><i class="fas fa-trash"></i></button>
+                                {% endif %}
+                                <a href="{{ url_for('ho_so.in_ho_so', ho_so_id=hs.id) }}" class="btn btn-sm" style="background:#ecfdf5;color:#059669;" target="_blank" title="In"><i class="fas fa-print"></i></a>
+                            </div>
+                        </div>
+                        {% if hs.ghi_chu_lam_sang %}
+                        <div style="font-size:0.85rem;color:#475569;background:#f8fafc;border-radius:8px;padding:10px 14px;">{{ hs.ghi_chu_lam_sang[:200] }}{% if hs.ghi_chu_lam_sang|length > 200 %}...{% endif %}</div>
+                        {% endif %}
+                        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;">
+                            <div style="font-size:0.78rem;text-align:center;"><span style="color:#94a3b8;">HA</span><br><strong>{{ hs.huyet_ap or '--' }}</strong></div>
+                            <div style="font-size:0.78rem;text-align:center;"><span style="color:#94a3b8;">Tim</span><br><strong>{{ hs.nhip_tim or '--' }}</strong></div>
+                            <div style="font-size:0.78rem;text-align:center;"><span style="color:#94a3b8;">Cân</span><br><strong>{{ hs.can_nang or '--' }}</strong></div>
+                            <div style="font-size:0.78rem;text-align:center;"><span style="color:#94a3b8;">Nhiệt</span><br><strong>{{ hs.nhiet_do or '--' }}</strong></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="card" style="padding:50px;text-align:center;">
+                        <div style="font-size:3rem;margin-bottom:12px;">📋</div>
+                        <p style="color:#64748b;">Chưa có hồ sơ bệnh án nào</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- SIDEBAR -->
+            <div>
+                <div class="card animate-fade-in" style="margin-bottom:20px;">
+                    <h4 style="font-weight:700;font-size:1rem;margin-bottom:14px;"><i class="fas fa-address-card" style="color:#059669;"></i> Liên hệ</h4>
+                    <div style="font-size:0.85rem;color:#475569;line-height:2;">
+                        <div><i class="fas fa-envelope" style="width:20px;color:#94a3b8;"></i> {{ benh_nhan.email }}</div>
+                        <div><i class="fas fa-phone" style="width:20px;color:#94a3b8;"></i> {{ benh_nhan.so_dien_thoai or 'Chưa cập nhật' }}</div>
+                        <div><i class="fas fa-map-marker-alt" style="width:20px;color:#94a3b8;"></i> {{ benh_nhan.dia_chi or 'Chưa cập nhật' }}</div>
+                        {% if benh_nhan.bao_hiem_y_te %}<div><i class="fas fa-id-badge" style="width:20px;color:#94a3b8;"></i> BHYT: {{ benh_nhan.bao_hiem_y_te }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="card animate-fade-in" style="margin-bottom:20px;">
+                    <h4 style="font-weight:700;font-size:1rem;margin-bottom:14px;"><i class="fas fa-notes-medical" style="color:#f59e0b;"></i> Tiền sử & Dị ứng</h4>
+                    <div style="font-size:0.85rem;color:#475569;">
+                        <div style="margin-bottom:8px;"><strong>Tiền sử bệnh:</strong><br>{{ benh_nhan.tien_su_benh or 'Chưa ghi nhận' }}</div>
+                        <div><strong>Dị ứng:</strong><br><span style="color:#ef4444;font-weight:600;">{{ benh_nhan.di_ung or 'Không có' }}</span></div>
+                    </div>
+                </div>
+
+                <!-- Ghi chú nhanh -->
+                <div class="card animate-fade-in" style="background:linear-gradient(135deg,#ede9fe,#faf5ff);">
+                    <h4 style="font-weight:700;font-size:1rem;margin-bottom:14px;"><i class="fas fa-brain" style="color:#8b5cf6;"></i> Ghi chú nhanh</h4>
+                    <div style="font-size:0.82rem;color:#5b21b6;">
+                        <div style="background:#fff;border-radius:8px;padding:10px;margin-bottom:6px;border:1px solid #ddd6fe;">
+                            <i class="fas fa-clipboard-check" style="color:#8b5cf6;"></i> Xem hồ sơ bệnh án chi tiết ở bên trái
+                        </div>
+                        <div style="background:#fff;border-radius:8px;padding:10px;margin-bottom:6px;border:1px solid #ddd6fe;">
+                            <i class="fas fa-pills" style="color:#8b5cf6;"></i> Kê đơn thuốc từ hồ sơ bệnh án
+                        </div>
+                        <div style="background:#fff;border-radius:8px;padding:10px;border:1px solid #ddd6fe;">
+                            <i class="fas fa-print" style="color:#8b5cf6;"></i> In hồ sơ bệnh nhân để lưu trữ
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- MODAL TẠO HỒ SƠ -->
+<div id="taoHoSoModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+<div style="background:#fff;border-radius:20px;padding:28px;max-width:600px;width:92%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+<div style="display:flex;justify-content:space-between;margin-bottom:20px;"><h2 style="margin:0;font-weight:900;">📋 Thêm hồ sơ bệnh án</h2><button onclick="this.closest('[id]').style.display='none'" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">&times;</button></div>
+<div class="form-group"><label class="form-label">Chẩn đoán *</label><input type="text" id="hs_chan_doan" class="form-control" placeholder="Nhập chẩn đoán..."></div>
+<div class="form-group"><label class="form-label">Ghi chú lâm sàng</label><textarea id="hs_ghi_chu" class="form-control" rows="3"></textarea></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+<div class="form-group"><label class="form-label">Huyết áp</label><input type="text" id="hs_huyet_ap" class="form-control" placeholder="120/80"></div>
+<div class="form-group"><label class="form-label">Nhịp tim</label><input type="number" id="hs_nhip_tim" class="form-control"></div>
+<div class="form-group"><label class="form-label">Cân nặng</label><input type="number" step="0.1" id="hs_can_nang" class="form-control"></div>
+<div class="form-group"><label class="form-label">Nhiệt độ</label><input type="number" step="0.1" id="hs_nhiet_do" class="form-control"></div>
+</div>
+<div class="form-group"><label class="form-label">Hẹn tái khám</label><input type="date" id="hs_hen_tai_kham" class="form-control"></div>
+<button class="btn btn-primary btn-block" onclick="submitTaoHoSo()"><i class="fas fa-save"></i> Lưu hồ sơ</button>
+</div></div>
+
+<!-- MODAL SỬA HỒ SƠ -->
+<div id="suaHoSoModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+<div style="background:#fff;border-radius:20px;padding:28px;max-width:600px;width:92%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+<div style="display:flex;justify-content:space-between;margin-bottom:20px;"><h2 style="margin:0;font-weight:900;">✏️ Sửa hồ sơ bệnh án</h2><button onclick="this.closest('[id]').style.display='none'" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">&times;</button></div>
+<input type="hidden" id="sua_hs_id">
+<div class="form-group"><label class="form-label">Chẩn đoán</label><input type="text" id="sua_chan_doan" class="form-control"></div>
+<div class="form-group"><label class="form-label">Ghi chú lâm sàng</label><textarea id="sua_ghi_chu" class="form-control" rows="3"></textarea></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+<div class="form-group"><label class="form-label">Huyết áp</label><input type="text" id="sua_huyet_ap" class="form-control"></div>
+<div class="form-group"><label class="form-label">Nhịp tim</label><input type="number" id="sua_nhip_tim" class="form-control"></div>
+<div class="form-group"><label class="form-label">Cân nặng</label><input type="number" step="0.1" id="sua_can_nang" class="form-control"></div>
+<div class="form-group"><label class="form-label">Nhiệt độ</label><input type="number" step="0.1" id="sua_nhiet_do" class="form-control"></div>
+</div>
+<div class="form-group"><label class="form-label">Hẹn tái khám</label><input type="date" id="sua_hen_tai_kham" class="form-control"></div>
+<button class="btn btn-primary btn-block" onclick="submitSuaHoSo()"><i class="fas fa-save"></i> Cập nhật</button>
+</div></div>
+
+<!-- MODAL KÊ ĐƠN -->
+<div id="keDonModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+<div style="background:#fff;border-radius:20px;padding:28px;max-width:700px;width:95%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+<div style="display:flex;justify-content:space-between;margin-bottom:20px;"><h2 style="margin:0;font-weight:900;" id="keDonTitle">💊 Kê đơn thuốc</h2><button onclick="this.closest('[id]').style.display='none'" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">&times;</button></div>
+<input type="hidden" id="don_ho_so_id">
+<input type="hidden" id="don_edit_id" value="">
+<!-- Gợi ý thuốc theo bệnh -->
+<div class="form-group"><label class="form-label">🩺 Gợi ý thuốc theo chẩn đoán</label>
+<div style="display:flex;gap:8px;"><input type="text" id="goiYBenh" class="form-control" placeholder="Nhập tên bệnh..."><button class="btn btn-sm" style="background:#ede9fe;color:#7c3aed;white-space:nowrap;" onclick="goiYThuocTheoBenh()"><i class="fas fa-magic"></i> Gợi ý</button></div>
+<div id="goiYResults" style="max-height:200px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;display:none;margin-top:4px;"></div></div>
+<!-- Tìm thuốc thủ công -->
+<div class="form-group"><label class="form-label">🔍 Tìm thuốc thủ công</label><input type="text" id="searchThuoc" class="form-control" placeholder="Nhập tên thuốc..." oninput="searchThuocDebounce(this.value)"><div id="thuocResults" style="max-height:200px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;display:none;margin-top:4px;"></div></div>
+<div id="danhSachThuoc" style="margin-bottom:16px;"></div>
+<div class="form-group"><label class="form-label">Ghi chú đơn thuốc</label><textarea id="don_ghi_chu" class="form-control" rows="2"></textarea></div>
+<button class="btn btn-primary btn-block" onclick="submitKeDon()" id="btnSubmitDon"><i class="fas fa-save"></i> Lưu đơn thuốc</button>
+</div></div>
+
+<script>
+function showTab(tab) {
+    ['ho-so','don-thuoc'].forEach(t => {
+        const el = document.getElementById('content-' + t);
+        if (el) el.style.display = t === tab ? 'block' : 'none';
+    });
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        const isActive = btn.textContent.toLowerCase().includes(
+            tab === 'ho-so' ? 'hồ sơ' : 'đơn'
+        );
+        btn.className = isActive ? 'btn btn-primary btn-sm tab-btn active' : 'btn btn-sm tab-btn';
+        if (!isActive) { btn.style.background = '#f1f5f9'; btn.style.color = '#475569'; }
+        else { btn.style.background = ''; btn.style.color = ''; }
+    });
+}
+
+// === CRUD HỒ SƠ ===
+const BN_ID = {{ benh_nhan.id }};
+function openTaoHoSo(){ document.getElementById('taoHoSoModal').style.display='flex'; }
+function openSuaHoSo(id,cd,gc,ha,nt,cn,nd,htk){
+  document.getElementById('sua_hs_id').value=id;
+  document.getElementById('sua_chan_doan').value=cd;
+  document.getElementById('sua_ghi_chu').value=gc;
+  document.getElementById('sua_huyet_ap').value=ha;
+  document.getElementById('sua_nhip_tim').value=nt;
+  document.getElementById('sua_can_nang').value=cn;
+  document.getElementById('sua_nhiet_do').value=nd;
+  document.getElementById('sua_hen_tai_kham').value=htk;
+  document.getElementById('suaHoSoModal').style.display='flex';
+}
+async function submitTaoHoSo(){
+  const data={benh_nhan_id:BN_ID,chan_doan:document.getElementById('hs_chan_doan').value,ghi_chu_lam_sang:document.getElementById('hs_ghi_chu').value,huyet_ap:document.getElementById('hs_huyet_ap').value,nhip_tim:document.getElementById('hs_nhip_tim').value,can_nang:document.getElementById('hs_can_nang').value,nhiet_do:document.getElementById('hs_nhiet_do').value,hen_tai_kham:document.getElementById('hs_hen_tai_kham').value};
+  const r=await fetch('/bac-si/api/ho-so/tao',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  const j=await r.json();
+  if(j.success){alert('Đã tạo hồ sơ! ✅');location.reload();}else{alert(j.message||'Lỗi');}
+}
+async function submitSuaHoSo(){
+  const id=document.getElementById('sua_hs_id').value;
+  const data={chan_doan:document.getElementById('sua_chan_doan').value,ghi_chu_lam_sang:document.getElementById('sua_ghi_chu').value,huyet_ap:document.getElementById('sua_huyet_ap').value,nhip_tim:document.getElementById('sua_nhip_tim').value,can_nang:document.getElementById('sua_can_nang').value,nhiet_do:document.getElementById('sua_nhiet_do').value,hen_tai_kham:document.getElementById('sua_hen_tai_kham').value};
+  const r=await fetch('/bac-si/api/ho-so/sua/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  const j=await r.json();
+  if(j.success){alert('Đã cập nhật! ✅');location.reload();}else{alert(j.message||'Lỗi');}
+}
+async function xoaHoSo(id){
+  if(!confirm('Xóa hồ sơ bệnh án này? Đơn thuốc liên quan cũng sẽ bị xóa.')) return;
+  const r=await fetch('/bac-si/api/ho-so/xoa/'+id,{method:'POST',headers:{'Content-Type':'application/json'}});
+  const j=await r.json();
+  if(j.success){alert('Đã xóa! ✅');location.reload();}else{alert(j.message||'Lỗi');}
+}
+
+// === KÊ ĐƠN ===
+let dsThuocChon=[];
+let searchTimer=null;
+let editDonId=null;
+
+function openKeDon(hoSoId){
+  document.getElementById('don_ho_so_id').value=hoSoId;
+  document.getElementById('don_edit_id').value='';
+  document.getElementById('keDonTitle').textContent='💊 Kê đơn thuốc';
+  document.getElementById('btnSubmitDon').innerHTML='<i class="fas fa-save"></i> Lưu đơn thuốc';
+  document.getElementById('don_ghi_chu').value='';
+  document.getElementById('goiYBenh').value='';
+  editDonId=null;
+  dsThuocChon=[];
+  renderDsThuoc();
+  document.getElementById('keDonModal').style.display='flex';
+}
+
+function openSuaDon(donId, ghiChu, chiTiet){
+  document.getElementById('don_edit_id').value=donId;
+  document.getElementById('don_ho_so_id').value='';
+  document.getElementById('keDonTitle').textContent='✏️ Sửa đơn thuốc #'+donId;
+  document.getElementById('btnSubmitDon').innerHTML='<i class="fas fa-save"></i> Cập nhật đơn thuốc';
+  document.getElementById('don_ghi_chu').value=ghiChu||'';
+  document.getElementById('goiYBenh').value='';
+  editDonId=donId;
+  dsThuocChon=chiTiet.map(t=>({
+    ten_thuoc:t.ten_thuoc,hoat_chat:t.hoat_chat||'',
+    lieu_dung:t.lieu_dung||'',so_luong:t.so_luong||1,
+    don_vi:t.don_vi||'viên',ghi_chu:t.ghi_chu||''
+  }));
+  renderDsThuoc();
+  document.getElementById('keDonModal').style.display='flex';
+}
+
+// Gợi ý thuốc theo bệnh
+async function goiYThuocTheoBenh(){
+  const benh=document.getElementById('goiYBenh').value.trim();
+  const box=document.getElementById('goiYResults');
+  if(benh.length<2){box.style.display='none';return;}
+  box.innerHTML='<div style="padding:10px;color:#7c3aed;"><i class="fas fa-spinner fa-spin"></i> Đang tìm thuốc phù hợp...</div>';
+  box.style.display='block';
+  const r=await fetch('/bac-si/api/thuoc-theo-benh?chan_doan='+encodeURIComponent(benh));
+  const j=await r.json();
+  if(!j.success||!j.data.items.length){
+    box.innerHTML='<div style="padding:10px;color:#94a3b8;">Không tìm thấy thuốc phù hợp cho "'+benh+'"</div>';
+    return;
+  }
+  box.innerHTML='<div style="padding:6px 12px;background:#ede9fe;color:#7c3aed;font-size:0.8rem;font-weight:600;">Tìm thấy '+j.data.items.length+' thuốc gợi ý — click để thêm</div>'+
+    j.data.items.map(t=>`<div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid #f1f5f9;font-size:0.85rem;display:flex;justify-content:space-between;align-items:center;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background=''" onclick="themThuoc(${JSON.stringify(t).replace(/"/g,'&quot;')})">
+      <div><strong>${t.ten_thuoc}</strong> <small style="color:#64748b;">${t.ham_luong||''}</small><br><small style="color:#8b5cf6;">${t.nhom_thuoc||''}</small></div>
+      <span style="color:#059669;font-size:0.75rem;">+ Thêm</span>
+    </div>`).join('');
+}
+
+function searchThuocDebounce(q){
+  clearTimeout(searchTimer);
+  searchTimer=setTimeout(()=>searchThuoc(q),300);
+}
+async function searchThuoc(q){
+  const box=document.getElementById('thuocResults');
+  if(q.length<2){box.style.display='none';return;}
+  const r=await fetch('/bac-si/api/search-thuoc?q='+encodeURIComponent(q));
+  const j=await r.json();
+  if(!j.success||!j.data.items.length){box.innerHTML='<div style="padding:10px;color:#94a3b8;">Không tìm thấy</div>';box.style.display='block';return;}
+  box.innerHTML=j.data.items.map(t=>`<div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid #f1f5f9;font-size:0.85rem;" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background=''" onclick="themThuoc(${JSON.stringify(t).replace(/"/g,'&quot;')})">
+    <strong>${t.ten_thuoc}</strong> <small style="color:#64748b;">${t.ham_luong||''} - ${t.nhom_thuoc||''}</small>
+  </div>`).join('');
+  box.style.display='block';
+}
+function themThuoc(t){
+  dsThuocChon.push({ten_thuoc:t.ten_thuoc,hoat_chat:t.hoat_chat||'',lieu_dung:t.lieu_dung_mau||t.lieu_dung||'',so_luong:10,don_vi:t.don_vi||'viên',ghi_chu:''});
+  renderDsThuoc();
+  document.getElementById('searchThuoc').value='';
+  document.getElementById('thuocResults').style.display='none';
+}
+function xoaThuoc(i){dsThuocChon.splice(i,1);renderDsThuoc();}
+function renderDsThuoc(){
+  const box=document.getElementById('danhSachThuoc');
+  if(!dsThuocChon.length){box.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:0.85rem;background:#f8fafc;border-radius:12px;">Chưa chọn thuốc nào. Nhập tên bệnh để gợi ý hoặc tìm thuốc thủ công.</div>';return;}
+  box.innerHTML='<div style="font-size:0.8rem;color:#059669;font-weight:600;margin-bottom:6px;">📋 Đơn thuốc ('+dsThuocChon.length+' loại)</div><table class="smart-table" style="margin:0;"><thead><tr><th>Thuốc</th><th>Liều dùng</th><th>SL</th><th>ĐV</th><th>Ghi chú</th><th></th></tr></thead><tbody>'+dsThuocChon.map((t,i)=>`<tr><td><strong>${t.ten_thuoc}</strong><br><small style="color:#94a3b8;">${t.hoat_chat||''}</small></td><td><input type="text" value="${t.lieu_dung}" onchange="dsThuocChon[${i}].lieu_dung=this.value" style="width:130px;padding:4px 6px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.8rem;"></td><td><input type="number" value="${t.so_luong}" min="1" onchange="dsThuocChon[${i}].so_luong=+this.value" style="width:55px;padding:4px;border:1px solid #e2e8f0;border-radius:4px;text-align:center;"></td><td>${t.don_vi}</td><td><input type="text" value="${t.ghi_chu||''}" onchange="dsThuocChon[${i}].ghi_chu=this.value" placeholder="Ghi chú" style="width:100px;padding:4px 6px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.8rem;"></td><td><button onclick="xoaThuoc(${i})" style="background:#fee2e2;color:#dc2626;border:none;border-radius:4px;padding:4px 8px;cursor:pointer;"><i class="fas fa-times"></i></button></td></tr>`).join('')+'</tbody></table>';
+}
+
+async function submitKeDon(){
+  if(!dsThuocChon.length){alert('Chưa chọn thuốc nào!');return;}
+  const editId=document.getElementById('don_edit_id').value;
+  if(editId){
+    // SỬA đơn thuốc
+    const data={ghi_chu:document.getElementById('don_ghi_chu').value,chi_tiet:dsThuocChon};
+    const r=await fetch('/bac-si/api/don-thuoc/sua/'+editId,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const j=await r.json();
+    if(j.success){alert('Đã cập nhật đơn thuốc! ✅');location.reload();}else{alert(j.message||'Lỗi');}
+  } else {
+    // TẠO đơn thuốc mới
+    const data={ho_so_id:+document.getElementById('don_ho_so_id').value,benh_nhan_id:BN_ID,ghi_chu:document.getElementById('don_ghi_chu').value,chi_tiet:dsThuocChon};
+    const r=await fetch('/bac-si/api/don-thuoc/tao',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const j=await r.json();
+    if(j.success){alert('Đã tạo đơn thuốc! ✅');location.reload();}else{alert(j.message||'Lỗi');}
+  }
+}
+
+async function xoaDonThuoc(id){
+  if(!confirm('Xóa đơn thuốc này?')) return;
+  const r=await fetch('/bac-si/api/don-thuoc/xoa/'+id,{method:'POST',headers:{'Content-Type':'application/json'}});
+  const j=await r.json();
+  if(j.success){alert('Đã xóa! ✅');location.reload();}else{alert(j.message||'Lỗi');}
+}
+
+// Close modals on backdrop click
+['taoHoSoModal','suaHoSoModal','keDonModal'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el) el.addEventListener('click',function(e){if(e.target===this)this.style.display='none';});
+});
+</script>
+{% endblock %}

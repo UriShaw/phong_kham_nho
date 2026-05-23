@@ -1,0 +1,381 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Nhật ký Tâm trạng AI | MedPro{% endblock %}
+
+{% block content %}
+<section class="utility-shell">
+    <div class="container">
+        <div class="utility-hero-main" style="margin-bottom:20px;">
+            <div>
+                <div class="utility-kicker"><i class="fas fa-brain"></i> AI Mood Intelligence</div>
+                <h1 class="utility-title">Nhật ký Tâm trạng AI</h1>
+                <p class="utility-subtitle">Ghi lại cảm xúc hàng ngày, AI phân tích xu hướng và gợi ý cải thiện sức khỏe tinh thần.</p>
+            </div>
+        </div>
+
+        <!-- STATS CARDS -->
+        <div class="metric-grid" style="margin-bottom:20px;">
+            <div class="metric-tile">
+                <div class="metric-label">Trung bình</div>
+                <div class="metric-value" style="font-size:1.8rem;">
+                    {% if stats.avg_mood >= 4 %}😄{% elif stats.avg_mood >= 3 %}🙂{% elif stats.avg_mood >= 2 %}😐{% else %}😔{% endif %}
+                </div>
+                <div class="metric-note">{{ stats.avg_mood }}/5</div>
+            </div>
+            <div class="metric-tile">
+                <div class="metric-label">Entries</div>
+                <div class="metric-value">{{ stats.total_entries }}</div>
+                <div class="metric-note">30 ngày</div>
+            </div>
+            <div class="metric-tile">
+                <div class="metric-label">Chuỗi ngày</div>
+                <div class="metric-value" style="color:#f59e0b;">{{ stats.streak }}🔥</div>
+                <div class="metric-note">liên tục</div>
+            </div>
+            <div class="metric-tile">
+                <div class="metric-label">Xu hướng</div>
+                <div class="metric-value" style="font-size:1.2rem;color:{% if stats.trend == 'improving' %}#059669{% elif stats.trend == 'declining' %}#ef4444{% else %}#f59e0b{% endif %};">
+                    {% if stats.trend == 'improving' %}📈 Tốt hơn{% elif stats.trend == 'declining' %}📉 Cần chú ý{% else %}➡️ Ổn định{% endif %}
+                </div>
+                <div class="metric-note">gần đây</div>
+            </div>
+        </div>
+
+        <div class="split-layout">
+            <!-- GHI NHẬT KÝ HÔM NAY -->
+            <div class="utility-panel">
+                <div class="utility-panel-title"><h2>✍️ Hôm nay bạn cảm thấy thế nào?</h2></div>
+
+                <!-- Mood Picker -->
+                <div id="moodPicker" style="display:flex;justify-content:center;gap:16px;margin:20px 0;">
+                    <button class="mood-btn" data-mood="1" onclick="selectMood(1)" title="Rất buồn">
+                        <span style="font-size:2.5rem;">😢</span>
+                        <div style="font-size:0.7rem;margin-top:4px;color:#64748b;">Rất buồn</div>
+                    </button>
+                    <button class="mood-btn" data-mood="2" onclick="selectMood(2)" title="Buồn">
+                        <span style="font-size:2.5rem;">😔</span>
+                        <div style="font-size:0.7rem;margin-top:4px;color:#64748b;">Buồn</div>
+                    </button>
+                    <button class="mood-btn" data-mood="3" onclick="selectMood(3)" title="Bình thường">
+                        <span style="font-size:2.5rem;">😐</span>
+                        <div style="font-size:0.7rem;margin-top:4px;color:#64748b;">Bình thường</div>
+                    </button>
+                    <button class="mood-btn" data-mood="4" onclick="selectMood(4)" title="Vui">
+                        <span style="font-size:2.5rem;">🙂</span>
+                        <div style="font-size:0.7rem;margin-top:4px;color:#64748b;">Vui</div>
+                    </button>
+                    <button class="mood-btn" data-mood="5" onclick="selectMood(5)" title="Rất vui">
+                        <span style="font-size:2.5rem;">😄</span>
+                        <div style="font-size:0.7rem;margin-top:4px;color:#64748b;">Rất vui</div>
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">📝 Hôm nay bạn có gì muốn ghi lại?</label>
+                    <textarea id="moodContent" class="form-control" rows="4" placeholder="Viết bất cứ điều gì bạn muốn... AI sẽ phân tích cảm xúc và gợi ý cho bạn.">{{ today_entry.noi_dung if today_entry else '' }}</textarea>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">🏃 Hoạt động hôm nay</label>
+                        <input id="moodActivity" type="text" class="form-control" placeholder="VD: tập gym, đọc sách, đi dạo..." value="{{ today_entry.hoat_dong if today_entry else '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">💤 Giấc ngủ (1-5)</label>
+                        <select id="moodSleep" class="form-control">
+                            <option value="1" {% if today_entry and today_entry.giac_ngu_diem == 1 %}selected{% endif %}>😫 Rất tệ</option>
+                            <option value="2" {% if today_entry and today_entry.giac_ngu_diem == 2 %}selected{% endif %}>😴 Tệ</option>
+                            <option value="3" {% if not today_entry or today_entry.giac_ngu_diem == 3 %}selected{% endif %}>😐 Tạm ổn</option>
+                            <option value="4" {% if today_entry and today_entry.giac_ngu_diem == 4 %}selected{% endif %}>😊 Tốt</option>
+                            <option value="5" {% if today_entry and today_entry.giac_ngu_diem == 5 %}selected{% endif %}>🌟 Rất tốt</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button id="saveMoodBtn" class="btn btn-primary btn-lg btn-block" onclick="saveMood()">
+                    <i class="fas fa-sparkles"></i> {{ 'Cập nhật nhật ký' if today_entry else 'Lưu nhật ký hôm nay' }}
+                </button>
+
+                <!-- AI Response -->
+                <div id="aiResponse" style="display:none;margin-top:16px;background:linear-gradient(135deg,#ecfdf5,#f0fdf4);border-radius:16px;padding:20px;border:1px solid #bbf7d0;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                        <span style="font-size:1.5rem;">🤖</span>
+                        <strong style="color:#059669;">AI Phân tích</strong>
+                    </div>
+                    <div id="aiSentiment" style="font-weight:700;color:#0f172a;margin-bottom:8px;"></div>
+                    <div id="aiTip" style="color:#475569;font-size:0.9rem;line-height:1.6;"></div>
+                </div>
+
+                {% if today_entry and today_entry.ai_goi_y %}
+                <div style="margin-top:16px;background:linear-gradient(135deg,#ecfdf5,#f0fdf4);border-radius:16px;padding:20px;border:1px solid #bbf7d0;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                        <span style="font-size:1.5rem;">🤖</span>
+                        <strong style="color:#059669;">AI hôm nay</strong>
+                        <span class="badge" style="background:#dcfce7;color:#059669;">{{ today_entry.ai_phan_tich }}</span>
+                    </div>
+                    <div style="color:#475569;font-size:0.9rem;line-height:1.6;">{{ today_entry.ai_goi_y }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- BIỂU ĐỒ TÂM TRẠNG -->
+            <div class="utility-panel">
+                <div class="utility-panel-title"><h2>📊 Biểu đồ tâm trạng</h2><span class="badge badge-info">30 ngày</span></div>
+                {% if stats.chart_labels %}
+                <div class="chart-box" style="height:250px;"><canvas id="moodChart"></canvas></div>
+
+                <!-- Distribution -->
+                <div style="margin-top:16px;">
+                    <h4 style="font-weight:700;font-size:0.9rem;margin-bottom:10px;">Phân bố cảm xúc</h4>
+                    {% for label, count in stats.mood_distribution.items() %}
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f1f5f9;">
+                        <span style="font-weight:600;color:#0f172a;">{{ label }}</span>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div style="height:6px;width:{{ (count / stats.total_entries * 100)|int }}px;max-width:100px;background:linear-gradient(90deg,#059669,#34d399);border-radius:3px;"></div>
+                            <span style="font-size:0.8rem;color:#64748b;">{{ count }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div style="text-align:center;padding:40px 20px;">
+                    <div style="font-size:3rem;margin-bottom:12px;">📊</div>
+                    <p style="color:#64748b;">Chưa có dữ liệu. Hãy bắt đầu ghi nhật ký!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- LỊCH SỬ NHẬT KÝ -->
+        <div class="utility-panel" style="margin-top:20px;">
+            <div class="smart-table-tools">
+                <div class="utility-panel-title" style="margin:0;"><h2>📖 Lịch sử nhật ký ({{ entries|length }} entries theo tuần)</h2></div>
+                <input id="journalSearch" class="form-control" placeholder="Tìm kiếm..." style="max-width:260px;">
+            </div>
+            <div class="table-responsive">
+                <table class="smart-table" id="journalTable">
+                    <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th>Tâm trạng</th>
+                            <th>Nội dung</th>
+                            <th>AI Phân tích</th>
+                            <th style="text-align:center;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in entries %}
+                        <tr id="entry-{{ item.id }}">
+                            <td style="white-space:nowrap;font-weight:600;">{{ item.ngay }}</td>
+                            <td style="font-size:1.5rem;text-align:center;">
+                                {% if item.muc_tam_trang == 5 %}😄{% elif item.muc_tam_trang == 4 %}🙂{% elif item.muc_tam_trang == 3 %}😐{% elif item.muc_tam_trang == 2 %}😔{% else %}😢{% endif %}
+                            </td>
+                            <td style="max-width:260px;color:#475569;">{{ (item.noi_dung or '')|truncate(60) }}</td>
+                            <td><span class="badge" style="background:#dcfce7;color:#059669;">{{ item.ai_phan_tich or '-' }}</span></td>
+                            <td style="text-align:center;">
+                                <div style="display:flex;gap:4px;justify-content:center;">
+                                    <button class="btn btn-sm" style="background:#dbeafe;color:#2563eb;padding:4px 8px;" onclick="viewDetail({{ item.id }})" title="Chi tiết"><i class="fas fa-eye"></i></button>
+                                    <button class="btn btn-sm" style="background:#fef3c7;color:#d97706;padding:4px 8px;" onclick="editEntry({{ item.id }},{{ item.muc_tam_trang }},'{{ (item.noi_dung or '')|e }}','{{ (item.hoat_dong or '')|e }}',{{ item.giac_ngu_diem or 3 }})" title="Sửa"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;padding:4px 8px;" onclick="deleteEntry({{ item.id }})" title="Xóa"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" style="text-align:center;color:#64748b;">Chưa có nhật ký nào. Hãy bắt đầu ghi lại tâm trạng hôm nay!</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+<!-- Modal Chi tiết nhật ký -->
+<div id="moodModal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:#fff;border-radius:18px;width:95%;max-width:440px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.2);animation:tuModalIn .3s ease-out;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;border-bottom:1px solid #f1f5f9;">
+            <h3 style="font-size:1rem;font-weight:800;margin:0;"><i class="fas fa-brain" style="color:#8b5cf6;"></i> Chi tiết nhật ký</h3>
+            <button onclick="document.getElementById('moodModal').style.display='none'" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#94a3b8;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='none'">&times;</button>
+        </div>
+        <div id="moodModalBody" style="padding:14px 20px 20px;overflow-y:auto;"></div>
+    </div>
+</div>
+</section>
+
+<style>
+.mood-btn {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-width: 72px;
+}
+.mood-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    border-color: #34d399;
+}
+.mood-btn.active {
+    background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
+    transform: translateY(-4px) scale(1.05);
+}
+.mood-btn span {
+    transition: transform 0.3s ease;
+}
+.mood-btn.active span {
+    transform: scale(1.15);
+    display: inline-block;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+let selectedMood = {{ today_entry.muc_tam_trang if today_entry else 3 }};
+
+function selectMood(level) {
+    selectedMood = level;
+    document.querySelectorAll('.mood-btn').forEach(btn => {
+        btn.classList.toggle('active', +btn.dataset.mood === level);
+    });
+}
+// Pre-select
+selectMood(selectedMood);
+
+async function saveMood() {
+    const btn = document.getElementById('saveMoodBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang phân tích...';
+    try {
+        const res = await fetch('/tien-ich/api/tam-trang', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                muc_tam_trang: selectedMood,
+                noi_dung: document.getElementById('moodContent').value,
+                hoat_dong: document.getElementById('moodActivity').value,
+                giac_ngu_diem: +document.getElementById('moodSleep').value,
+                nang_luong_diem: 3,
+            })
+        });
+        const json = await res.json();
+        if (json.success) {
+            const data = json.data;
+            // Show AI response
+            const aiBox = document.getElementById('aiResponse');
+            aiBox.style.display = 'block';
+            document.getElementById('aiSentiment').textContent = data.ai_analysis?.sentiment || '';
+            document.getElementById('aiTip').textContent = data.ai_analysis?.tip || '';
+            if (typeof showToast === 'function') showToast(`Đã lưu nhật ký! ${data.mood_emoji} ${data.mood_label}`, 'success');
+            btn.innerHTML = '<i class="fas fa-check"></i> Đã lưu!';
+            setTimeout(() => { btn.innerHTML = '<i class="fas fa-sparkles"></i> Cập nhật nhật ký'; btn.disabled = false; }, 1500);
+        } else {
+            if (typeof showToast === 'function') showToast(json.message || 'Lỗi', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-sparkles"></i> Lưu nhật ký hôm nay';
+        }
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('Lỗi kết nối', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sparkles"></i> Lưu nhật ký hôm nay';
+    }
+}
+
+async function deleteEntry(id) {
+    if (!confirm('Xóa nhật ký này?')) return;
+    const res = await fetch(`/tien-ich/api/tam-trang/${id}`, {method: 'DELETE'});
+    const json = await res.json();
+    if (json.success) {
+        const el = document.getElementById(`entry-${id}`);
+        if(el){el.style.transition='all .3s';el.style.opacity='0';setTimeout(()=>el.remove(),300);}
+        if (typeof showToast === 'function') showToast('Đã xóa nhật ký', 'success');
+    }
+}
+
+function viewDetail(id) {
+    fetch('/tien-ich/api/tam-trang?days=90').then(r=>r.json()).then(data=>{
+        var entries = data.data.entries || [];
+        var e = entries.find(x => x.id === id);
+        if (!e) { alert('Không tìm thấy'); return; }
+        var emojis = {5:'😄',4:'🙂',3:'😐',2:'😔',1:'😢'};
+        var labels = {5:'Rất vui',4:'Vui',3:'Bình thường',2:'Buồn',1:'Rất buồn'};
+        var html = '<div style="display:flex;flex-direction:column;gap:2px;">';
+        html += '<div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #f1f5f9;"><strong style="min-width:90px;color:#475569;font-size:.82rem;">Ngày:</strong><span style="font-size:.84rem;">'+e.ngay+'</span></div>';
+        html += '<div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #f1f5f9;"><strong style="min-width:90px;color:#475569;font-size:.82rem;">Tâm trạng:</strong><span style="font-size:.84rem;">'+emojis[e.muc_tam_trang]+' '+labels[e.muc_tam_trang]+' ('+e.muc_tam_trang+'/5)</span></div>';
+        html += '<div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #f1f5f9;"><strong style="min-width:90px;color:#475569;font-size:.82rem;">Nội dung:</strong><span style="font-size:.84rem;">'+(e.noi_dung||'—')+'</span></div>';
+        html += '<div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #f1f5f9;"><strong style="min-width:90px;color:#475569;font-size:.82rem;">Hoạt động:</strong><span style="font-size:.84rem;">'+(e.hoat_dong||'—')+'</span></div>';
+        html += '<div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #f1f5f9;"><strong style="min-width:90px;color:#475569;font-size:.82rem;">Giấc ngủ:</strong><span style="font-size:.84rem;">'+(e.giac_ngu_diem||'—')+'/5</span></div>';
+        html += '<div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #f1f5f9;"><strong style="min-width:90px;color:#475569;font-size:.82rem;">Năng lượng:</strong><span style="font-size:.84rem;">'+(e.nang_luong_diem||'—')+'/5</span></div>';
+        html += '<div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #f1f5f9;"><strong style="min-width:90px;color:#475569;font-size:.82rem;">AI phân tích:</strong><span style="font-size:.84rem;">'+(e.ai_phan_tich||'—')+'</span></div>';
+        html += '<div style="display:flex;gap:8px;padding:8px 0;"><strong style="min-width:90px;color:#475569;font-size:.82rem;">AI gợi ý:</strong><span style="font-size:.84rem;color:#059669;">'+(e.ai_goi_y||'—')+'</span></div>';
+        html += '</div>';
+        document.getElementById('moodModalBody').innerHTML = html;
+        document.getElementById('moodModal').style.display = 'flex';
+    });
+}
+
+function editEntry(id, mood, content, activity, sleep) {
+    selectMood(mood);
+    document.getElementById('moodContent').value = content;
+    document.getElementById('moodActivity').value = activity;
+    document.getElementById('moodSleep').value = sleep;
+    window.scrollTo({top: 0, behavior: 'smooth'});
+    document.getElementById('moodContent').focus();
+    document.getElementById('saveMoodBtn').innerHTML = '<i class="fas fa-save"></i> Cập nhật nhật ký';
+}
+
+document.getElementById('journalSearch').addEventListener('input', event => {
+    const keyword = event.target.value.toLowerCase();
+    document.querySelectorAll('#journalTable tbody tr').forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(keyword) ? '' : 'none';
+    });
+});
+
+// Chart
+{% if stats.chart_labels %}
+const ctx = document.getElementById('moodChart');
+if (ctx) {
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ stats.chart_labels | tojson }},
+            datasets: [{
+                label: 'Tâm trạng',
+                data: {{ stats.chart_values | tojson }},
+                borderColor: '#059669',
+                backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 6,
+                pointBackgroundColor: {{ stats.chart_values | tojson }}.map(v =>
+                    v >= 4 ? '#059669' : v >= 3 ? '#f59e0b' : '#ef4444'
+                ),
+                pointBorderWidth: 2,
+                pointBorderColor: '#fff',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ['😢','😔','😐','🙂','😄'][ctx.raw - 1] + ' ' + ['Rất buồn','Buồn','Bình thường','Vui','Rất vui'][ctx.raw - 1]
+                    }
+                }
+            },
+            scales: {
+                y: { min: 0.5, max: 5.5, ticks: { stepSize: 1, callback: v => ['','😢','😔','😐','🙂','😄'][v] || '' } },
+                x: { ticks: { maxRotation: 45 } }
+            }
+        }
+    });
+}
+{% endif %}
+</script>
+{% endblock %}

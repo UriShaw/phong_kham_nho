@@ -1,0 +1,234 @@
+{
+  "symptoms": [
+    {"id": "fever", "label": "Sốt", "keywords": ["sốt", "nóng người", "ớn lạnh", "lạnh run"], "specialist_hint": "Nội tổng quát"},
+    {"id": "cough", "label": "Ho", "keywords": ["ho", "ho khan", "ho đờm", "khạc đờm"], "specialist_hint": "Hô hấp"},
+    {"id": "sore_throat", "label": "Đau họng", "keywords": ["đau họng", "rát họng", "viêm họng", "khó nuốt"], "specialist_hint": "Tai Mũi Họng"},
+    {"id": "runny_nose", "label": "Sổ mũi/nghẹt mũi", "keywords": ["sổ mũi", "nghẹt mũi", "chảy mũi", "hắt hơi"], "specialist_hint": "Tai Mũi Họng"},
+    {"id": "short_breath", "label": "Khó thở", "keywords": ["khó thở", "thở hụt hơi", "thở khò khè", "tức thở"], "specialist_hint": "Hô hấp"},
+    {"id": "chest_pain", "label": "Đau ngực", "keywords": ["đau ngực", "tức ngực", "nặng ngực", "đau thắt ngực"], "specialist_hint": "Tim mạch"},
+    {"id": "palpitation", "label": "Hồi hộp/trống ngực", "keywords": ["hồi hộp", "trống ngực", "tim đập nhanh", "đánh trống ngực"], "specialist_hint": "Tim mạch"},
+    {"id": "headache", "label": "Đau đầu", "keywords": ["đau đầu", "nhức đầu", "đau nửa đầu", "đau đầu dữ dội"], "specialist_hint": "Thần kinh"},
+    {"id": "dizziness", "label": "Chóng mặt", "keywords": ["chóng mặt", "choáng", "hoa mắt", "xây xẩm"], "specialist_hint": "Nội tổng quát"},
+    {"id": "nausea", "label": "Buồn nôn", "keywords": ["buồn nôn", "nôn", "ói", "muốn ói"], "specialist_hint": "Tiêu hóa"},
+    {"id": "abdominal_pain", "label": "Đau bụng", "keywords": ["đau bụng", "đau thượng vị", "đau quanh rốn", "quặn bụng"], "specialist_hint": "Tiêu hóa"},
+    {"id": "diarrhea", "label": "Tiêu chảy", "keywords": ["tiêu chảy", "đi ngoài lỏng", "phân lỏng", "đi ngoài nhiều"], "specialist_hint": "Tiêu hóa"},
+    {"id": "constipation", "label": "Táo bón", "keywords": ["táo bón", "khó đi ngoài", "phân cứng"], "specialist_hint": "Tiêu hóa"},
+    {"id": "heartburn", "label": "Ợ nóng/ợ chua", "keywords": ["ợ nóng", "ợ chua", "trào ngược", "nóng rát thượng vị"], "specialist_hint": "Tiêu hóa"},
+    {"id": "rash", "label": "Phát ban", "keywords": ["phát ban", "nổi mẩn", "mẩn đỏ", "nổi mề đay"], "specialist_hint": "Da liễu"},
+    {"id": "itch", "label": "Ngứa", "keywords": ["ngứa", "ngứa da", "ngứa toàn thân"], "specialist_hint": "Da liễu"},
+    {"id": "acne", "label": "Mụn", "keywords": ["mụn", "mụn viêm", "mụn mủ", "mụn trứng cá"], "specialist_hint": "Da liễu"},
+    {"id": "joint_pain", "label": "Đau khớp", "keywords": ["đau khớp", "sưng khớp", "cứng khớp", "đau gối"], "specialist_hint": "Cơ xương khớp"},
+    {"id": "back_pain", "label": "Đau lưng", "keywords": ["đau lưng", "đau thắt lưng", "mỏi lưng"], "specialist_hint": "Cơ xương khớp"},
+    {"id": "fatigue", "label": "Mệt mỏi", "keywords": ["mệt mỏi", "uể oải", "kiệt sức", "mệt kéo dài"], "specialist_hint": "Nội tổng quát"},
+    {"id": "weight_loss", "label": "Sụt cân", "keywords": ["sụt cân", "giảm cân không rõ", "ốm đi"], "specialist_hint": "Nội tiết"},
+    {"id": "thirst", "label": "Khát nhiều/tiểu nhiều", "keywords": ["khát nhiều", "tiểu nhiều", "đi tiểu liên tục", "khô miệng"], "specialist_hint": "Nội tiết"},
+    {"id": "insomnia", "label": "Mất ngủ", "keywords": ["mất ngủ", "khó ngủ", "ngủ không sâu", "thức giấc nhiều"], "specialist_hint": "Thần kinh"},
+    {"id": "anxiety", "label": "Lo âu/căng thẳng", "keywords": ["lo âu", "căng thẳng", "bồn chồn", "hoảng sợ"], "specialist_hint": "Tâm lý - tâm thần"},
+    {"id": "urinary_pain", "label": "Tiểu buốt", "keywords": ["tiểu buốt", "tiểu rắt", "đau khi tiểu", "nước tiểu đục"], "specialist_hint": "Tiết niệu"},
+    {"id": "eye_red", "label": "Đỏ mắt", "keywords": ["đỏ mắt", "cộm mắt", "chảy nước mắt", "ngứa mắt"], "specialist_hint": "Mắt"},
+    {"id": "ear_pain", "label": "Đau tai", "keywords": ["đau tai", "ù tai", "chảy dịch tai"], "specialist_hint": "Tai Mũi Họng"},
+    {"id": "tooth_pain", "label": "Đau răng", "keywords": ["đau răng", "sưng nướu", "ê buốt răng"], "specialist_hint": "Răng Hàm Mặt"},
+    {"id": "menstrual_pain", "label": "Đau bụng kinh", "keywords": ["đau bụng kinh", "rối loạn kinh", "đau vùng chậu"], "specialist_hint": "Sản phụ khoa"},
+    {"id": "high_bp", "label": "Huyết áp cao", "keywords": ["huyết áp cao", "tăng huyết áp", "150/90", "160/100"], "specialist_hint": "Tim mạch"}
+  ],
+  "diseases": [
+    {
+      "id": "common_cold",
+      "name": "Cảm lạnh",
+      "description": "Nhiễm virus đường hô hấp trên, thường gây sổ mũi, ho nhẹ, đau họng.",
+      "symptoms": {"runny_nose": 2, "cough": 1.4, "sore_throat": 1.4, "fever": 0.8, "fatigue": 0.7},
+      "specialist": "Nội tổng quát hoặc Tai Mũi Họng",
+      "advice": "Nghỉ ngơi, uống đủ nước, theo dõi sốt. Khám nếu sốt cao hoặc kéo dài trên 3 ngày.",
+      "red_flags": ["khó thở", "đau ngực", "sốt cao"]
+    },
+    {
+      "id": "influenza",
+      "name": "Cúm mùa",
+      "description": "Nhiễm virus cúm, thường khởi phát nhanh với sốt, đau đầu, đau mỏi người và ho.",
+      "symptoms": {"fever": 2, "cough": 1.5, "headache": 1.2, "fatigue": 1.6, "sore_throat": 0.8},
+      "specialist": "Nội tổng quát",
+      "advice": "Nghỉ ngơi, uống nước, khám sớm nếu người già, trẻ nhỏ, thai phụ hoặc có bệnh nền.",
+      "red_flags": ["khó thở", "lơ mơ", "đau ngực"]
+    },
+    {
+      "id": "bronchitis",
+      "name": "Viêm phế quản",
+      "description": "Viêm đường dẫn khí, gây ho kéo dài, khạc đờm, có thể kèm sốt nhẹ và khò khè.",
+      "symptoms": {"cough": 2, "short_breath": 1.3, "fever": 0.8, "fatigue": 0.8, "chest_pain": 0.6},
+      "specialist": "Hô hấp",
+      "advice": "Khám hô hấp nếu ho trên 1 tuần, đờm xanh/vàng, sốt hoặc khó thở.",
+      "red_flags": ["khó thở", "đau ngực", "ho ra máu"]
+    },
+    {
+      "id": "asthma",
+      "name": "Hen phế quản",
+      "description": "Bệnh viêm mạn tính đường thở gây khò khè, khó thở từng cơn, ho về đêm.",
+      "symptoms": {"short_breath": 2, "cough": 1.3, "chest_pain": 0.8, "fatigue": 0.4},
+      "specialist": "Hô hấp",
+      "advice": "Nên khám chuyên khoa hô hấp để đo chức năng phổi và có thuốc kiểm soát.",
+      "red_flags": ["khó thở nhiều", "tím tái", "không nói được câu dài"]
+    },
+    {
+      "id": "hypertension",
+      "name": "Tăng huyết áp",
+      "description": "Huyết áp cao kéo dài làm tăng nguy cơ tim mạch, đột quỵ và bệnh thận.",
+      "symptoms": {"high_bp": 2, "headache": 0.8, "dizziness": 0.8, "chest_pain": 1, "palpitation": 0.8},
+      "specialist": "Tim mạch",
+      "advice": "Đo huyết áp nhiều lần khi nghỉ. Khám tim mạch nếu chỉ số thường xuyên từ 140/90 trở lên.",
+      "red_flags": ["đau ngực", "khó thở", "yếu liệt", "đau đầu dữ dội"]
+    },
+    {
+      "id": "angina",
+      "name": "Đau thắt ngực nghi do tim",
+      "description": "Đau/tức ngực do thiếu máu cơ tim, thường tăng khi gắng sức và giảm khi nghỉ.",
+      "symptoms": {"chest_pain": 2.2, "short_breath": 1.4, "palpitation": 1, "dizziness": 0.8, "fatigue": 0.8},
+      "specialist": "Tim mạch",
+      "advice": "Cần khám tim mạch sớm. Nếu đau ngực dữ dội, lan tay trái/hàm hoặc khó thở, đi cấp cứu.",
+      "red_flags": ["đau ngực dữ dội", "khó thở", "vã mồ hôi", "ngất"]
+    },
+    {
+      "id": "migraine",
+      "name": "Đau nửa đầu Migraine",
+      "description": "Cơn đau đầu từng đợt, có thể kèm buồn nôn, sợ ánh sáng hoặc âm thanh.",
+      "symptoms": {"headache": 2, "nausea": 1, "dizziness": 0.8, "fatigue": 0.5},
+      "specialist": "Thần kinh",
+      "advice": "Theo dõi yếu tố khởi phát, ngủ đủ. Khám thần kinh nếu đau mới xuất hiện hoặc tăng dần.",
+      "red_flags": ["đau đầu dữ dội", "yếu liệt", "co giật", "lơ mơ"]
+    },
+    {
+      "id": "gastroenteritis",
+      "name": "Viêm dạ dày ruột cấp",
+      "description": "Rối loạn tiêu hóa do virus, vi khuẩn hoặc thức ăn, gây đau bụng, tiêu chảy, nôn.",
+      "symptoms": {"abdominal_pain": 1.6, "diarrhea": 2, "nausea": 1.4, "fever": 0.8, "fatigue": 0.7},
+      "specialist": "Tiêu hóa",
+      "advice": "Bù nước điện giải, ăn nhẹ. Khám nếu tiêu chảy nhiều, sốt cao, mất nước hoặc phân máu.",
+      "red_flags": ["phân máu", "mất nước", "đau bụng dữ dội", "sốt cao"]
+    },
+    {
+      "id": "gastritis_reflux",
+      "name": "Viêm dạ dày/trào ngược",
+      "description": "Tình trạng kích ứng dạ dày hoặc trào ngược acid gây đau thượng vị, ợ nóng, buồn nôn.",
+      "symptoms": {"heartburn": 2, "abdominal_pain": 1.5, "nausea": 0.8, "fatigue": 0.4},
+      "specialist": "Tiêu hóa",
+      "advice": "Tránh ăn khuya, cà phê, rượu bia, đồ cay. Khám tiêu hóa nếu đau kéo dài.",
+      "red_flags": ["nôn ra máu", "sụt cân", "đi ngoài phân đen"]
+    },
+    {
+      "id": "ibs",
+      "name": "Hội chứng ruột kích thích",
+      "description": "Rối loạn chức năng ruột gây đau bụng tái diễn, tiêu chảy hoặc táo bón liên quan stress/thức ăn.",
+      "symptoms": {"abdominal_pain": 1.8, "diarrhea": 1, "constipation": 1, "anxiety": 0.8},
+      "specialist": "Tiêu hóa",
+      "advice": "Theo dõi thức ăn gây triệu chứng, tăng chất xơ phù hợp và khám nếu kéo dài.",
+      "red_flags": ["sụt cân", "phân máu", "sốt kéo dài"]
+    },
+    {
+      "id": "urticaria",
+      "name": "Mề đay/dị ứng da",
+      "description": "Phản ứng dị ứng gây nổi mẩn, ngứa, phù nhẹ từng mảng.",
+      "symptoms": {"rash": 2, "itch": 2, "short_breath": 0.8},
+      "specialist": "Da liễu hoặc Dị ứng",
+      "advice": "Tránh tác nhân nghi ngờ. Đi cấp cứu nếu phù môi, khó thở hoặc chóng mặt.",
+      "red_flags": ["khó thở", "phù môi", "phù mặt"]
+    },
+    {
+      "id": "acne_vulgaris",
+      "name": "Mụn trứng cá",
+      "description": "Viêm nang lông tuyến bã, thường gặp ở mặt, ngực, lưng.",
+      "symptoms": {"acne": 2, "rash": 0.8, "itch": 0.4},
+      "specialist": "Da liễu",
+      "advice": "Không tự nặn mụn viêm. Khám da liễu nếu mụn mủ, sẹo hoặc kéo dài.",
+      "red_flags": ["mụn đau nhiều", "sưng nóng đỏ lan rộng"]
+    },
+    {
+      "id": "osteoarthritis",
+      "name": "Thoái hóa khớp",
+      "description": "Mòn sụn khớp gây đau, cứng khớp, thường ở gối, háng, cột sống.",
+      "symptoms": {"joint_pain": 2, "back_pain": 0.8, "fatigue": 0.4},
+      "specialist": "Cơ xương khớp",
+      "advice": "Tập vận động nhẹ, kiểm soát cân nặng, khám nếu đau/sưng kéo dài.",
+      "red_flags": ["sưng nóng đỏ khớp", "không đi lại được"]
+    },
+    {
+      "id": "lumbar_strain",
+      "name": "Căng cơ thắt lưng",
+      "description": "Đau lưng do tư thế, bê nặng hoặc căng cơ, thường không lan xa.",
+      "symptoms": {"back_pain": 2, "joint_pain": 0.5},
+      "specialist": "Cơ xương khớp hoặc Phục hồi chức năng",
+      "advice": "Nghỉ tương đối, chườm ấm, giãn cơ nhẹ. Khám nếu tê yếu chân hoặc đau sau chấn thương.",
+      "red_flags": ["tê yếu chân", "bí tiểu", "chấn thương"]
+    },
+    {
+      "id": "diabetes_risk",
+      "name": "Nguy cơ đái tháo đường",
+      "description": "Rối loạn đường huyết có thể gây khát nhiều, tiểu nhiều, sụt cân, mệt mỏi.",
+      "symptoms": {"thirst": 2, "weight_loss": 1.5, "fatigue": 1.2, "dizziness": 0.5},
+      "specialist": "Nội tiết",
+      "advice": "Nên xét nghiệm đường huyết đói/HbA1c và khám nội tiết.",
+      "red_flags": ["lơ mơ", "nôn nhiều", "khát dữ dội"]
+    },
+    {
+      "id": "hyperthyroid_risk",
+      "name": "Nguy cơ cường giáp",
+      "description": "Tuyến giáp hoạt động quá mức có thể gây sụt cân, hồi hộp, run tay, mất ngủ.",
+      "symptoms": {"weight_loss": 1.6, "palpitation": 1.6, "insomnia": 1, "anxiety": 1, "fatigue": 0.6},
+      "specialist": "Nội tiết",
+      "advice": "Nên khám nội tiết và xét nghiệm chức năng tuyến giáp.",
+      "red_flags": ["tim đập rất nhanh", "đau ngực", "khó thở"]
+    },
+    {
+      "id": "anxiety_disorder",
+      "name": "Rối loạn lo âu",
+      "description": "Lo lắng quá mức, hồi hộp, mất ngủ, khó tập trung, có thể kèm triệu chứng cơ thể.",
+      "symptoms": {"anxiety": 2, "insomnia": 1.4, "palpitation": 1, "dizziness": 0.8, "fatigue": 0.8},
+      "specialist": "Tâm lý - tâm thần",
+      "advice": "Thử kỹ thuật thở, ngủ đúng giờ. Khám chuyên khoa nếu ảnh hưởng học tập/công việc.",
+      "red_flags": ["ý nghĩ tự hại", "hoảng loạn dữ dội"]
+    },
+    {
+      "id": "uti",
+      "name": "Nhiễm trùng tiểu",
+      "description": "Nhiễm khuẩn đường tiết niệu gây tiểu buốt, tiểu rắt, đau hạ vị, có thể sốt.",
+      "symptoms": {"urinary_pain": 2, "fever": 0.8, "abdominal_pain": 0.8, "fatigue": 0.4},
+      "specialist": "Tiết niệu",
+      "advice": "Uống đủ nước và khám tiết niệu để xét nghiệm nước tiểu, không tự dùng kháng sinh.",
+      "red_flags": ["sốt cao", "đau hông lưng", "tiểu ra máu"]
+    },
+    {
+      "id": "conjunctivitis",
+      "name": "Viêm kết mạc",
+      "description": "Viêm bề mặt mắt gây đỏ, cộm, chảy nước mắt hoặc ghèn.",
+      "symptoms": {"eye_red": 2, "itch": 0.8, "runny_nose": 0.4},
+      "specialist": "Mắt",
+      "advice": "Tránh dụi mắt, rửa tay, không dùng chung khăn. Khám mắt nếu đau hoặc giảm thị lực.",
+      "red_flags": ["đau mắt dữ dội", "giảm thị lực", "chấn thương mắt"]
+    },
+    {
+      "id": "otitis",
+      "name": "Viêm tai",
+      "description": "Viêm tai giữa/ngoài gây đau tai, ù tai, có thể chảy dịch hoặc sốt.",
+      "symptoms": {"ear_pain": 2, "fever": 0.8, "dizziness": 0.5},
+      "specialist": "Tai Mũi Họng",
+      "advice": "Khám Tai Mũi Họng nếu đau tăng, chảy dịch hoặc nghe kém.",
+      "red_flags": ["chóng mặt nhiều", "sốt cao", "đau sau tai"]
+    },
+    {
+      "id": "dental_caries",
+      "name": "Sâu răng/viêm nướu",
+      "description": "Bệnh răng miệng gây đau răng, ê buốt, sưng nướu hoặc hôi miệng.",
+      "symptoms": {"tooth_pain": 2, "headache": 0.4},
+      "specialist": "Răng Hàm Mặt",
+      "advice": "Đặt lịch nha khoa, tránh nhai bên đau và không tự dùng kháng sinh.",
+      "red_flags": ["sưng mặt", "sốt", "khó há miệng"]
+    },
+    {
+      "id": "dysmenorrhea",
+      "name": "Đau bụng kinh",
+      "description": "Đau vùng hạ vị quanh kỳ kinh, có thể kèm buồn nôn, mệt mỏi.",
+      "symptoms": {"menstrual_pain": 2, "abdominal_pain": 1, "nausea": 0.6, "fatigue": 0.5},
+      "specialist": "Sản phụ khoa",
+      "advice": "Chườm ấm, nghỉ ngơi. Khám sản phụ khoa nếu đau dữ dội, ra máu bất thường hoặc đau ngoài kỳ kinh.",
+      "red_flags": ["đau dữ dội", "ra máu nhiều", "choáng"]
+    }
+  ]
+}

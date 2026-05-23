@@ -1,0 +1,187 @@
+{% extends 'admin/layout.html' %}
+{% block title %}Quản lý tài khoản | MedPro Admin{% endblock %}
+{% set active_page = 'tai_khoan' %}
+
+{% block admin_content %}
+<div class="adm-page-header anim-up">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+            <h1><i class="fas fa-users-cog" style="color:#059669;margin-right:8px;"></i>Quản lý tài khoản</h1>
+            <p>Quản lý tất cả tài khoản admin, bác sĩ, bệnh nhân trong hệ thống.</p>
+        </div>
+        <button class="adm-btn primary" id="btnAddAccount"><i class="fas fa-plus"></i> Thêm tài khoản</button>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="adm-stats-mini anim-up" style="--delay:.05s">
+    <a href="{{ url_for('admin.quan_ly_tai_khoan') }}" class="adm-stat-mini"><i class="fas fa-layer-group" style="color:#059669;"></i><span>{{ stats.tong }}</span> Tổng</a>
+    <a href="?vai_tro=admin" class="adm-stat-mini"><i class="fas fa-crown" style="color:#8b5cf6;"></i><span>{{ stats.admin }}</span> Admin</a>
+    <a href="?vai_tro=bac_si" class="adm-stat-mini"><i class="fas fa-user-md" style="color:#059669;"></i><span>{{ stats.bac_si }}</span> Bác sĩ</a>
+    <a href="?vai_tro=benh_nhan" class="adm-stat-mini"><i class="fas fa-users" style="color:#0ea5e9;"></i><span>{{ stats.benh_nhan }}</span> Bệnh nhân</a>
+</div>
+
+<!-- Filter -->
+<div class="adm-panel anim-up" style="--delay:.1s;padding:14px 18px;">
+    <form method="GET" action="{{ url_for('admin.quan_ly_tai_khoan') }}" class="adm-toolbar" style="margin-bottom:0;">
+        <input name="q" class="adm-search" placeholder="Tìm tên, email, SĐT..." value="{{ search }}">
+        <select name="vai_tro" class="adm-select">
+            <option value="">Tất cả vai trò</option>
+            <option value="admin" {{ 'selected' if vai_tro=='admin' }}>Admin</option>
+            <option value="bac_si" {{ 'selected' if vai_tro=='bac_si' }}>Bác sĩ</option>
+            <option value="benh_nhan" {{ 'selected' if vai_tro=='benh_nhan' }}>Bệnh nhân</option>
+        </select>
+        <button type="submit" class="adm-btn primary"><i class="fas fa-search"></i> Lọc</button>
+        {% if search or vai_tro %}<a href="{{ url_for('admin.quan_ly_tai_khoan') }}" class="adm-btn blue"><i class="fas fa-times"></i> Xóa lọc</a>{% endif %}
+    </form>
+</div>
+
+<!-- Table -->
+<div class="adm-panel anim-up" style="--delay:.15s">
+    <div style="overflow-x:auto;">
+        <table class="adm-table">
+            <thead><tr>
+                <th>ID</th><th>Họ tên</th><th>Email</th><th>SĐT</th>
+                <th>Vai trò</th><th>Mã hồ sơ</th><th>Trạng thái</th><th>Ngày tạo</th>
+                <th style="text-align:right;">Thao tác</th>
+            </tr></thead>
+            <tbody>
+            {% for u in users %}
+            <tr>
+                <td><strong>#{{ u.id }}</strong></td>
+                <td style="font-weight:700;">{{ u.ho_ten }}</td>
+                <td style="color:#64748b;">{{ u.email }}</td>
+                <td>{{ u.so_dien_thoai or '-' }}</td>
+                <td>
+                    {% if u.vai_tro == 'admin' %}<span class="adm-badge blue">Admin</span>
+                    {% elif u.vai_tro == 'bac_si' %}<span class="adm-badge green">Bác sĩ</span>
+                    {% else %}<span class="adm-badge gray">Bệnh nhân</span>{% endif %}
+                </td>
+                <td style="color:#64748b;">{{ u.ma_ho_so or '-' }}{% if u.ten_chuyen_khoa %}<br><small>{{ u.ten_chuyen_khoa }}</small>{% endif %}</td>
+                <td>{% if u.trang_thai == 1 %}<span class="adm-badge green">Hoạt động</span>{% else %}<span class="adm-badge red">Đã khóa</span>{% endif %}</td>
+                <td style="color:#94a3b8;">{{ u.ngay_tao.strftime('%d/%m/%Y') if u.ngay_tao else '-' }}</td>
+                <td style="text-align:right;">
+                    <div style="display:flex;gap:4px;justify-content:flex-end;">
+                        <button class="adm-btn blue btn-edit-user" data-id="{{ u.id }}" data-ho_ten="{{ u.ho_ten }}" data-email="{{ u.email }}" data-sdt="{{ u.so_dien_thoai or '' }}" data-vai_tro="{{ u.vai_tro }}" title="Sửa"><i class="fas fa-edit"></i></button>
+                        <form method="POST" action="{{ url_for('admin.toggle_tai_khoan', user_id=u.id) }}" style="display:inline;">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="adm-btn {{ 'red' if u.trang_thai==1 else 'green' }}" title="{{ 'Khóa' if u.trang_thai==1 else 'Mở khóa' }}"><i class="fas fa-{{ 'lock' if u.trang_thai==1 else 'unlock' }}"></i></button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin.xoa_tai_khoan', user_id=u.id) }}" style="display:inline;" onsubmit="return confirm('Xóa tài khoản này?')">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="adm-btn red" title="Xóa"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="9" class="adm-empty">Không tìm thấy tài khoản nào.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total_pages > 1 %}
+    <div class="adm-paging">
+        {% if page > 1 %}<a href="?page={{ page-1 }}&q={{ search }}&vai_tro={{ vai_tro }}"><i class="fas fa-chevron-left"></i></a>{% endif %}
+        {% for p in range(1, total_pages+1) %}
+            {% if p == page %}<span class="active">{{ p }}</span>
+            {% elif (p - page)|abs <= 2 or p == 1 or p == total_pages %}<a href="?page={{ p }}&q={{ search }}&vai_tro={{ vai_tro }}">{{ p }}</a>
+            {% elif (p - page)|abs == 3 %}<span style="color:#94a3b8;">...</span>{% endif %}
+        {% endfor %}
+        {% if page < total_pages %}<a href="?page={{ page+1 }}&q={{ search }}&vai_tro={{ vai_tro }}"><i class="fas fa-chevron-right"></i></a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- MODAL THÊM -->
+<div id="addModal" class="adm-modal-bg">
+    <div class="adm-modal">
+        <button class="adm-modal-close" id="closeAddModal">&times;</button>
+        <h2><i class="fas fa-user-plus" style="color:#059669;"></i> Thêm tài khoản mới</h2>
+        <form method="POST" action="{{ url_for('admin.them_tai_khoan') }}" id="addForm">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <div class="adm-form-group"><label>Họ tên <span style="color:#dc2626;">*</span></label><input name="ho_ten" required placeholder="Nhập họ tên đầy đủ"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="adm-form-group"><label>Email <span style="color:#dc2626;">*</span></label><input name="email" type="email" required placeholder="email@example.com"></div>
+                <div class="adm-form-group"><label>Mật khẩu <span style="color:#dc2626;">*</span></label><input name="mat_khau" type="password" required placeholder="Tối thiểu 6 ký tự"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="adm-form-group"><label>Số điện thoại</label><input name="so_dien_thoai" placeholder="0xxx xxx xxx"></div>
+                <div class="adm-form-group"><label>Vai trò</label><select name="vai_tro" id="addRole"><option value="benh_nhan">Bệnh nhân</option><option value="bac_si">Bác sĩ</option><option value="admin">Admin</option></select></div>
+            </div>
+            <div id="doctorFields" style="display:none;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="adm-form-group"><label>Chuyên khoa</label><select name="chuyen_khoa_id">{% for ck in chuyen_khoa_list %}<option value="{{ ck.id }}">{{ ck.ten_chuyen_khoa }}</option>{% endfor %}</select></div>
+                    <div class="adm-form-group"><label>Bệnh viện</label><input name="benh_vien" placeholder="Tên bệnh viện"></div>
+                </div>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+                <button type="button" class="adm-btn gray" id="cancelAdd">Hủy</button>
+                <button type="submit" class="adm-btn primary"><i class="fas fa-check"></i> Tạo tài khoản</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL SỬA -->
+<div id="editModal" class="adm-modal-bg">
+    <div class="adm-modal">
+        <button class="adm-modal-close" id="closeEditModal">&times;</button>
+        <h2><i class="fas fa-user-edit" style="color:#0ea5e9;"></i> Sửa tài khoản</h2>
+        <form method="POST" id="editForm">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <div class="adm-form-group"><label>Email</label><input id="edit_email" disabled style="background:#f8fafc;"></div>
+            <div class="adm-form-group"><label>Họ tên</label><input name="ho_ten" id="edit_ho_ten"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="adm-form-group"><label>Số điện thoại</label><input name="so_dien_thoai" id="edit_sdt"></div>
+                <div class="adm-form-group"><label>Vai trò</label><select name="vai_tro" id="edit_vai_tro"><option value="benh_nhan">Bệnh nhân</option><option value="bac_si">Bác sĩ</option><option value="admin">Admin</option></select></div>
+            </div>
+            <div class="adm-form-group"><label>Đặt lại mật khẩu <small style="color:#94a3b8;">(để trống nếu không đổi)</small></label><input name="mat_khau_moi" type="password" placeholder="Nhập mật khẩu mới..."></div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+                <button type="button" class="adm-btn gray" id="cancelEdit">Hủy</button>
+                <button type="submit" class="adm-btn primary"><i class="fas fa-save"></i> Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block admin_css %}
+<style>
+.adm-stats-mini{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.adm-stat-mini{display:flex;align-items:center;gap:8px;padding:12px 18px;border-radius:12px;background:#fff;border:1px solid #f1f5f9;font-size:.8rem;color:#64748b;text-decoration:none;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.02);}
+.adm-stat-mini:hover{border-color:#d1fae5;background:#f0fdf4;}
+.adm-stat-mini span{font-size:1.2rem;font-weight:900;color:#0f172a;}
+.adm-btn.gray{background:#f1f5f9;color:#475569;}.adm-btn.gray:hover{background:#e2e8f0;}
+</style>
+{% endblock %}
+
+{% block admin_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addModal = document.getElementById('addModal');
+    const editModal = document.getElementById('editModal');
+    function show(m){m.style.display='flex';}
+    function hide(m){m.style.display='none';}
+    document.getElementById('btnAddAccount').addEventListener('click', ()=>show(addModal));
+    document.getElementById('closeAddModal').addEventListener('click', ()=>hide(addModal));
+    document.getElementById('cancelAdd').addEventListener('click', ()=>hide(addModal));
+    addModal.addEventListener('click', e=>{if(e.target===addModal)hide(addModal);});
+    document.getElementById('addRole').addEventListener('change', function(){document.getElementById('doctorFields').style.display=this.value==='bac_si'?'block':'none';});
+    document.getElementById('closeEditModal').addEventListener('click', ()=>hide(editModal));
+    document.getElementById('cancelEdit').addEventListener('click', ()=>hide(editModal));
+    editModal.addEventListener('click', e=>{if(e.target===editModal)hide(editModal);});
+    document.querySelectorAll('.btn-edit-user').forEach(btn=>{
+        btn.addEventListener('click', function(){
+            document.getElementById('editForm').action='/admin/tai-khoan/sua/'+this.dataset.id;
+            document.getElementById('edit_email').value=this.dataset.email;
+            document.getElementById('edit_ho_ten').value=this.dataset.ho_ten;
+            document.getElementById('edit_sdt').value=this.dataset.sdt;
+            document.getElementById('edit_vai_tro').value=this.dataset.vai_tro;
+            show(editModal);
+        });
+    });
+});
+</script>
+{% endblock %}

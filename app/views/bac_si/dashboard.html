@@ -1,0 +1,366 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Dashboard bác sĩ | MedPro{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon"><i class="fas fa-heartbeat"></i></div>
+            <div class="sidebar-brand-text"><h3>MedPro</h3><span>Bác sĩ</span></div>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="{{ url_for('bac_si.dashboard') }}" class="active"><i class="fas fa-th-large"></i> Tổng quan</a></li>
+            <li><a href="{{ url_for('bac_si.lich_kham') }}"><i class="fas fa-calendar-alt"></i> Lịch hẹn</a></li>
+            <li><a href="{{ url_for('bac_si.benh_nhan_cua_toi') }}"><i class="fas fa-users"></i> Bệnh nhân</a></li>
+            <li><a href="{{ url_for('bac_si.co_so_thuoc') }}"><i class="fas fa-pills"></i> Tra cứu thuốc</a></li>
+            <li><a href="{{ url_for('bac_si.thong_tin_ca_nhan') }}"><i class="fas fa-id-badge"></i> Thông tin</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.dang_xuat') }}"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div class="utility-hero-main" style="margin-bottom:20px;min-height:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;">
+                <div>
+                    <div class="utility-kicker"><i class="fas fa-user-doctor"></i> Doctor Workspace</div>
+                    <h1 class="utility-title" style="font-size:2rem;">{{ current_user.ho_ten }}</h1>
+                    <p class="utility-subtitle">Lịch hôm nay, khám bệnh, AI gợi ý và tư vấn nhanh.</p>
+                </div>
+                <div class="user-avatar-placeholder" style="width:44px;height:44px;">{{ current_user.ho_ten[0] }}</div>
+            </div>
+        </div>
+
+        <div class="metric-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:20px;">
+            <div class="metric-tile"><div class="metric-label">Tổng ca hôm nay</div><div class="metric-value">{{ thong_ke.tong }}</div></div>
+            <div class="metric-tile"><div class="metric-label">Đã hoàn thành</div><div class="metric-value">{{ thong_ke.hoan_thanh }}</div></div>
+            <div class="metric-tile"><div class="metric-label">Tổng bệnh nhân</div><div class="metric-value">{{ ho_so_stats.tong_benh_nhan }}</div></div>
+            <div class="metric-tile"><div class="metric-label">Doanh thu dự kiến</div><div class="metric-value" style="font-size:1.25rem;">{{ '{:,.0f}'.format(doanh_thu or 0) }}đ</div></div>
+        </div>
+
+        <div class="doctor-grid">
+            <div class="utility-panel">
+                <div class="utility-panel-title">
+                    <h2>Danh sách chờ</h2>
+                    <a class="btn btn-sm btn-outline" href="{{ url_for('bac_si.lich_kham') }}"><i class="fas fa-calendar"></i></a>
+                </div>
+                <div class="alert-list">
+                    {% for lich in lich_hom_nay %}
+                    <div class="alert-row {{ 'info' if lich.trang_thai == 'dang_kham' else '' }}">
+                        <i class="fas fa-user"></i>
+                        <span style="flex:1;">
+                            <strong>{{ lich.ten_benh_nhan }}</strong>
+                            <br><small>{{ lich.gio_kham }} · {{ lich.ma_benh_nhan }} · {{ lich.trang_thai }}</small>
+                            {% if lich.ly_do %}<br><small>{{ lich.ly_do }}</small>{% endif %}
+                        </span>
+                        {% if lich.trang_thai == 'cho_xac_nhan' %}
+                        <form method="POST" action="{{ url_for('bac_si.xac_nhan_lich', lich_id=lich.id) }}">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-sm btn-outline" title="Xác nhận"><i class="fas fa-check"></i></button>
+                        </form>
+                        {% endif %}
+                        {% if lich.trang_thai in ('cho_xac_nhan', 'da_xac_nhan') %}
+                        <form method="POST" action="{{ url_for('bac_si.bat_dau_kham', lich_id=lich.id) }}">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-sm btn-primary" title="Bắt đầu"><i class="fas fa-stethoscope"></i></button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="alert-row"><i class="fas fa-calendar-check"></i><span>Không có lịch hôm nay.</span></div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="utility-panel">
+                {% if lich_dang_kham %}
+                <div class="utility-panel-title">
+                    <h2>Ca đang khám</h2>
+                    <span class="badge badge-success">{{ lich_dang_kham.ma_benh_nhan }}</span>
+                </div>
+                <div class="result-band">
+                    <div class="stat-icon green"><i class="fas fa-user-injured"></i></div>
+                    <div>
+                        <div style="font-weight:900;color:#0f172a;">{{ lich_dang_kham.ten_benh_nhan }}</div>
+                        <div style="font-size:0.82rem;color:#64748b;">{{ lich_dang_kham.tuoi }} tuổi · {{ lich_dang_kham.gioi_tinh }} · {{ lich_dang_kham.ly_do or 'Chưa ghi lý do' }}</div>
+                    </div>
+                </div>
+
+                <div class="doctor-grid">
+                    <div>
+                        <div class="utility-panel-title"><h3>AI gợi ý</h3><button class="btn btn-sm btn-outline" onclick="refreshDoctorAI()"><i class="fas fa-wand-magic-sparkles"></i></button></div>
+                        <div id="doctorAiBox" class="diagnosis-result">
+                            {% if ai_goi_y and ai_goi_y.results %}
+                                {% for item in ai_goi_y.results[:3] %}
+                                <div class="mini-item">
+                                    <strong>{{ item.name }} · {{ item.confidence }}%</strong>
+                                    <span>{{ item.specialist }} · {{ item.advice }}</span>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="mini-item"><strong>Chưa có gợi ý</strong><span>Nhập triệu chứng/lý do khám để AI phân tích.</span></div>
+                            {% endif %}
+                        </div>
+                        <!-- Gợi ý thuốc theo bệnh -->
+                        <div style="margin-top:12px;">
+                            <button class="btn btn-sm btn-outline" onclick="suggestMedicine()" style="width:100%;"><i class="fas fa-pills"></i> Gợi ý thuốc theo triệu chứng</button>
+                            <div id="suggestedMeds" style="margin-top:8px;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="utility-panel-title"><h3>Chỉ số gần đây</h3><span class="badge badge-info">{{ patient_health_analysis.score }}/100</span></div>
+                        <div class="alert-list">
+                            {% for log in patient_health_logs[:4] %}
+                            <div class="alert-row">
+                                <i class="fas fa-heart-pulse"></i>
+                                <span>{{ log.ngay }} · tim {{ log.nhip_tim or '-' }} · HA {% if log.huyet_ap_tam_thu and log.huyet_ap_tam_truong %}{{ log.huyet_ap_tam_thu }}/{{ log.huyet_ap_tam_truong }}{% else %}-{% endif %}</span>
+                            </div>
+                            {% else %}
+                            <div class="alert-row"><i class="fas fa-file-medical"></i><span>Chưa có log sức khỏe.</span></div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ url_for('bac_si.hoan_thanh_kham', lich_id=lich_dang_kham.id) }}" style="margin-top:18px;">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Chẩn đoán</label>
+                            <input name="chan_doan" class="form-control" required placeholder="Nhập chẩn đoán">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Hẹn tái khám</label>
+                            <input type="date" name="hen_tai_kham" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ghi chú lâm sàng</label>
+                        <textarea name="ghi_chu_lam_sang" id="clinicalNote" class="form-control" rows="3" placeholder="Triệu chứng, khám thực thể, nhận định..."></textarea>
+                    </div>
+                    <div class="form-grid-3">
+                        <div class="form-group"><label class="form-label">Huyết áp</label><input name="huyet_ap" class="form-control" placeholder="120/80"></div>
+                        <div class="form-group"><label class="form-label">Nhịp tim</label><input name="nhip_tim" type="number" class="form-control" placeholder="72"></div>
+                        <div class="form-group"><label class="form-label">Cân nặng</label><input name="can_nang" type="number" step="0.1" class="form-control" placeholder="60"></div>
+                    </div>
+                    <div class="utility-panel-title"><h3>Đơn thuốc</h3><button type="button" class="btn btn-sm btn-outline" onclick="addMedicineRow()"><i class="fas fa-plus"></i></button></div>
+                    <div id="medicineRows">
+                        <div class="medicine-row form-grid-3" style="grid-template-columns:2fr 2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;position:relative;">
+                            <div style="position:relative;">
+                                <input class="form-control drug-search" placeholder="Tìm thuốc..." autocomplete="off" data-index="0">
+                                <input type="hidden" name="ten_thuoc[]">
+                                <div class="drug-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e2e8f0;border-radius:10px;max-height:200px;overflow-y:auto;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,0.12);"></div>
+                            </div>
+                            <input name="lieu_dung[]" class="form-control" placeholder="Liều dùng">
+                            <input name="so_luong[]" type="number" class="form-control" value="1">
+                            <input name="don_vi[]" class="form-control" value="viên">
+                            <span></span>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top:8px;">
+                        <input name="ghi_chu_thuoc" class="form-control" placeholder="Ghi chú đơn thuốc (không bắt buộc)">
+                    </div>
+                    <button class="btn btn-primary btn-lg btn-block" type="submit"><i class="fas fa-check-circle"></i> Hoàn thành khám</button>
+                </form>
+
+                <div class="utility-panel-title" style="margin-top:20px;"><h3>Tư vấn nhanh</h3></div>
+                <div class="chat-box">
+                    <div class="chat-messages" id="chatMessages">
+                        {% for msg in consultation_messages %}
+                        <div class="chat-message {{ 'mine' if msg.nguoi_gui == 'bac_si' else '' }}">{{ msg.noi_dung }}</div>
+                        {% else %}
+                        <div class="chat-message">Chưa có tin nhắn tư vấn.</div>
+                        {% endfor %}
+                    </div>
+                    <div class="chat-input">
+                        <input id="chatInput" class="form-control" placeholder="Nhập tư vấn cho bệnh nhân...">
+                        <button class="btn btn-primary" onclick="sendConsultation()"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+                {% else %}
+                <div style="text-align:center;padding:70px 20px;">
+                    <div class="stat-icon green" style="margin:0 auto 14px;"><i class="fas fa-stethoscope"></i></div>
+                    <h3 style="font-weight:800;color:#0f172a;">Chưa có ca đang khám</h3>
+                    <p style="color:#64748b;margin-top:6px;">Chọn một bệnh nhân từ danh sách chờ để bắt đầu.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if lich_dang_kham %}
+<script>
+const currentAppointmentId = {{ lich_dang_kham.id }};
+const initialSymptomText = {{ (lich_dang_kham.trieu_chung or lich_dang_kham.ly_do or '') | tojson }};
+
+async function refreshDoctorAI() {
+    const text = document.getElementById('clinicalNote').value || initialSymptomText;
+    const response = await fetch('/bac-si/api/ai-goi-y', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({trieu_chung_text: text})
+    });
+    const json = await response.json();
+    if (!json.success) {
+        showToast(json.message || 'Không tạo được gợi ý AI', 'error');
+        return;
+    }
+    const results = json.data.results || [];
+    document.getElementById('doctorAiBox').innerHTML = results.length ? results.slice(0, 3).map(item => `
+        <div class="mini-item"><strong>${item.name} · ${item.confidence}%</strong><span>${item.specialist} · ${item.advice}</span></div>
+    `).join('') : '<div class="mini-item"><strong>Chưa đủ dữ liệu</strong><span>Nhập thêm triệu chứng.</span></div>';
+}
+
+// Gợi ý thuốc theo triệu chứng
+async function suggestMedicine() {
+    const text = document.getElementById('clinicalNote').value || initialSymptomText;
+    if (!text || text.length < 2) {
+        showToast('Vui lòng nhập triệu chứng/chẩn đoán trước.', 'warning');
+        return;
+    }
+    const container = document.getElementById('suggestedMeds');
+    container.innerHTML = '<div style="text-align:center;padding:8px;color:#64748b;font-size:0.85rem;">Đang tìm...</div>';
+    try {
+        const res = await fetch(`/bac-si/api/thuoc-theo-benh?chan_doan=${encodeURIComponent(text)}`);
+        const json = await res.json();
+        const items = json.data?.items || [];
+        if (!items.length) {
+            container.innerHTML = '<div style="padding:8px;color:#94a3b8;font-size:0.82rem;">Không tìm thấy thuốc phù hợp.</div>';
+            return;
+        }
+        container.innerHTML = '<div style="max-height:200px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:10px;">' +
+            items.slice(0, 10).map(d => `
+            <div style="padding:8px 14px;border-bottom:1px solid #f1f5f9;cursor:pointer;font-size:0.85rem;"
+                 onclick="pickSuggestedMed('${(d.ten_thuoc||'').replace(/'/g,"\\'")}','${(d.lieu_dung_mau||'').replace(/'/g,"\\'")}','${(d.don_vi||'viên').replace(/'/g,"\\'")}')"
+                 onmouseover="this.style.background='#ecfdf5'" onmouseout="this.style.background='#fff'">
+                <strong>${d.ten_thuoc}</strong><br>
+                <small style="color:#64748b;">${d.nhom_thuoc||''} · ${d.hoat_chat||''} · ${d.ham_luong||''}</small>
+            </div>
+        `).join('') + '</div>';
+    } catch(e) {
+        container.innerHTML = '<div style="padding:8px;color:#ef4444;font-size:0.82rem;">Lỗi tìm thuốc.</div>';
+    }
+}
+
+function pickSuggestedMed(name, dose, unit) {
+    const rows = document.querySelectorAll('.medicine-row');
+    let emptyRow = null;
+    rows.forEach(row => {
+        const hidden = row.querySelector('input[name="ten_thuoc[]"]');
+        if (hidden && !hidden.value) emptyRow = row;
+    });
+    if (!emptyRow) {
+        addMedicineRow();
+        emptyRow = document.querySelectorAll('.medicine-row');
+        emptyRow = emptyRow[emptyRow.length - 1];
+    }
+    const search = emptyRow.querySelector('.drug-search');
+    const hidden = emptyRow.querySelector('input[name="ten_thuoc[]"]');
+    const lieuInput = emptyRow.querySelector('input[name="lieu_dung[]"]');
+    const donViInput = emptyRow.querySelector('input[name="don_vi[]"]');
+    if (search) search.value = name;
+    if (hidden) hidden.value = name;
+    if (lieuInput && dose) lieuInput.value = dose;
+    if (donViInput && unit) donViInput.value = unit;
+    document.getElementById('suggestedMeds').innerHTML = '';
+}
+
+let drugRowIndex = 1;
+
+function addMedicineRow() {
+    const row = document.createElement('div');
+    row.className = 'medicine-row form-grid-3';
+    row.style.cssText = 'grid-template-columns:2fr 2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;position:relative;';
+    row.innerHTML = `
+        <div style="position:relative;">
+            <input class="form-control drug-search" placeholder="Tìm thuốc..." autocomplete="off" data-index="${drugRowIndex}">
+            <input type="hidden" name="ten_thuoc[]">
+            <div class="drug-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e2e8f0;border-radius:10px;max-height:200px;overflow-y:auto;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,0.12);"></div>
+        </div>
+        <input name="lieu_dung[]" class="form-control" placeholder="Liều dùng">
+        <input name="so_luong[]" type="number" class="form-control" value="1">
+        <input name="don_vi[]" class="form-control" value="viên">
+        <button type="button" class="btn btn-sm" style="background:#fee2e2;color:#dc2626;" onclick="this.closest('.medicine-row').remove()"><i class="fas fa-trash"></i></button>
+    `;
+    document.getElementById('medicineRows').appendChild(row);
+    initDrugSearch(row.querySelector('.drug-search'));
+    drugRowIndex++;
+}
+
+function initDrugSearch(input) {
+    let debounceTimer;
+    const container = input.closest('div');
+    const hiddenInput = container.querySelector('input[type="hidden"]');
+    const dropdown = container.querySelector('.drug-dropdown');
+
+    input.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        const q = input.value.trim();
+        hiddenInput.value = q;
+        if (q.length < 2) { dropdown.style.display = 'none'; return; }
+        debounceTimer = setTimeout(async () => {
+            const res = await fetch(`/bac-si/api/search-thuoc?q=${encodeURIComponent(q)}`);
+            const json = await res.json();
+            const items = json.data?.items || [];
+            if (!items.length) { dropdown.style.display = 'none'; return; }
+            dropdown.innerHTML = items.map(d => `
+                <div style="padding:8px 14px;cursor:pointer;border-bottom:1px solid #f1f5f9;font-size:0.88rem;" 
+                     onmouseover="this.style.background='#ecfdf5'" onmouseout="this.style.background='#fff'"
+                     data-name="${d.ten_thuoc}" data-dose="${d.lieu_dung_mau||''}" data-unit="${d.don_vi||'viên'}">
+                    <strong>${d.ten_thuoc}</strong><br>
+                    <small style="color:#64748b;">${d.nhom_thuoc} · ${d.hoat_chat}</small>
+                </div>
+            `).join('');
+            dropdown.style.display = 'block';
+            dropdown.querySelectorAll('div').forEach(item => {
+                item.addEventListener('click', () => {
+                    input.value = item.dataset.name;
+                    hiddenInput.value = item.dataset.name;
+                    const row = input.closest('.medicine-row');
+                    if (row) {
+                        const lieuInput = row.querySelector('input[name="lieu_dung[]"]');
+                        const donViInput = row.querySelector('input[name="don_vi[]"]');
+                        if (lieuInput && item.dataset.dose) lieuInput.value = item.dataset.dose;
+                        if (donViInput && item.dataset.unit) donViInput.value = item.dataset.unit;
+                    }
+                    dropdown.style.display = 'none';
+                });
+            });
+        }, 300);
+    });
+
+    input.addEventListener('blur', () => setTimeout(() => dropdown.style.display = 'none', 200));
+}
+
+// Init existing search inputs
+document.querySelectorAll('.drug-search').forEach(initDrugSearch);
+
+async function sendConsultation() {
+    const input = document.getElementById('chatInput');
+    const content = input.value.trim();
+    if (!content) return;
+    const response = await fetch('/bac-si/api/tu-van', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({lich_kham_id: currentAppointmentId, noi_dung: content})
+    });
+    const json = await response.json();
+    if (json.success) {
+        const div = document.createElement('div');
+        div.className = 'chat-message mine';
+        div.textContent = content;
+        document.getElementById('chatMessages').appendChild(div);
+        input.value = '';
+    } else {
+        showToast(json.message || 'Không lưu được tin nhắn', 'error');
+    }
+}
+</script>
+{% endif %}
+{% endblock %}
