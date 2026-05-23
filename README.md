@@ -202,4 +202,4 @@ Các API mới cũng tự gọi `UtilitySchemaService.ensure()` để tạo bả
 
 ---
 
-**© 2026 MedPro Clone** - Đồ án Phần Mềm Quản Lý Dịch Vụ Chăm Sóc Sức Khỏe
+**© 2026 MedPro ** - Đồ án Phần Mềm Quản Lý Dịch Vụ Chăm Sóc Sức Khỏe
