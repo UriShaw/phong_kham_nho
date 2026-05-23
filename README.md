@@ -35,7 +35,7 @@ Hệ thống đặt lịch khám bệnh trực tuyến tương tự MedPro / Boo
 ### 💳 Thanh toán QR
 - Tạo mã QR tự động qua VietQR API
 - Ngân hàng: MB Bank
-- STK: 0965117393 - NGUYEN QUOC ANH
+- STK: 09xxxxx393 - NGUYEN xxx xxx
 
 ---
 
@@ -202,4 +202,4 @@ Các API mới cũng tự gọi `UtilitySchemaService.ensure()` để tạo bả
 
 ---
 
-**© 2024 MedPro Clone** - Đồ án Phần Mềm Quản Lý Dịch Vụ Chăm Sóc Sức Khỏe
+**© 2026 MedPro Clone** - Đồ án Phần Mềm Quản Lý Dịch Vụ Chăm Sóc Sức Khỏe
